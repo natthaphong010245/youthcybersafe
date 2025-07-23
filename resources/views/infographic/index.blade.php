@@ -1,3 +1,4 @@
+{{-- resources/views/infographic/index.blade.php --}}
 @extends('layouts.main_category')
 
 @section('content')

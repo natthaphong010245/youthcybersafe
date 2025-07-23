@@ -23,15 +23,15 @@
                         <div class="flex flex-col items-center">
                             <div class="flex justify-center mb-4">
                                 @if ($stressScore <= 7)
-                                    <div class="text-8xl">😊</div>
+                                    <img src="{{ asset('images/mental_health/normal.png') }}" alt="Normal" class="w-32 h-32 object-contain">
                                 @elseif ($stressScore <= 9)
-                                    <div class="text-8xl">🙂</div>
+                                    <img src="{{ asset('images/mental_health/mild.png') }}" alt="Mild" class="w-32 h-32 object-contain">
                                 @elseif($stressScore <= 12)
-                                    <div class="text-8xl">😐</div>
+                                    <img src="{{ asset('images/mental_health/moderate.png') }}" alt="Moderate" class="w-32 h-32 object-contain">
                                 @elseif($stressScore <= 16)
-                                    <div class="text-8xl">😟</div>
+                                    <img src="{{ asset('images/mental_health/severe.png') }}" alt="Severe" class="w-32 h-32 object-contain">
                                 @else
-                                    <div class="text-8xl">😥</div>
+                                    <img src="{{ asset('images/mental_health/very_severe.png') }}" alt="Very Severe" class="w-32 h-32 object-contain">
                                 @endif
                             </div>
                             
@@ -81,15 +81,15 @@
                         <div class="flex flex-col items-center">
                             <div class="flex justify-center mb-4">
                                 @if ($anxietyScore <= 3)
-                                    <div class="text-8xl">😊</div>
+                                    <img src="{{ asset('images/mental_health/normal.png') }}" alt="Normal" class="w-32 h-32 object-contain">
                                 @elseif ($anxietyScore <= 5)
-                                    <div class="text-8xl">🙂</div>
+                                    <img src="{{ asset('images/mental_health/mild.png') }}" alt="Mild" class="w-32 h-32 object-contain">
                                 @elseif($anxietyScore <= 7)
-                                    <div class="text-8xl">😐</div>
+                                    <img src="{{ asset('images/mental_health/moderate.png') }}" alt="Moderate" class="w-32 h-32 object-contain">
                                 @elseif($anxietyScore <= 9)
-                                    <div class="text-8xl">😟</div>
+                                    <img src="{{ asset('images/mental_health/severe.png') }}" alt="Severe" class="w-32 h-32 object-contain">
                                 @else
-                                    <div class="text-8xl">😥</div>
+                                    <img src="{{ asset('images/mental_health/very_severe.png') }}" alt="Very Severe" class="w-32 h-32 object-contain">
                                 @endif
                             </div>
                             
@@ -139,15 +139,15 @@
                         <div class="flex flex-col items-center">
                             <div class="flex justify-center mb-4">
                                 @if ($depressionScore <= 4)
-                                    <div class="text-8xl">😊</div>
+                                    <img src="{{ asset('images/mental_health/normal.png') }}" alt="Normal" class="w-32 h-32 object-contain">
                                 @elseif ($depressionScore <= 6)
-                                    <div class="text-8xl">🙂</div>
+                                    <img src="{{ asset('images/mental_health/mild.png') }}" alt="Mild" class="w-32 h-32 object-contain">
                                 @elseif($depressionScore <= 10)
-                                    <div class="text-8xl">😐</div>
+                                    <img src="{{ asset('images/mental_health/moderate.png') }}" alt="Moderate" class="w-32 h-32 object-contain">
                                 @elseif($depressionScore <= 13)
-                                    <div class="text-8xl">😟</div>
+                                    <img src="{{ asset('images/mental_health/severe.png') }}" alt="Severe" class="w-32 h-32 object-contain">
                                 @else
-                                    <div class="text-8xl">😥</div>
+                                    <img src="{{ asset('images/mental_health/very_severe.png') }}" alt="Very Severe" class="w-32 h-32 object-contain">
                                 @endif
                             </div>
                             

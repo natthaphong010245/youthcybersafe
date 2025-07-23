@@ -15,12 +15,14 @@
             <div class="flex flex-col items-center">
                 <div class="flex justify-center mb-4">
                     @if ($score == 0)
-                        <div class="text-8xl">😊</div>
+                        <img src="{{ asset('images/mental_health/normal.png') }}" alt="Normal"
+                            class="w-32 h-32 object-contain">
                     @else
-                        <div class="text-8xl">😟</div>
+                        <img src="{{ asset('images/mental_health/severe.png') }}" alt="Severe"
+                            class="w-32 h-32 object-contain">
                     @endif
                 </div>
-                
+
                 <div class="mb-8 text-center">
                     <p class="text-xl font-medium text-gray-700">คะแนนของคุณ</p>
                     <p class="text-4xl font-bold text-[#3E36AE] mt-2">{{ $score }} / 36</p>
@@ -55,7 +57,8 @@
         </div>
         <div class="border-b border-gray-300"></div>
         <div class="flex justify-center mt-6">
-            <a href="{{ route('main') }}" class="text-lg px-6 py-2 rounded-xl text-white font-medium shadow-md bg-[#c0c0c0] transition-all duration-300 hover:bg-gray-400">
+            <a href="{{ route('main') }}"
+                class="text-lg px-6 py-2 rounded-xl text-white font-medium shadow-md bg-[#c0c0c0] transition-all duration-300 hover:bg-gray-400">
                 หน้าหลัก
             </a>
         </div>

@@ -1,9 +1,9 @@
+{{-- resources/views/infographic/slideshow.blade.php --}}
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape">
-    <meta name="screen-orientation" content="landscape">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <title>{{ $topic['title'] }}</title>
     <link rel="icon" href="{{ asset('images/logo.png') }}">
@@ -14,19 +14,8 @@
             background: linear-gradient(to bottom, #E5C8F6 0%, #929AFF 100%);
             overflow: hidden;
             font-family: 'K2D', sans-serif;
-        }
-        
-        @media screen and (orientation: portrait) {
-            html {
-                transform: rotate(90deg);
-                transform-origin: left top;
-                width: 100vh;
-                height: 100vw;
-                overflow-x: hidden;
-                position: absolute;
-                top: 100%;
-                left: 0;
-            }
+            margin: 0;
+            padding: 0;
         }
         
         .slide-container {
@@ -34,20 +23,51 @@
             width: 100vw;
             height: 100vh;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: center;
-            padding: 10px 20px 60px 20px;
+            padding: 60px 20px 80px 20px;
+            box-sizing: border-box;
         }
         
         .slide-image {
             max-width: 95vw;
-            max-height: 85vh;
+            max-height: 75vh;
+            width: auto;
+            height: auto;
             object-fit: contain;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             background: white;
             padding: 10px;
-            margin-top: 10px;
+            box-sizing: border-box;
+        }
+        
+        /* เพิ่ม responsive design สำหรับแนวตั้ง */
+        @media screen and (orientation: portrait) {
+            .slide-container {
+                padding: 40px 15px 100px 15px;
+            }
+            
+            .slide-image {
+                max-width: 90vw;
+                max-height: 80vh;
+            }
+            
+            .navigation-area {
+                width: 45% !important;
+            }
+        }
+        
+        /* เพิ่ม responsive design สำหรับแนวนอน */
+        @media screen and (orientation: landscape) {
+            .slide-container {
+                padding: 40px 20px 70px 20px;
+            }
+            
+            .slide-image {
+                max-width: 85vw;
+                max-height: 80vh;
+            }
         }
         
         .navigation-area {
@@ -57,6 +77,9 @@
             height: 100%;
             z-index: 10;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .nav-left {
@@ -69,24 +92,25 @@
         
         .progress-dots {
             position: fixed;
-            bottom: 10px;
+            bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 6px;
+            gap: 8px;
             z-index: 20;
             background: rgba(255, 255, 255, 0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 10px 18px;
+            border-radius: 25px;
             backdrop-filter: blur(10px);
         }
         
         .progress-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background-color: rgba(255, 255, 255, 0.5);
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         
         .progress-dot.active {
@@ -94,14 +118,18 @@
             transform: scale(1.3);
         }
         
+        .progress-dot:hover {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        
         .close-button {
             position: fixed;
-            top: 15px;
-            right: 15px;
+            top: 20px;
+            right: 20px;
             z-index: 30;
             background: rgba(255, 255, 255, 0.9);
             border-radius: 50%;
-            padding: 8px;
+            padding: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -114,24 +142,6 @@
         
         .close-button svg {
             color: #666;
-        }
-        
-        .title-overlay {
-            position: fixed;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 25;
-            background: rgba(255, 255, 255, 0.95);
-            color: #3E36AE;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            max-width: 80vw;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
         }
         
         .slide-transition {
@@ -155,18 +165,34 @@
             0% { transform: translate(-50%, -50%) rotate(0deg); }
             100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
-
-        .slide-counter {
-            position: fixed;
-            top: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 25;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 15px;
-            font-size: 14px;
+        
+        /* ปรับปรุงสำหรับหน้าจอขนาดเล็ก */
+        @media screen and (max-width: 480px) {
+            .slide-container {
+                padding: 30px 10px 90px 10px;
+            }
+            
+            .slide-image {
+                max-width: 95vw;
+                padding: 8px;
+            }
+            
+            .close-button {
+                top: 15px;
+                right: 15px;
+                padding: 8px;
+            }
+            
+            .progress-dots {
+                bottom: 10px;
+                padding: 8px 14px;
+                gap: 6px;
+            }
+            
+            .progress-dot {
+                width: 6px;
+                height: 6px;
+            }
         }
     </style>
 </head>
@@ -206,16 +232,7 @@
         const loadingSpinner = document.getElementById('loading-spinner');
         const dots = document.querySelectorAll('.progress-dot');
 
-        function requestLandscape() {
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(function(error) {
-                    console.log('Orientation lock failed:', error);
-                });
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', function() {
-            requestLandscape();
             if (images.length > 0) {
                 loadSlide(0);
             }
@@ -269,6 +286,7 @@
             window.history.back();
         }
 
+        // Keyboard navigation
         document.addEventListener('keydown', function(e) {
             switch(e.key) {
                 case 'ArrowLeft':
@@ -283,17 +301,18 @@
             }
         });
 
+        // Touch/Swipe navigation
         let touchStartX = 0;
         let touchEndX = 0;
 
         document.addEventListener('touchstart', function(e) {
             touchStartX = e.changedTouches[0].screenX;
-        });
+        }, { passive: true });
 
         document.addEventListener('touchend', function(e) {
             touchEndX = e.changedTouches[0].screenX;
             handleSwipe();
-        });
+        }, { passive: true });
 
         function handleSwipe() {
             const swipeThreshold = 50;
@@ -308,16 +327,19 @@
             }
         }
 
+        // Dot navigation
         dots.forEach((dot, index) => {
             dot.addEventListener('click', function() {
                 loadSlide(index);
             });
         });
 
+        // Prevent context menu
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
         });
 
+        // Auto-hide cursor
         let cursorTimeout;
         document.addEventListener('mousemove', function() {
             document.body.style.cursor = 'default';
@@ -325,6 +347,18 @@
             cursorTimeout = setTimeout(() => {
                 document.body.style.cursor = 'none';
             }, 3000);
+        });
+
+        // Handle orientation changes smoothly
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                // Refresh image display after orientation change
+                const currentSrc = slideImage.src;
+                slideImage.style.opacity = '0';
+                setTimeout(() => {
+                    slideImage.style.opacity = '1';
+                }, 100);
+            }, 100);
         });
     </script>
 </body>
