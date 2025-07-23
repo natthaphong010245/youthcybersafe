@@ -34,7 +34,7 @@
                     '10.เคยพบว่ามีผู้อื่น โพสต์ แชร์ หรือส่ง สิ่งที่หยาบคาย หรือ ทำให้คุณอับอายภายในอินเทอร์เน็ต',
                     '11.เคยได้รับข้อความที่ทำให้เสียใจผ่านทางอินเตอร์เน็ต',
                     '12.เคยพบว่ามี รูปภาพหรือวีดีโอ ที่ทำให้คุณอับอายหรือไม่อยากให้คนอื่นเห็น ถูกโพสต์ แชร์ หรือกระจายอยู่ภายในอินเทอร์เน็ต',
-                    '13.เคยได้รับความคิดเห็นที่ทำให้คุณเสียใจ เกี่ยวกับรูปภาพหรือวีดีโอของคุณภายในอินเทอร์เน็ต',
+                    '13.เคยได้รับความคิดเห็นที่ทำให้คุณเสียใจ เกี่ยวกับรูปภาพหรือวีดิโอของคุณภายในอินเทอร์เน็ต',
                     '14.เคยถูกกีดกันหรือตัดออกจากกลุ่มในอินเทอร์เน็ตโดยเจตนา (เช่น ถูกบล็อกออกจากกลุ่มแชท หรือเพื่อนตั้งห้องแชทใหม่โดยไม่เชิญคุณเข้า)',
                     '15.เคยพบว่ามีการโพสต์ แชร์ หรือส่งต่อ ข้อมูลส่วนตัวที่คุณไม่ได้อยากเปิดเผย',
                     '16.เคยพบว่าถูกนินทาหรือถูกกระจายข่าวลือเกี่ยวกับคุณในอินเทอร์เน็ต',
@@ -60,7 +60,7 @@
             @foreach ($questions as $index => $question)
                 @php $questionNumber = $index + 1; @endphp
                 <div class="mb-4 question-container" id="question-container-{{ $questionNumber }}">
-                    <p class="text-gray-400 mb-4 question-title" id="question-title-{{ $questionNumber }}">
+                    <p class="text-gray-600 mb-4 question-title font-semibold" id="question-title-{{ $questionNumber }}">
                         {{ $question }}</p>
                     <div class="flex justify-between">
                         @foreach ($options as $option)
@@ -69,14 +69,14 @@
                                 <div class="flex items-center justify-center h-8">
                                     <input type="radio" name="question{{ $questionNumber }}"
                                         value="{{ $option['value'] }}" 
-                                        class="{{ $option['size'] }} border-2 border-gray-300 rounded-full bg-white cursor-pointer transition-all duration-200 radio-option"
+                                        class="{{ $option['size'] }} border-2 border-gray-500 rounded-full bg-white cursor-pointer transition-all duration-200 radio-option"
                                         style="appearance: none; -webkit-appearance: none; -moz-appearance: none;"
                                         data-question="{{ $questionNumber }}"
-                                        onchange="this.style.backgroundColor='#3E36AE'; this.style.borderColor='#3E36AE'; this.style.boxShadow='inset 0 0 0 2px white';"
-                                        onmouseover="if(!this.checked) this.style.borderColor='#3E36AE';"
+                                        onchange="this.style.backgroundColor='#756EDE'; this.style.borderColor='#756EDE'; this.style.boxShadow='inset 0 0 0 2px white';"
+                                        onmouseover="if(!this.checked) this.style.borderColor='#756EDE';"
                                         onmouseout="if(!this.checked) this.style.borderColor='#d1d5db';">
                                 </div>
-                                <span class="text-xs text-gray-400 mt-1 option-text text-center">{{ $option['text'] }}</span>
+                                <span class="text-xs text-gray-600 mt-2 option-text text-center">{{ $option['text'] }}</span>
                             </label>
                         @endforeach
                     </div>

@@ -51,7 +51,7 @@
             @foreach ($questions as $index => $question)
                 @php $questionNumber = $index + 1; @endphp
                 <div class="mb-4 question-container" id="question-container-{{ $questionNumber }}">
-                    <p class="text-gray-400 mb-4 question-title" id="question-title-{{ $questionNumber }}">
+                    <p class="text-gray-600 mb-4 question-title font-semibold" id="question-title-{{ $questionNumber }}">
                         {{ $question }}</p>
                     <div class="flex justify-between">
                         @foreach ($options as $option)
@@ -60,14 +60,14 @@
                                 <div class="flex items-center justify-center h-8">
                                     <input type="radio" name="question{{ $questionNumber }}"
                                         value="{{ $option['value'] }}" 
-                                        class="{{ $option['size'] }} border-2 border-gray-300 rounded-full bg-white cursor-pointer transition-all duration-200 radio-option"
+                                        class="{{ $option['size'] }} border-2 border-gray-500 rounded-full bg-white cursor-pointer transition-all duration-200 radio-option"
                                         style="appearance: none; -webkit-appearance: none; -moz-appearance: none;"
                                         data-question="{{ $questionNumber }}"
-                                        onchange="this.style.backgroundColor='#3E36AE'; this.style.borderColor='#3E36AE'; this.style.boxShadow='inset 0 0 0 2px white';"
-                                        onmouseover="if(!this.checked) this.style.borderColor='#3E36AE';"
+                                        onchange="this.style.backgroundColor='#756EDE'; this.style.borderColor='#756EDE'; this.style.boxShadow='inset 0 0 0 2px white';"
+                                        onmouseover="if(!this.checked) this.style.borderColor='#756EDE';"
                                         onmouseout="if(!this.checked) this.style.borderColor='#d1d5db';">
                                 </div>
-                                <span class="text-xs text-gray-400 mt-1 option-text text-center">{{ $option['text'] }}</span>
+                                <span class="text-xs text-gray-600 mt-2 option-text text-center">{{ $option['text'] }}</span>
                             </label>
                         @endforeach
                     </div>

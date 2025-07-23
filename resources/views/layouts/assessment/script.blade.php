@@ -112,8 +112,8 @@ function initializeQuestionnaireForm(form) {
             });
             
             radioElement.checked = true;
-            radioElement.style.backgroundColor = '#3E36AE';
-            radioElement.style.borderColor = '#3E36AE';
+            radioElement.style.backgroundColor = '#756EDE';
+            radioElement.style.borderColor = '#756EDE';
             radioElement.style.boxShadow = 'inset 0 0 0 2px white';
             
             const allOptions = questionContainer.querySelectorAll('.option-container');
@@ -128,8 +128,8 @@ function initializeQuestionnaireForm(form) {
         
         const questionTitle = document.getElementById(`question-title-${questionNumber}`);
         if (questionTitle) {
-            questionTitle.style.color = '#4b5563';
-            questionTitle.style.fontWeight = '600';
+            questionTitle.style.color = '#9ca3af';
+            questionTitle.style.fontWeight = '400';
             
             const asterisk = questionTitle.querySelector('.required-asterisk');
             if (asterisk) {
@@ -140,7 +140,7 @@ function initializeQuestionnaireForm(form) {
         const allOptionTexts = questionContainer.querySelectorAll('.option-text');
         allOptionTexts.forEach(optionText => {
             if (optionText) {
-                optionText.style.color = '#4b5563'; 
+                optionText.style.color = '#9ca3af'; 
             }
         });
         

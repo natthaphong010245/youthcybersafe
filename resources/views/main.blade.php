@@ -32,7 +32,7 @@
             [
                 'route' => 'main_game',
                 'title' => 'CYBERBULLYING',
-                'subtitle' => 'GAME & SCENARIO',
+                'subtitle' => 'เกม & สถานการณ์',
                 'image' => 'game.jpg',
                 'alt' => 'Game',
                 'type' => 'normal'
@@ -40,7 +40,7 @@
             [
                 'route' => 'report&consultation',
                 'title' => 'CYBERBULLYING',
-                'subtitle' => 'รายงาน ขอคำปรึกษา',
+                'subtitle' => 'รายงาน & ขอคำปรึกษา',
                 'image' => 'เเบบสอบถาม.jpg',
                 'alt' => 'สุขภาพจิต',
                 'type' => 'normal'
