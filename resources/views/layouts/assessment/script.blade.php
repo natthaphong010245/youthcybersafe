@@ -129,7 +129,7 @@ function initializeQuestionnaireForm(form) {
         const questionTitle = document.getElementById(`question-title-${questionNumber}`);
         if (questionTitle) {
             questionTitle.style.color = '#9ca3af';
-            questionTitle.style.fontWeight = '400';
+            
             
             const asterisk = questionTitle.querySelector('.required-asterisk');
             if (asterisk) {
