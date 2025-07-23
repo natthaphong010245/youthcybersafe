@@ -6,7 +6,7 @@
                 <img src="{{ asset($image) }}" alt="{{ $alt }}" class="w-[auto] h-[110px] object-contain">
             </div>
             <div class="text-center mt-4">
-                <div class="text-white font-median mb-1 text-2xl tracking-wider">{{ $name }}</div>
+                <div class="text-white font-median mb-1 text-xl tracking-wider">{{ $name }}</div>
             </div>
         </div>
     </button>
@@ -17,7 +17,7 @@
                 <img src="{{ asset($image) }}" alt="{{ $alt }}" class="w-[auto] h-[110px] object-contain">
             </div>
             <div class="text-center mt-4">
-                <div class="text-white font-median mb-1 text-2xl tracking-wider">{{ $name }}</div>
+                <div class="text-white font-median mb-1 text-xl tracking-wider">{{ $name }}</div>
             </div>
         </div>
     </a>
