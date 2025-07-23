@@ -11,6 +11,18 @@
         </div>
 
         <div class="relative overflow-hidden rounded-lg mt-8 flex-grow">
+            <button id="prev-arrow" class="absolute left-2 top-1/3 transform -translate-y-1/2 z-10 w-10 h-10 bg-white bg-opacity-80 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:bg-opacity-100">
+                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            
+            <button id="next-arrow" class="absolute right-2 top-1/3 transform -translate-y-1/2 z-10 w-10 h-10 bg-white bg-opacity-80 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:bg-opacity-100">
+                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+
             <div class="swiper-container flex transition-transform duration-300 ease-in-out" id="result-carousel">
 
                 <div class="swiper-slide w-full flex-shrink-0 px-2">
@@ -22,9 +34,11 @@
                         <div class="flex flex-col items-center">
                             <div class="flex justify-center mb-4">
                                 @if ($personActionScore == 0)
-                                    <div class="text-8xl">😊</div>
+                                    <img src="{{ asset('images/mental_health/normal.png') }}" alt="Normal"
+                                        class="w-32 h-32 object-contain">
                                 @else
-                                    <div class="text-8xl">😟</div>
+                                    <img src="{{ asset('images/mental_health/severe.png') }}" alt="Severe"
+                                        class="w-32 h-32 object-contain">
                                 @endif
                             </div>
 
@@ -54,7 +68,7 @@
                                 @endif
 
                                 <div class="flex justify-center mt-4">
-                                    <a href="/assessment/cyberbullying/overview/form"
+                                    <a href="/assessment/cyberbullying/person_action/form"
                                         class="text-base px-8 py-2 rounded-xl text-white font-medium shadow-md bg-[#929AFF] transition-all duration-300 hover:bg-[#7B84FC]">
                                         ดูรายละเอียดเพิ่มเติม
                                     </a>
@@ -106,7 +120,7 @@
                                 @endif
 
                                 <div class="flex justify-center mt-4">
-                                    <a href="/assessment/cyberbullying/overview/form"
+                                    <a href="/assessment/cyberbullying/victim/form"
                                         class="text-base px-8 py-2 rounded-xl text-white font-medium shadow-md bg-[#929AFF] transition-all duration-300 hover:bg-[#7B84FC]">
                                         ดูรายละเอียดเพิ่มเติม
                                     </a>

@@ -262,6 +262,9 @@ function initializeCarousel(carousel, dots) {
     let startX = 0;
     let currentX = 0;
     let isDragging = false;
+    
+    const prevArrow = document.getElementById('prev-arrow');
+    const nextArrow = document.getElementById('next-arrow');
 
     function updateDots() {
         dots.forEach((dot, index) => {
@@ -274,6 +277,22 @@ function initializeCarousel(carousel, dots) {
             }
         });
     }
+    
+    function updateArrows() {
+        if (!prevArrow || !nextArrow) return;
+        
+        if (currentSlide === 0) {
+            prevArrow.style.display = 'none';
+        } else {
+            prevArrow.style.display = 'flex';
+        }
+        
+        if (currentSlide === dots.length - 1) {
+            nextArrow.style.display = 'none';
+        } else {
+            nextArrow.style.display = 'flex';
+        }
+    }
 
     function moveToSlide(slideIndex) {
         if (slideIndex < 0 || slideIndex >= dots.length) return;
@@ -282,6 +301,7 @@ function initializeCarousel(carousel, dots) {
         const translateX = -slideIndex * 100;
         carousel.style.transform = `translateX(${translateX}%)`;
         updateDots();
+        updateArrows();
     }
 
     dots.forEach((dot, index) => {
@@ -289,6 +309,22 @@ function initializeCarousel(carousel, dots) {
             moveToSlide(index);
         });
     });
+    
+    if (prevArrow) {
+        prevArrow.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                moveToSlide(currentSlide - 1);
+            }
+        });
+    }
+    
+    if (nextArrow) {
+        nextArrow.addEventListener('click', () => {
+            if (currentSlide < dots.length - 1) {
+                moveToSlide(currentSlide + 1);
+            }
+        });
+    }
 
     function handleStart(e) {
         isDragging = true;
@@ -352,6 +388,7 @@ function initializeCarousel(carousel, dots) {
     });
 
     updateDots();
+    updateArrows();
     moveToSlide(0);
 }
 </script>

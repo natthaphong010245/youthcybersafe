@@ -11,6 +11,18 @@
         </div>
 
         <div class="relative overflow-hidden rounded-lg mt-8 flex-grow">
+            <button id="prev-arrow" class="absolute left-2 top-1/3 transform -translate-y-1/2 z-10 w-10 h-10 bg-white bg-opacity-80 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:bg-opacity-100">
+                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            
+            <button id="next-arrow" class="absolute right-2 top-1/3 transform -translate-y-1/2 z-10 w-10 h-10 bg-white bg-opacity-80 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:bg-opacity-100">
+                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+
             <div class="swiper-container flex transition-transform duration-300 ease-in-out" id="result-carousel">
                 
                 <!-- 1: ด้านความเครียด -->
