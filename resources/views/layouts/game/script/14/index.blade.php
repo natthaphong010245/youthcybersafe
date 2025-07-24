@@ -28,7 +28,6 @@
     const modalDescription = document.getElementById('modal-letter-description');
     const continueBtn = document.getElementById('continue-btn');
     
-    // แก้ไข: เปลี่ยนจาก finishBtn เป็น exitBtn และ startBtn
     const exitBtn = document.getElementById('exit-btn');
     const startBtn = document.getElementById('start-btn');
     
@@ -94,7 +93,6 @@
         }
     });
     
-    // แก้ไข: เพิ่ม event listener สำหรับปุ่ม "ออก"
     exitBtn.addEventListener('click', function() {
         hideModal(summaryModal);
         setTimeout(() => {
@@ -102,7 +100,6 @@
         }, 500);
     });
     
-    // แก้ไข: เพิ่ม event listener สำหรับปุ่ม "เริ่มต้น"
     startBtn.addEventListener('click', function() {
         hideModal(summaryModal);
         setTimeout(() => {

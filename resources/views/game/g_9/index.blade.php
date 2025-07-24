@@ -15,8 +15,7 @@
 
     <div class="card-container space-y-6 px-6 md:px-0" id="game-content">
         <div class="text-center mb-8">
-            <h2 class="text-2xl font-bold text-indigo-800 mb-4">ผลกระทบของผู้ถูกรังแกทางไซเบอร์</h2>
-            <p class="text-lg text-indigo-800 mt-2">เลือกรูปให้ตรงกับคำถาม</p>
+            <h2 class="text-2xl font-bold text-indigo-800 mb-4 pr-2 pl-2">ผลกระทบของผู้ถูกรังแกทางไซเบอร์</h2>
         </div>
         
         <div class="space-y-4 mr-4 ml-4">

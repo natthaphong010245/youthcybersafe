@@ -72,7 +72,7 @@
     <div class="text-center mb-14">
         <div class="flex items-center justify-center">
             <div class="relative">
-                <h1 class="text-4xl font-bold text-[var(--primary-color)] tracking-[0.2em] mb-2">GAME</h1>
+                <h1 class="text-4xl font-bold text-[var(--primary-color)] tracking-[0.2em] mb-2">เกม</h1>
                 <p class="text-base text-[var(--primary-color)] absolute -bottom-4 right-0">หมวดหมู่</p>
             </div>
         </div>

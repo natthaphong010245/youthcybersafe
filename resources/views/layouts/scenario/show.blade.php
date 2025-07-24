@@ -237,19 +237,18 @@
 
 
 <div class="content-section">
-      <main class="bg-white rounded-top-section pt-8 pb-10 desktop-main flex-grow h-full">
+      <main class="bg-white rounded-top-section pb-10 desktop-main flex-grow h-full">
         
         <div id="intro-modal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50">
-            <div class="modal-content bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full mx-4 text-center">
-                <h3 class="text-2xl font-bold text-indigo-800 mb-6">{{ $scenario['title'] }}</h3>
-                
+            <div class="modal-content bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 text-center">
+                <h3 class="text-xl font-bold text-indigo-800">{{ $scenario['title'] }}</h3>
+                <p class="text-indigo-800 text-lg mb-4 font-medium">{{ $scenario['subtitle'] }}</p>
                 <img src="{{ asset('images/material/school_girl.png') }}" alt="School Girl Character"
                      class="w-32 h-auto mx-auto mb-6 object-contain">
                 
-                <p class="text-indigo-800 text-lg mb-2 font-medium">{{ $scenario['subtitle'] }}</p>
-                <p class="text-indigo-800 text-lg mb-6 font-medium">เริ่มความท้าทายกันเลย</p>
+                <p class="text-indigo-800 text-lg mb-2 font-medium">เริ่มความท้าทายกันเลย</p>
                 
-                <button onclick="startGame()" class="bg-[#929AFF] text-white text-lg py-2 px-8 rounded-xl transition-colors hover:bg-[#7C6FE0] font-medium">
+                <button onclick="startGame()" class="bg-[#929AFF] text-white text-lg py-1 px-6 rounded-xl transition-colors hover:bg-[#7C6FE0] font-medium">
                     เริ่ม
                 </button>
             </div>
@@ -259,7 +258,7 @@
           <div class="px-6">
               <div class="text-center">
                 <h2 class="text-xl font-bold mb-1" style="color: #3E36AE;">{{ $scenario['title'] }}</h2>
-                <p class="text-base" style="color: #3E36AE;">{{ $scenario['subtitle'] }}</p>
+                <p class="text-lg" style="color: #3E36AE;">{{ $scenario['subtitle'] }}</p>
               </div>
 
               <div class="text-center">
@@ -283,14 +282,14 @@
 
               <form action="{{ route('scenario_' . $scenarioId . '.submit') }}" method="POST" id="scenarioForm">
                 @csrf
-                <div class="space-y-4 mb-8 max-w-lg mx-auto border-2 border-gray-300 rounded-2xl p-6 bg-white">
-                  <h3 class="text-base font-semibold text-[#5A63D7] text-left mb-6">จากบทสนทนาน้องๆ คิดเห็นอย่างไร</h3>
+                <div class="space-y-4 max-w-lg mb-4 mx-auto border-2 border-gray-300 rounded-2xl p-4 bg-white">
+                  <h3 class="text-base font-semibold text-[#3E36AE] text-left mb-2">จากบทสนทนาน้องๆ คิดเห็นอย่างไร</h3>
                   
                   @foreach($scenario['options'] as $option)
                   <div 
-                    class="option-card w-full max-w-[450px] min-h-[40px] mx-auto border border-[#C4C4C4] bg-[#AFAFFF] text-white 
-                              rounded-xl flex items-center justify-center text-sm font-medium shadow-sm 
-                              hover:shadow-md transition-all duration-200 cursor-pointer py-3"
+                    class="option-card w-full max-w-[450px] min-h-[40px] mx-auto border border-[#838383] bg-[#929AFF] text-white 
+                              rounded-xl flex items-center justify-center text-base font-medium shadow-sm 
+                              hover:shadow-md transition-all duration-200 cursor-pointer py-2"
                     onclick="selectOption('{{ $option['id'] }}')"
                   >
                     <label class="w-full h-full flex items-center justify-center cursor-pointer px-4">
@@ -304,7 +303,7 @@
                 <div class="text-right">
                   <button type="button" 
                           onclick="skipScenario()"
-                          class="bg-gradient-to-r from-[#8B7FE8] to-[#9B8BF5] text-white px-8 py-2 rounded-xl font-medium text-base hover:from-[#7C6FE0] hover:to-[#8B7FE8] transition-all duration-300 shadow-lg">
+                          class="bg-gradient-to-r from-[#929AFF] to-[#929AFF] text-white px-6 py-1 rounded-lg font-medium text-base hover:from-[#7C6FE0] hover:to-[#8B7FE8] transition-all duration-300 shadow-lg">
                     ข้าม
                   </button>
                 </div>
@@ -322,7 +321,7 @@
                 </p>
                 
                 <button onclick="goToNextScenario()" 
-                        class="bg-gradient-to-r from-[#8B7FE8] to-[#9B8BF5] text-white px-8 py-2 rounded-xl font-medium hover:from-[#7C6FE0] hover:to-[#8B7FE8] transition-all duration-300">
+                        class="bg-gradient-to-r from-[#929AFF] to-[#929AFF] text-white px-6 py-1 rounded-lg font-medium hover:from-[#7C6FE0] hover:to-[#8B7FE8] transition-all duration-300">
                   ถัดไป
                 </button>
               </div>

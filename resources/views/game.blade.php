@@ -11,7 +11,7 @@
     <div class="text-center mb-12 mt-2 relative">
         <div class="flex items-center justify-center">
             <div class="relative">
-                <h1 class="text-3xl font-bold text-[#3E36AE] inline-block">GAME & SCENARIO</h1>
+                <h1 class="text-3xl font-bold text-[#3E36AE] inline-block">เกม & สถานการณ์</h1>
                 <p class="text-base text-[#3E36AE] absolute -bottom-6 right-0">หมวดหมู่</p>
             </div>
         </div>
@@ -21,7 +21,7 @@
     $gameScenarios = [
         [
             'route' => 'game',
-            'title' => 'GAME',
+            'title' => 'เกม',
             'image' => 'game.png',
             'image_position' => 'left-10',
             'text_position' => 'pr-6 pl-24',
@@ -29,7 +29,7 @@
         ],
         [
             'route' => 'scenario.index',
-            'title' => 'SCENARIO',
+            'title' => 'สถานการณ์',
             'image' => 'scenario.png',
             'image_position' => 'left-3',
             'text_position' => 'pr-6 pl-24',

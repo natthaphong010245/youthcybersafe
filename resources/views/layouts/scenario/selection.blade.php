@@ -88,10 +88,10 @@
       </div>
       
       <div class="scenario-title-section flex flex-col items-center justify-center text-center">
-        <h3 class="text-white font-semibold text-lg mb-1 leading-tight">
+        <h3 class="text-white font-medium text-sm mb-1 leading-tight">
           สถานการณ์ที่ {{ $scenario['id'] }}
         </h3>
-        <p class="text-white text-sm font-medium mb-2">{{ $scenario['title'] }}</p>
+        <p class="text-white text-lg font-medium mb-2">{{ $scenario['title'] }}</p>
         <div class="flex items-center justify-center text-white text-xs opacity-80">
     
         </div>
@@ -141,11 +141,11 @@
   }
 
   .scenario-title-section {
+    padding: 5px;
     background: #929AFF;
     margin: 0 -25px -25px -25px;
-    padding: 15px;
     border-radius: 0 0 20px 20px;
-    min-height: 120px;
+    min-height: 60px;
     z-index: 2;
   }
 

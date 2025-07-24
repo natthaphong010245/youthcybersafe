@@ -15,9 +15,8 @@
 
     <div class="card-container space-y-6 px-6 md:px-0" id="game-content">
         <div class="text-center mb-6">
-            <h2 class="text-xl font-bold text-indigo-800 mb-4">น้อง ๆ คิดว่า ผลกระทบของผู้รังแกกันทาง ไซเบอร์
+            <h2 class="text-xl font-bold text-indigo-800 mb-4 pr-2 pl-2">น้อง ๆ คิดว่า ผลกระทบของผู้รังแกกันทาง ไซเบอร์
                 จะเป็นอย่างไรบ้าง</h2>
-            <p class="text-lg text-indigo-800 mt-2">เลือกรูปให้ตรงกับคำถามมากที่สุด</p>
         </div>
 
         <div class="space-y-4 mr-4 ml-4">
