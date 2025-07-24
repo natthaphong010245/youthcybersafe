@@ -10,7 +10,7 @@
         'title' => 'สาเหตุของการกลั่นแกล้งบนโลกออนไลน์',
         'gameNumber' => '9',
         'description' => 'ผลกระทบของผู้ถูกรังแกทางไซเบอร์',
-        'actionText' => 'เริ่มความก้าวหน้ากันเลย'
+        'actionText' => 'เริ่มความท้าทายกันเลย'
     ])
 
     <div class="card-container space-y-6 px-6 md:px-0" id="game-content">
@@ -48,7 +48,7 @@
                 <p class="text-indigo-800"><span class="font-bold">3.</span> สูญเสียความมั่นใจในตัวเอง</p>
             </div>
 
-            <button id="next-btn" class="bg-[#929AFF] text-white font-medium py-2 px-8 rounded-xl transition-colors hover:bg-[#7B85FF]">
+            <button id="next-btn" class="bg-[#929AFF] text-white font-medium py-1 px-6 rounded-lg transition-colors hover:bg-[#7B85FF]">
                 ถัดไป
             </button>
         </div>
@@ -59,12 +59,11 @@
             <img src="{{ asset('images/material/school_girl.png') }}" alt="School Girl Character"
                 class="w-32 h-auto mx-auto mb-4 object-cover">
             
-            <h3 class="text-2xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
-            <p class="text-indigo-800 mb-4 text-lg">คุณตอบได้ถูกต้อง</p>
+            <h3 class="text-xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
+            <p class="text-lg text-indigo-800 mb-4">คำตอบของคุณถูกต้อง</p>
+            <p class="text-indigo-800 text-lg mb-1">เริ่มความท้าทายในเกมถัดไปกันเลย</p>
             
-            <p class="text-indigo-800 text-xl font-bold mb-4">เริ่มความท้าทายในเกมต่อไปกัน</p>
-            
-            <button id="finish-btn" class="bg-[#929AFF] text-white font-medium py-2 px-8 rounded-xl transition-colors hover:bg-[#7B85FF]">
+            <button id="finish-btn" class="bg-[#929AFF] text-white font-medium text-md py-1 px-6 rounded-lg transition-colors ">
                 เริ่ม
             </button>
         </div>
@@ -72,17 +71,17 @@
 
     <div id="wrong-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-30 opacity-0">
         <div class="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 text-center">
-            <img src="{{ asset('images/material/school_girl.png') }}" alt="School Girl Character"
+            <img src="{{ asset('images/material/school_girl_false.png') }}" alt="School Girl Character"
                 class="w-32 h-auto mx-auto mb-4 object-cover">
             
-            <h3 class="text-2xl font-bold text-indigo-800">พยายามต่อไป!</h3>
-            <p class="text-indigo-800 mb-6 text-lg">ตัวเลือกของคุณยังไม่ถูกต้อง</p>
+           <h3 class="text-xl font-bold text-indigo-800">พยายามต่อไป!</h3>
+            <p class="text-lg text-indigo-800 mb-4">ตัวเลือกของคุณยังไม่ถูกต้อง</p>
             
             <div class="flex gap-6 justify-center">
-                <button id="skip-btn" class="bg-gray-400 text-white font-medium py-2 px-6 rounded-xl transition-colors hover:bg-gray-500">
+                <button id="skip-btn" class="bg-gray-400 text-white font-medium text-md py-1 px-4 rounded-lg transition-colors ">
                     ข้าม
                 </button>
-                <button id="try-again-btn" class="bg-[#929AFF] text-white font-medium py-2 px-6 rounded-xl transition-colors hover:bg-[#7B85FF]">
+                <button id="try-again-btn" class="bg-[#929AFF] text-white font-medium text-md py-1 px-4 rounded-lg transition-colors ">
                     อีกครั้ง
                 </button>
             </div>

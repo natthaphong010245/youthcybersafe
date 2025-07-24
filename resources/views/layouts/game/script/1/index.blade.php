@@ -1,4 +1,21 @@
 <script>
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+
+    window.addEventListener('beforeunload', function() {
+        sessionStorage.setItem('gamePageLeft', 'true');
+    });
+
+    window.addEventListener('load', function() {
+        if (sessionStorage.getItem('gamePageLeft') === 'true') {
+            sessionStorage.removeItem('gamePageLeft');
+            resetGameState();
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
         const introModal = document.getElementById('intro-modal');
         const gameContent = document.getElementById('game-content');
@@ -11,6 +28,37 @@
         const tryAgainBtn = document.getElementById('try-again-btn');
         const skipBtn = document.getElementById('skip-btn');
         const continueBtn = document.getElementById('continue-btn');
+
+        function resetGameState() {
+            [successModal, failureModal, answerRevealModal].forEach(modal => {
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('animate-modal-show', 'animate-modal-fade-out');
+                }
+            });
+
+            answerOptions.forEach(opt => {
+                opt.style.pointerEvents = 'auto';
+                const optDiv = opt.querySelector('div');
+                if (optDiv) {
+                    optDiv.classList.remove('opacity-50');
+                    optDiv.style.backgroundColor = '#6366f1';
+                }
+            });
+
+            if (gameContent) {
+                gameContent.classList.remove('game-blur', 'animate-unblur');
+            }
+
+            if (introModal && !introModal.style.display === 'none') {
+                gameContent.classList.add('game-blur');
+                setTimeout(() => {
+                    introModal.classList.add('animate-modal-show');
+                }, 100);
+            }
+        }
+
+        resetGameState();
 
         if (introModal) {
             setTimeout(() => {
@@ -128,6 +176,8 @@
                 }
             });
         });
+
+        window.resetGameState = resetGameState;
     });
 </script>
 

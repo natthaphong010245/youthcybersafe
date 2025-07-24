@@ -10,7 +10,7 @@
         'title' => 'การรับมือการกลั่นแกล้งบนโลกออนไลน์',
         'gameNumber' => '12',
         'description' => 'เวลาเจอปัญหานักเรียนจะรับมือการรังแกอย่างไร?',
-        'actionText' => 'เริ่มความก้าวหน้ากันเลย'
+        'actionText' => 'เริ่มความท้าทายกันเลย'
     ])
 
     <div class="card-container space-y-6 px-6 md:px-0" id="game-content">
@@ -79,10 +79,10 @@
                     style="font-size: 1.125rem !important;"></p>
             </div>
 
-            <div class="text-indigo-800 text-lg font-bold mb-2">เริ่มความท้าทายในเกมถัดไปกันเลย</div>
+            <div class="text-indigo-800 text-lg font-md mb-2">เริ่มความท้าทายในเกมถัดไปกันเลย</div>
 
             <button id="continue-btn"
-                class="bg-[#929AFF] text-white font-medium py-2 px-6 rounded-xl transition-colors hover:bg-[#7B85FF]">
+                class="bg-[#929AFF] text-white font-medium text-md py-1 px-6 rounded-lg transition-colors">
                 ถัดไป
             </button>
         </div>

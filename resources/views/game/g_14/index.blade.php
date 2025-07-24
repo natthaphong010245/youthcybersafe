@@ -10,7 +10,7 @@
         'title' => 'การรับมือการกลั่นแกล้งบนโลกออนไลน์',
         'gameNumber' => '14',
         'description' => 'การใช้อินเตอร์เน็ตอย่างปลอดภัย ด้วยหลัก C.O.N.N.E.C.T',
-        'actionText' => 'เริ่มความก้าวหน้ากันเลย'
+        'actionText' => 'เริ่มความท้าทายกันเลย'
     ])
 
     <div class="bg-white" id="game-content">
@@ -91,7 +91,7 @@
             </div>
 
             <button id="continue-btn"
-                class="bg-[#929AFF] text-white font-medium py-2 px-6 rounded-xl transition-colors hover:bg-[#7B85FF]">
+                class="bg-[#929AFF] text-white font-medium text-md py-1 px-6 rounded-lg transition-colors">
                 ถัดไป
             </button>
         </div>
@@ -107,17 +107,16 @@
                 <img src="{{ asset('images/game/14/internet_safely.png') }}" alt="Internet Safety" class="w-11/12 h-auto">
             </div>
 
-            <p class="text-indigo-800 font-semibold text-lg mt-6">สิ้นสุดความท้าทาย</p>
+            <p class="text-indigo-800 text-lg mb-1 mt-6">สิ้นสุดความท้าทาย</p>
         </div>
 
-        {{-- แก้ไขให้มี 2 ปุ่ม --}}
-        <div class="flex gap-6 justify-center mt-6">
+        <div class="flex gap-6 justify-center mt-2">
             <button id="exit-btn"
-                class="bg-gray-400 text-white font-medium py-2 px-6 rounded-xl transition-colors hover:bg-gray-600">
+                class="bg-gray-400 text-white font-medium text-md py-1 px-4 rounded-lg transition-colors hover:bg-gray-500">
                 ออก
             </button>
             <button id="start-btn"
-                class="bg-[#929AFF] text-white font-medium py-2 px-6 rounded-xl transition-colors hover:bg-[#7B85FF]">
+                class="bg-[#929AFF] text-white font-medium text-md py-1 px-4 rounded-lg transition-colors hover:bg-[#7B85FF]">
                 เริ่มต้น
             </button>
         </div>

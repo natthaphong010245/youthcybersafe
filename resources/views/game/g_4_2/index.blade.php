@@ -110,12 +110,12 @@
         <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4 text-center">
             <div class="mb-2">
                 <img src="{{ asset('images/material/school_girl.png') }}" alt="Character" class="w-32 h-auto mx-auto mb-4">
-                <h3 class="text-2xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
-                <p class="text-lg text-indigo-800 mb-4">คุณตอบได้ถูกต้อง</p>
-                <p class="text-xl text-indigo-800 font-bold">เริ่มความท้าทายในเกมต่อไปกัน</p>
+                  <h3 class="text-xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
+            <p class="text-lg text-indigo-800 mb-4">คำตอบของคุณถูกต้อง</p>
+            <p class="text-indigo-800 text-lg mb-1">เริ่มความท้าทายในเกมถัดไปกันเลย</p>
             </div>
             <button id="finish-game-btn"
-                class="bg-[#929AFF] text-white font-medium py-2 px-6 rounded-xl transition-colors hover:bg-[#7B85FF]">
+                class="bg-[#929AFF] text-white font-medium text-md py-1 px-6 rounded-lg transition-colors ">
                 เริ่ม
             </button>
         </div>

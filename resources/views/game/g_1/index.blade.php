@@ -58,11 +58,11 @@
         <div class="modal-content bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 text-center">
             <img src="{{ asset('images/material/school_girl.png') }}" alt="Happy Student"
                 class="w-32 h-auto rounded-full mx-auto mb-4 object-cover">
-            <h3 class="text-2xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
+            <h3 class="text-xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
             <p class="text-lg text-indigo-800 mb-4">คำตอบของคุณถูกต้อง</p>
-            <p class="text-indigo-800 text-xl font-bold mb-1">เริ่มความท้าทายในเกมถัดไปกันเลย</p>
+            <p class="text-indigo-800 text-lg mb-1">เริ่มความท้าทายในเกมถัดไปกันเลย</p>
             <button id="success-btn"
-                class="bg-[#929AFF] text-white font-medium text-lg py-2 px-8 rounded-xl transition-colors hover:bg-indigo-600">
+                class="bg-[#929AFF] text-white font-medium text-md py-1 px-6 rounded-lg transition-colors ">
                 เริ่ม
             </button>
         </div>
@@ -71,18 +71,18 @@
     <div id="failure-modal"
         class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-30">
         <div class="modal-content bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 text-center">
-            <img src="{{ asset('images/material/school_girl.png') }}" alt="School Girl Character"
+            <img src="{{ asset('images/material/school_girl_false.png') }}" alt="School Girl Character"
                 class="w-32 h-auto mx-auto mb-4 object-cover">
-            <h3 class="text-2xl font-bold text-indigo-800">พยายามต่อไป!</h3>
+            <h3 class="text-xl font-bold text-indigo-800">พยายามต่อไป!</h3>
             <p class="text-lg text-indigo-800 mb-4">ตัวเลือกของคุณยังไม่ถูกต้อง</p>
 
-            <div class="flex space-x-4 justify-center">
+            <div class="flex space-x-8 justify-center">
                 <button id="skip-btn"
-                    class="bg-gray-400 text-white font-medium text-lg py-2 px-6 rounded-xl transition-colors hover:bg-gray-500">
+                    class="bg-gray-400 text-white font-medium text-md py-1 px-4 rounded-lg transition-colors hover:bg-gray-500">
                     ข้าม
                 </button>
                 <button id="try-again-btn"
-                    class="bg-[#929AFF] text-white font-medium text-lg py-2 px-6 rounded-xl transition-colors hover:bg-[#7B85FF]">
+                    class="bg-[#929AFF] text-white font-medium text-md py-1 px-4 rounded-lg transition-colors hover:bg-[#7B85FF]">
                     อีกครั้ง
                 </button>
             </div>
@@ -92,18 +92,18 @@
     <div id="answer-reveal-modal"
         class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-30">
         <div class="modal-content bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 text-center">
-            <h3 class="text-2xl font-bold text-indigo-800 mb-4">ตัวเลือกที่ถูก</h3>
+            <h3 class="text-xl font-bold text-indigo-800 mb-4">ตัวเลือกที่ถูก</h3>
             
             <div class="mb-4">
                 <img src="{{ asset('images/game/1/' . $scenarioImage) }}" alt="{{ $altText }}"
                     class="w-full h-auto object-cover rounded-lg mb-2">
             </div>
 
-            <p class="text-indigo-800 text-2xl font-median mb-4">{{ $correctAnswerText }}</p>
-            <p class="text-indigo-800 text-xl font-bold mb-2">เริ่มความท้าทายเกมถัดไปกันเลย</p>
+            <p class="text-indigo-800 text-xl font-bold mb-4">{{ $correctAnswerText }}</p>
+            <p class="text-indigo-800 text-lg font-medium mb-2">เริ่มความท้าทายเกมถัดไปกันเลย</p>
             
             <button id="continue-btn"
-                class="bg-[#929AFF] text-white font-medium text-lg py-2 px-8 rounded-xl transition-colors hover:bg-indigo-600">
+                class="bg-[#929AFF] text-white font-medium text-md py-1 px-6 rounded-lg transition-colors">
                 เริ่ม
             </button>
         </div>

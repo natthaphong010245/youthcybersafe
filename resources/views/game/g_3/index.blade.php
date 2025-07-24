@@ -73,8 +73,8 @@
             <div id="info-content" class="text-center">
             </div>
             <div class="mt-6 text-center">
-                <button id="continue-btn" class="bg-[#929AFF] text-white font-medium py-2 px-6 rounded-xl transition-colors">
-                    ถัดไป
+                <button id="continue-btn" class="bg-[#929AFF] text-white font-medium text-md py-1 px-6 rounded-lg transition-colors ">
+                ถัดไป
                 </button>
             </div>
         </div>
@@ -84,11 +84,11 @@
         <div class="modal-content bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 text-center">
             <img src="{{ asset('images/material/school_girl.png') }}" alt="Happy Student"
                 class="w-32 h-auto mx-auto mb-4 object-cover">
-            <h3 class="text-2xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
-            <p class="text-lg text-indigo-800 mb-4">คุณตอบได้ถูกต้อง</p>
-            <p class="text-indigo-800 text-xl font-bold mb-4">เริ่มความท้าทายในเกมถัดไปกันเลย</p>
+           <h3 class="text-xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
+            <p class="text-lg text-indigo-800 mb-4">คำตอบของคุณถูกต้อง</p>
+            <p class="text-indigo-800 text-lg mb-1">เริ่มความท้าทายในเกมถัดไปกันเลย</p>
             <button id="start-next-game-btn"
-                class="bg-[#929AFF] text-white font-medium text-lg py-2 px-8 rounded-xl transition-colors hover:bg-indigo-600">
+               class="bg-[#929AFF] text-white font-medium text-md py-1 px-6 rounded-lg transition-colors ">
                 เริ่ม
             </button>
         </div>

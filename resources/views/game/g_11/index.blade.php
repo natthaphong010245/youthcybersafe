@@ -101,11 +101,11 @@
                     class="w-40 h-auto object-contain">
             </div>
 
-            <div class="text-3xl font-bold text-indigo-800 mb-2">เยี่ยมมาก!</div>
-            <div class="text-xl text-indigo-800 mb-4">คุณตอบได้ถูกต้อง</div>
-            <div class="text-indigo-800 text-xl font-bold mb-6">เริ่มความท้าทายเกมต่อไปเลย</div>
+           <h3 class="text-xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
+            <p class="text-lg text-indigo-800 mb-4">คำตอบของคุณถูกต้อง</p>
+            <p class="text-indigo-800 text-lg mb-1">เริ่มความท้าทายในเกมถัดไปกันเลย</p>
 
-            <button onclick="goToNextGame()" class="bg-[#929AFF] text-white font-medium py-3 px-12 rounded-xl text-lg transition-colors hover:bg-[#7B85FF]">
+            <button onclick="goToNextGame()" class="bg-[#929AFF] text-white font-medium text-md py-1 px-6 rounded-lg transition-colors ">
                 เริ่ม
             </button>
         </div>
@@ -115,18 +115,18 @@
         class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden items-center justify-center z-50">
         <div class="modal-content bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
             <div class="flex justify-center mb-6">
-                <img src="{{ asset('images/material/school_girl.png') }}" alt="Character"
+                <img src="{{ asset('images/material/school_girl_false.png') }}" alt="Character"
                     class="w-40 h-auto object-contain">
             </div>
 
-            <div class="text-3xl font-bold text-indigo-800 mb-2">พยายามต่อไป!</div>
-            <div class="text-xl text-indigo-800 mb-8">ตัวเลือกของคุณยังไม่ถูกต้อง</div>
+             <h3 class="text-xl font-bold text-indigo-800">พยายามต่อไป!</h3>
+            <p class="text-lg text-indigo-800 mb-4">ตัวเลือกของคุณยังไม่ถูกต้อง</p>
 
             <div class="flex gap-8 justify-center">
-                <button onclick="skipGame()" class="bg-gray-400 text-white font-medium py-3 px-8 rounded-xl text-lg transition-colors hover:bg-gray-500">
+                <button onclick="skipGame()" class="bg-gray-400 text-white font-medium text-md py-1 px-4 rounded-lg transition-colors ">
                     ข้าม
                 </button>
-                <button onclick="tryAgain()" class="bg-[#929AFF] text-white font-medium py-3 px-8 rounded-xl text-lg transition-colors hover:bg-[#7B85FF]">
+                <button onclick="tryAgain()" class="bg-[#929AFF] text-white font-medium text-md py-1 px-4 rounded-lg transition-colors ">
                     อีกครั้ง
                 </button>
             </div>

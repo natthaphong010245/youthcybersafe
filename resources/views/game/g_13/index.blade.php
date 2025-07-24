@@ -83,7 +83,7 @@
             <p id="modal-action-description" class="text-indigo-800 text-lg leading-relaxed mb-6"></p>
 
             <button id="next-btn"
-                class="bg-[#929AFF] text-white font-medium py-2 px-8 rounded-xl transition-colors hover:bg-[#7B85FF]">
+                class="bg-[#929AFF] text-white font-medium text-md py-1 px-6 rounded-lg transition-colors">
                 ถัดไป
             </button>
         </div>
@@ -102,7 +102,7 @@
             <div class="text-left mb-6">
                 <div class="mb-4">
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-indigo-800 ">STOP</div>
+                        <div class="text-2xl font-bold text-red-500 ">STOP</div>
                         <div class="text-lg font-bold text-indigo-800">หยุดการกระทำทุกอย่าง</div>
                     </div>
                     <p class="text-sm text-indigo-800 text-center">นิ่งเฉยไม่ตอบโต้ เพื่อไม่ให้เกิดการกระทำซ้ำ
@@ -113,7 +113,7 @@
 
                 <div class="mb-4">
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-indigo-800 ">REMOVE</div>
+                        <div class="text-2xl font-bold text-red-500 ">REMOVE</div>
                         <div class="text-lg font-bold text-indigo-800">ลบภาพที่เป็นการระรานออกทันที</div>
                     </div>
                     <p class="text-sm text-indigo-800 text-center">ลบทุกภาพ ข้อความ วิดีโอ ที่เป็นการกระทำไม่เหมาะสม</p>
@@ -121,7 +121,7 @@
 
                 <div class="mb-4">
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-indigo-800 ">BE STORNG</div>
+                        <div class="text-2xl font-bold text-red-500 ">BE STORNG</div>
                         <dive class="text-lg font-bold text-indigo-800">เข้มแข็ง</dive>
                     </div>
                     <p class="text-sm text-indigo-800 text-center">ลบทุกภาพ ข้อความ วิดีโอ ที่เป็นการกระทำไม่เหมาะสม</p>
@@ -129,7 +129,7 @@
 
                 <div class="mb-4">
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-indigo-800 ">BLOCK</div>
+                        <div class="text-2xl font-bold text-red-500 ">BLOCK</div>
                         <div class="text-lg font-bold text-indigo-800">ปิดกั้นพวกเขาซะ</div>
                     </div>
                     <p class="text-sm text-indigo-800 text-center">บล็อกผู้ใช้งานที่มีพฤติกรรมไม่เหมาะสม</p>
@@ -137,7 +137,7 @@
 
                 <div class="mb-4">
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-indigo-800 ">TELL</div>
+                        <div class="text-2xl font-bold text-red-500 ">TELL</div>
                         <div class="text-lg font-bold text-indigo-800">บอกบุคคลที่ไว้ใจได้</div>
                     </div>
                     <p class="text-sm text-indigo-800 text-center">บอกผู้ปกครอง ครู หรือคนสนิทให้ทราบเพื่อขอความช่วยเหลือ
@@ -145,10 +145,10 @@
                 </div>
             </div>
 
-            <p class="text-indigo-800 font-semibold text-lg mb-2">เริ่มความท้าทายในเกมถัดไปกันเลย</p>
+            <p class="text-indigo-800 text-lg mb-1">เริ่มความท้าทายในเกมถัดไปกันเลย</p>
 
             <button id="start-main-btn"
-                class="bg-[#929AFF] text-white font-medium py-2 px-8 rounded-xl transition-colors hover:bg-[#7B85FF]">
+                class="bg-[#929AFF] text-white font-medium text-md py-1 px-6 rounded-lg transition-colors ">
                 เริ่ม
             </button>
         </div>

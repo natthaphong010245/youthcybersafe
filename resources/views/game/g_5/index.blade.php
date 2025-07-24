@@ -12,7 +12,7 @@
             'gameNumber' => '5',
             'description' => 'การกลั่นแกล้งแบบดั้งเดิม และคาดโทษในบอร์',
             'descriptionClass' => 'pr-2 pl-2',
-            'actionText' => 'เริ่มความก้าวหน้ากันเลย'
+            'actionText' => 'เริ่มความท้าทายกันเลย'
         ])
     @endif
 
@@ -62,10 +62,10 @@
     <div id="success-modal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-30">
         <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 text-center">
             <img src="{{ asset('images/material/school_girl.png') }}" alt="Happy Student" class="w-32 h-auto mx-auto mb-4">
-            <h3 class="text-2xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
-            <p class="text-indigo-800 mb-4 text-lg">คุณตอบได้ถูกต้อง</p>
-            <p class="text-indigo-800 text-xl mb-2 font-bold">เริ่มความก้าวหน้าในเกมต่อไปกัน</p>
-            <button id="success-btn" class="bg-[#929AFF] text-white font-medium py-3 px-8 rounded-xl transition-colors hover:bg-indigo-600">
+            <h3 class="text-xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
+            <p class="text-lg text-indigo-800 mb-4">คำตอบของคุณถูกต้อง</p>
+            <p class="text-indigo-800 text-lg mb-1">เริ่มความท้าทายในเกมถัดไปกันเลย</p>
+            <button id="success-btn" class=" bg-[#929AFF] text-white font-medium text-md py-1 px-6 rounded-lg transition-colors ">
                 เริ่ม
             </button>
         </div>
@@ -74,13 +74,13 @@
     <div id="failure-modal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-30">
         <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 text-center">
             <img src="{{ asset('images/material/school_girl_false.png') }}" alt="Confused Student" class="w-32 h-auto mx-auto mb-4">
-            <h3 class="text-2xl font-bold text-indigo-800">พยายามต่อไป!</h3>
-            <p class="text-indigo-800 mb-6 text-lg">ตัวเลือกของคุณยังไม่ถูกต้อง</p>
+            <h3 class="text-xl font-bold text-indigo-800">พยายามต่อไป!</h3>
+            <p class="text-lg text-indigo-800 mb-4">ตัวเลือกของคุณยังไม่ถูกต้อง</p>
             <div class="flex gap-8 justify-center">
-                <button id="skip-btn" class="bg-gray-400 text-white font-medium py-3 px-6 rounded-xl transition-colors hover:bg-gray-500">
+                <button id="skip-btn" class="bg-gray-400 text-white font-medium text-md py-1 px-4 rounded-lg transition-colors">
                     ข้าม
                 </button>
-                <button id="retry-btn" class="bg-[#929AFF] text-white font-medium py-3 px-6 rounded-xl transition-colors hover:bg-indigo-600">
+                <button id="retry-btn" class="bg-[#929AFF] text-white font-medium text-md py-1 px-4 rounded-lg transition-colors ">
                     อีกครั้ง
                 </button>
             </div>
