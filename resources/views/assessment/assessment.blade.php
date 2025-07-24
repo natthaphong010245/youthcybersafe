@@ -89,7 +89,7 @@
             <p class="text-xl font-medium text-[#3E36AE]">เริ่มทำแบบสอบถามกันเลย</p>
         </div>
 
-        <button id="start-assessment-btn" class="bg-[#929AFF] text-white text-lg py-2 px-8 rounded-xl transition-colors hover:bg-[#7B85FF]">
+        <button id="start-assessment-btn" class="bg-[#929AFF] text-white text-lg py-1 px-6 rounded-xl transition-colors hover:bg-[#7B85FF]">
             เริ่ม
         </button>
     </div>

@@ -31,7 +31,7 @@
             'title_top' => 'ประสบการณ์',
             'title_bottom' => 'ผู้กระทำ',
             'modal_title' => 'ประสบการณ์การรังแกผู้กระทำ',
-            'modal_subtitle' => 'เริ่มความท้าทายกันเลย',
+            'modal_subtitle' => 'เริ่มทำแบบสอบถามกันเลย',
             'route' => route('person_action/form')
         ],
         [
@@ -40,7 +40,7 @@
             'title_top' => 'ประสบการณ์',
             'title_bottom' => 'ผู้ถูกกระทำ',
             'modal_title' => 'ประสบการณ์การรังแกผู้ถูกกระทำ',
-            'modal_subtitle' => 'เริ่มความท้าทายกันเลย',
+            'modal_subtitle' => 'เริ่มทำแบบสอบถามกันเลย',
             'route' => route('victim/form')
         ],
         [
@@ -49,7 +49,7 @@
             'title_top' => 'ประสบการณ์',
             'title_bottom' => 'ภาพรวม',
             'modal_title' => 'ประสบการณ์การรังแกภาพรวม',
-            'modal_subtitle' => 'เริ่มความท้าทายกันเลย',
+            'modal_subtitle' => 'เริ่มทำแบบสอบถามกันเลย',
             'route' => route('overview/form')
         ]
     ];
@@ -88,7 +88,7 @@
             <p class="text-xl font-medium text-[#3E36AE]" id="modal-subtitle">เริ่มทำแบบสอบถามกันเลย</p>
         </div>
 
-        <button id="start-assessment-btn" class="bg-[#929AFF] text-white text-lg py-2 px-8 rounded-xl transition-colors hover:bg-[#7B85FF]">
+        <button id="start-assessment-btn" class="bg-[#929AFF] text-white text-lg py-1 px-6 rounded-xl transition-colors hover:bg-[#7B85FF]">
             เริ่ม
         </button>
     </div>
