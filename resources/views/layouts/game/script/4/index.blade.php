@@ -1,26 +1,24 @@
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const introModal = document.getElementById('intro-modal');
-        const gameContent = document.getElementById('game-content');
-        const startGameBtn = document.getElementById('start-game-btn');
-
-        if (introModal && window.gameHasIntroModal) {
-            setTimeout(() => {
-                introModal.classList.add('animate-modal-show');
-            }, 100);
-
-            startGameBtn.addEventListener('click', function() {
-                introModal.classList.remove('animate-modal-show');
-                introModal.classList.add('animate-modal-fade-out');
-
-                setTimeout(() => {
-                    introModal.style.display = 'none';
-                    gameContent.classList.remove('game-blur');
-                    gameContent.classList.add('animate-unblur');
-                }, 300);
-            });
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            window.location.reload();
         }
+    });
 
+    window.addEventListener('beforeunload', function() {
+        sessionStorage.setItem('gamePageLeft', 'true');
+    });
+
+    window.addEventListener('load', function() {
+        if (sessionStorage.getItem('gamePageLeft') === 'true') {
+            sessionStorage.removeItem('gamePageLeft');
+            if (typeof window.resetGameState === 'function') {
+                window.resetGameState();
+            }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
         let selectedText = null;
         let selectedImage = null;
         let matchedPairs = 0;
@@ -34,14 +32,96 @@
         };
         const nextRoute = window.gameNextRoute || "{{ route('main') }}";
 
+        function resetGameState() {
+            const introModal = document.getElementById('intro-modal');
+            const gameContent = document.getElementById('game-content');
+            const completeOverlay = document.getElementById('complete-overlay');
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercentage = document.getElementById('progress-percentage');
+            
+            if (completeOverlay) {
+                completeOverlay.classList.add('hidden');
+                completeOverlay.classList.add('opacity-0');
+                completeOverlay.style.display = 'none';
+                completeOverlay.style.opacity = '0';
+            }
+            
+            document.querySelectorAll('.text-option').forEach(option => {
+                option.classList.remove('ring-4', 'ring-blue-400', 'ring-opacity-50', 'ring-red-400', 'bg-green-500', 'matched');
+                option.classList.add('bg-[#5B21B6]');
+                option.style.transform = '';
+                option.style.animation = '';
+                option.style.pointerEvents = '';
+            });
+            
+            document.querySelectorAll('.image-option').forEach(option => {
+                option.classList.remove('border-blue-400', 'bg-blue-50', 'ring-4', 'ring-blue-400', 'ring-opacity-50', 
+                                          'border-red-400', 'bg-red-50', 'border-green-500', 'bg-green-100', 'matched');
+                option.classList.add('border-gray-300', 'bg-white');
+                option.style.transform = '';
+                option.style.animation = '';
+                option.style.pointerEvents = '';
+            });
+            
+            if (progressBar) {
+                progressBar.style.width = '0%';
+                progressBar.classList.remove('animate-pulse');
+            }
+            if (progressPercentage) {
+                progressPercentage.textContent = '0%';
+                progressPercentage.classList.remove('text-gray-600');
+            }
+            
+            selectedText = null;
+            selectedImage = null;
+            matchedPairs = 0;
+            
+            if (gameContent) {
+                gameContent.classList.remove('game-blur', 'animate-unblur');
+            }
+            
+            if (introModal && window.gameHasIntroModal && introModal.style.display !== 'none') {
+                gameContent.classList.add('game-blur');
+                setTimeout(() => {
+                    introModal.classList.add('animate-modal-show');
+                }, 100);
+            }
+        }
+
+        window.resetGameState = resetGameState;
+
+        resetGameState();
+
+        const introModal = document.getElementById('intro-modal');
+        const gameContent = document.getElementById('game-content');
+        const startGameBtn = document.getElementById('start-game-btn');
+
+        if (introModal && window.gameHasIntroModal) {
+            setTimeout(() => {
+                introModal.classList.add('animate-modal-show');
+            }, 100);
+
+            if (startGameBtn) {
+                startGameBtn.addEventListener('click', function() {
+                    introModal.classList.remove('animate-modal-show');
+                    introModal.classList.add('animate-modal-fade-out');
+
+                    setTimeout(() => {
+                        introModal.style.display = 'none';
+                        gameContent.classList.remove('game-blur');
+                        gameContent.classList.add('animate-unblur');
+                    }, 300);
+                });
+            }
+        }
+
         document.querySelectorAll('.text-option').forEach(option => {
             option.addEventListener('click', function() {
                 if (this.classList.contains('matched')) return;
 
                 document.querySelectorAll('.text-option').forEach(opt => {
                     if (!opt.classList.contains('matched')) {
-                        opt.classList.remove('ring-4', 'ring-blue-400',
-                            'ring-opacity-50');
+                        opt.classList.remove('ring-4', 'ring-blue-400', 'ring-opacity-50');
                     }
                 });
 
@@ -58,15 +138,13 @@
 
                 document.querySelectorAll('.image-option').forEach(opt => {
                     if (!opt.classList.contains('matched')) {
-                        opt.classList.remove('border-blue-400', 'bg-blue-50', 'ring-4',
-                            'ring-blue-400', 'ring-opacity-50');
+                        opt.classList.remove('border-blue-400', 'bg-blue-50', 'ring-4', 'ring-blue-400', 'ring-opacity-50');
                         opt.classList.add('border-gray-300', 'bg-white');
                     }
                 });
 
                 this.classList.remove('border-gray-300', 'bg-white');
-                this.classList.add('border-blue-400', 'bg-blue-50', 'ring-4', 'ring-blue-400',
-                    'ring-opacity-50');
+                this.classList.add('border-blue-400', 'bg-blue-50', 'ring-4', 'ring-blue-400', 'ring-opacity-50');
                 selectedImage = this.getAttribute('data-image');
 
                 checkForMatch();
@@ -83,13 +161,11 @@
                     imageElement.style.transform = 'scale(1.05)';
 
                     setTimeout(() => {
-                        textElement.classList.remove('ring-4', 'ring-blue-400', 'ring-opacity-50',
-                            'bg-[#5B21B6]');
+                        textElement.classList.remove('ring-4', 'ring-blue-400', 'ring-opacity-50', 'bg-[#5B21B6]');
                         textElement.classList.add('bg-green-500', 'matched');
                         textElement.style.transform = 'scale(1)';
 
-                        imageElement.classList.remove('border-blue-400', 'bg-blue-50', 'ring-4',
-                            'ring-blue-400', 'ring-opacity-50', 'border-gray-300', 'bg-white');
+                        imageElement.classList.remove('border-blue-400', 'bg-blue-50', 'ring-4', 'ring-blue-400', 'ring-opacity-50', 'border-gray-300', 'bg-white');
                         imageElement.classList.add('border-green-500', 'bg-green-100', 'matched');
                         imageElement.style.transform = 'scale(1)';
 
@@ -117,12 +193,10 @@
                     imageElement.style.animation = 'shake 0.5s ease-in-out';
 
                     setTimeout(() => {
-                        textElement.classList.remove('ring-4', 'ring-blue-400', 'ring-opacity-50',
-                            'ring-red-400');
+                        textElement.classList.remove('ring-4', 'ring-blue-400', 'ring-opacity-50', 'ring-red-400');
                         textElement.style.animation = '';
 
-                        imageElement.classList.remove('border-blue-400', 'bg-blue-50', 'border-red-400',
-                            'bg-red-50', 'ring-4', 'ring-blue-400', 'ring-opacity-50');
+                        imageElement.classList.remove('border-blue-400', 'bg-blue-50', 'border-red-400', 'bg-red-50', 'ring-4', 'ring-blue-400', 'ring-opacity-50');
                         imageElement.classList.add('border-gray-300', 'bg-white');
                         imageElement.style.animation = '';
 
@@ -140,7 +214,6 @@
 
             if (progressBar && progressPercentage) {
                 progressBar.style.width = percentage + '%';
-
                 progressPercentage.textContent = percentage + '%';
 
                 if (percentage === 100) {
@@ -148,8 +221,6 @@
                     progressPercentage.classList.add('text-gray-600');
                 }
             }
-
-            console.log('Progress updated:', percentage + '%');
         }
 
         function showCompletionModal() {
@@ -178,14 +249,10 @@
                         window.location.href = nextRoute;
                     }, 300);
                 };
-            } else {
-                console.error('finish-game-btn not found!');
             }
         }
     });
-
 </script>
-
 
 <style>
     .animate-modal-show .modal-backdrop {
@@ -208,7 +275,6 @@
         0% {
             background-color: rgba(0, 0, 0, 0);
         }
-
         100% {
             background-color: rgba(0, 0, 0, 0.4);
         }
@@ -219,7 +285,6 @@
             opacity: 0;
             transform: scale(0.8);
         }
-
         100% {
             opacity: 1;
             transform: scale(1);
@@ -230,7 +295,6 @@
         0% {
             background-color: rgba(0, 0, 0, 0.4);
         }
-
         100% {
             background-color: rgba(0, 0, 0, 0);
             visibility: hidden;
@@ -242,7 +306,6 @@
             opacity: 1;
             transform: scale(1);
         }
-
         100% {
             opacity: 0;
             transform: scale(0.3);
@@ -269,7 +332,6 @@
             filter: blur(3px);
             transform: scale(1.02);
         }
-
         100% {
             filter: blur(0px);
             transform: scale(1);
@@ -327,12 +389,9 @@
     }
 
     @keyframes progressPulse {
-
-        0%,
-        100% {
+        0%, 100% {
             box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
         }
-
         50% {
             box-shadow: 0 4px 8px rgba(99, 102, 241, 0.6);
             transform: scaleY(1.1);
@@ -344,16 +403,12 @@
     }
 
     @keyframes shake {
-
-        0%,
-        100% {
+        0%, 100% {
             transform: translateX(0);
         }
-
         25% {
             transform: translateX(-5px);
         }
-
         75% {
             transform: translateX(5px);
         }

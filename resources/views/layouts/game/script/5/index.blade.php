@@ -1,5 +1,105 @@
 <script>
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+
+    window.addEventListener('beforeunload', function() {
+        sessionStorage.setItem('gamePageLeft', 'true');
+    });
+
+    window.addEventListener('load', function() {
+        if (sessionStorage.getItem('gamePageLeft') === 'true') {
+            sessionStorage.removeItem('gamePageLeft');
+            if (typeof window.resetGameState === 'function') {
+                window.resetGameState();
+            }
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
+        const characterOptions = document.getElementById('character-options');
+        const sequenceSlots = document.querySelectorAll('.sequence-slot');
+        const characterElements = Array.from(characterOptions.children);
+        
+        let selectedSequence = [];
+        let availableOptions = [...window.gameCharacters];
+        const correctSequence = window.gameCorrectSequence;
+        const nextRoute = window.gameNextRoute;
+        const skipRoute = window.gameSkipRoute;
+
+        function resetGameState() {
+            const introModal = document.getElementById('intro-modal');
+            const gameContent = document.getElementById('game-content');
+            const successModal = document.getElementById('success-modal');
+            const failureModal = document.getElementById('failure-modal');
+            
+            [successModal, failureModal].forEach(modal => {
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('animate-modal-show', 'animate-modal-fade-out');
+                }
+            });
+            
+            document.querySelectorAll('.character-option').forEach(option => {
+                const buttonDiv = option.querySelector('div');
+                if (buttonDiv) {
+                    buttonDiv.style.backgroundColor = '#6366f1';
+                    buttonDiv.style.color = 'white';
+                    buttonDiv.style.transform = '';
+                    buttonDiv.style.boxShadow = '';
+                }
+                option.style.pointerEvents = 'auto';
+            });
+            
+            sequenceSlots.forEach(slot => {
+                const slotContent = slot.querySelector('.slot-content');
+                const slotNumber = slot.querySelector('.slot-number');
+                
+                if (slotContent) {
+                    slotContent.innerHTML = '';
+                    slotContent.classList.add('hidden');
+                }
+                if (slotNumber) {
+                    slotNumber.classList.remove('hidden');
+                }
+                
+                slot.classList.remove('filled');
+                slot.style.borderColor = '';
+                slot.style.backgroundColor = '';
+            });
+            
+            selectedSequence = [];
+            availableOptions = [...window.gameCharacters];
+            
+            if (gameContent) {
+                gameContent.classList.remove('game-blur', 'animate-unblur');
+            }
+            
+            if (introModal && window.gameHasIntroModal && introModal.style.display !== 'none') {
+                gameContent.classList.add('game-blur');
+                setTimeout(() => {
+                    introModal.classList.add('animate-modal-show');
+                }, 100);
+            }
+            
+            shuffleOptions();
+        }
+
+        window.resetGameState = resetGameState;
+
+        function shuffleOptions() {
+            if (characterOptions && characterElements.length > 0) {
+                for (let i = characterElements.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    characterOptions.appendChild(characterElements[j]);
+                }
+            }
+        }
+
+        resetGameState();
+
         const introModal = document.getElementById('intro-modal');
         const gameContent = document.getElementById('game-content');
         const startGameBtn = document.getElementById('start-game-btn');
@@ -10,36 +110,19 @@
                 gameContent.classList.add('game-blur');
             }, 100);
 
-            startGameBtn.addEventListener('click', function() {
-                introModal.classList.remove('animate-modal-show');
-                introModal.classList.add('animate-modal-fade-out');
+            if (startGameBtn) {
+                startGameBtn.addEventListener('click', function() {
+                    introModal.classList.remove('animate-modal-show');
+                    introModal.classList.add('animate-modal-fade-out');
 
-                setTimeout(() => {
-                    introModal.style.display = 'none';
-                    gameContent.classList.remove('game-blur');
-                    gameContent.classList.add('animate-unblur');
-                }, 300);
-            });
-        }
-
-        const characterOptions = document.getElementById('character-options');
-        const sequenceSlots = document.querySelectorAll('.sequence-slot');
-        const characterElements = Array.from(characterOptions.children);
-        
-        let selectedSequence = [];
-        let availableOptions = [...window.gameCharacters];
-        const correctSequence = window.gameCorrectSequence;
-        const nextRoute = window.gameNextRoute;
-        const skipRoute = window.gameSkipRoute;
-        
-        function shuffleOptions() {
-            for (let i = characterElements.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                characterOptions.appendChild(characterElements[j]);
+                    setTimeout(() => {
+                        introModal.style.display = 'none';
+                        gameContent.classList.remove('game-blur');
+                        gameContent.classList.add('animate-unblur');
+                    }, 300);
+                });
             }
         }
-        
-        shuffleOptions();
         
         document.querySelectorAll('.character-option').forEach(option => {
             option.addEventListener('click', function() {
@@ -86,10 +169,13 @@
             slotContent.classList.remove('hidden');
             slotNumber.classList.add('hidden');
             
-            slotContent.querySelector('.remove-btn').addEventListener('click', function(e) {
-                e.stopPropagation();
-                removeFromSequence(character, slot);
-            });
+            const removeBtn = slotContent.querySelector('.remove-btn');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    removeFromSequence(character, slot);
+                });
+            }
         }
         
         function removeFromSequence(character, slot) {
@@ -103,11 +189,13 @@
             slotNumber.classList.remove('hidden');
             
             const characterOption = document.querySelector(`[data-character="${character}"]`);
-            const buttonDiv = characterOption.querySelector('div');
-            buttonDiv.style.backgroundColor = '#6366f1';
-            buttonDiv.style.color = 'white';
-            characterOption.style.pointerEvents = 'auto';
-            availableOptions.push(character);
+            if (characterOption) {
+                const buttonDiv = characterOption.querySelector('div');
+                buttonDiv.style.backgroundColor = '#6366f1';
+                buttonDiv.style.color = 'white';
+                characterOption.style.pointerEvents = 'auto';
+                availableOptions.push(character);
+            }
         }
         
         function getCharacterText(character) {
@@ -131,28 +219,42 @@
         
         function showSuccessModal() {
             const modal = document.getElementById('success-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('animate-modal-show');
-            
-            document.getElementById('success-btn').onclick = function() {
-                window.location.href = nextRoute;
-            };
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('animate-modal-show');
+                
+                const successBtn = document.getElementById('success-btn');
+                if (successBtn) {
+                    successBtn.onclick = function() {
+                        window.location.href = nextRoute;
+                    };
+                }
+            }
         }
         
         function showFailureModal() {
             const modal = document.getElementById('failure-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('animate-modal-show');
-            
-            document.getElementById('retry-btn').onclick = function() {
-                modal.classList.add('hidden');
-                modal.classList.remove('animate-modal-show');
-                resetGame();
-            };
-            
-            document.getElementById('skip-btn').onclick = function() {
-                window.location.href = skipRoute;
-            };
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('animate-modal-show');
+                
+                const retryBtn = document.getElementById('retry-btn');
+                const skipBtn = document.getElementById('skip-btn');
+                
+                if (retryBtn) {
+                    retryBtn.onclick = function() {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('animate-modal-show');
+                        resetGame();
+                    };
+                }
+                
+                if (skipBtn) {
+                    skipBtn.onclick = function() {
+                        window.location.href = skipRoute;
+                    };
+                }
+            }
         }
 
         function resetGame() {
@@ -323,5 +425,15 @@
             opacity: 1;
             transform: scale(1);
         }
+    }
+
+    button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 </style>

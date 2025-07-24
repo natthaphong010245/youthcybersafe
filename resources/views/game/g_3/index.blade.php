@@ -14,7 +14,7 @@
 
     <div class="card-container space-y-6 px-6 md:px-0" id="game-content">
         <div class="text-center mb-2">
-            <h2 class="text-xl font-bold text-indigo-800">แบบไหนที่เรียกว่าเป็นการรังแกทางไซเบอร์</h2>
+            <h2 class="text-xl font-bold text-indigo-800 pr-2 pl-2">แบบไหนที่เรียกว่าเป็นการรังแกทางไซเบอร์</h2>
         </div>
         
         <div class="grid grid-cols-2 gap-4" id="card-grid">

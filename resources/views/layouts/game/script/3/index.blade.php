@@ -1,37 +1,119 @@
 <script>
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+
+    window.addEventListener('beforeunload', function() {
+        sessionStorage.setItem('gamePageLeft', 'true');
+    });
+
+    window.addEventListener('load', function() {
+        if (sessionStorage.getItem('gamePageLeft') === 'true') {
+            sessionStorage.removeItem('gamePageLeft');
+            if (typeof window.resetGameState === 'function') {
+                window.resetGameState();
+            }
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
+        let correctSelections = 0;
+        const requiredSelections = 2;
+        let selectedCards = [];
+        let currentInfoModalCard = null;
+
+        function resetGameState() {
+            const introModal = document.getElementById('intro-modal');
+            const gameContent = document.getElementById('game-content');
+            const feedbackOverlay = document.getElementById('feedback-overlay');
+            const gameCompleteModal = document.getElementById('game-complete-modal');
+            
+            [feedbackOverlay, gameCompleteModal].forEach(modal => {
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('animate-fadeIn', 'animate-fadeOut', 'animate-modal-show', 'animate-modal-fade-out');
+                }
+            });
+            
+            document.querySelectorAll('.card-option').forEach(card => {
+                const cardDiv = card.querySelector('div');
+                const cardImage = card.querySelector('.card-image');
+                const textElement = card.querySelector('.text-indigo-700, .text-gray-500');
+                const marker = card.querySelector('.marker-overlay');
+                
+                cardDiv.classList.remove('border-green-500', 'border-red-500', 'border-2');
+                cardDiv.classList.add('border-indigo-200');
+                
+                if (cardImage) {
+                    cardImage.classList.remove('opacity-50');
+                }
+                
+                if (textElement) {
+                    textElement.classList.remove('text-gray-500');
+                    textElement.classList.add('text-indigo-700');
+                }
+                
+                if (marker) {
+                    marker.classList.add('hidden');
+                    marker.classList.remove('animate-fadeIn');
+                }
+            });
+            
+            correctSelections = 0;
+            selectedCards = [];
+            currentInfoModalCard = null;
+            
+            if (gameContent) {
+                gameContent.classList.remove('game-blur', 'animate-unblur');
+            }
+            
+            if (introModal && introModal.style.display !== 'none') {
+                gameContent.classList.add('game-blur');
+                setTimeout(() => {
+                    introModal.classList.add('animate-modal-show');
+                }, 100);
+            }
+        }
+
+        window.resetGameState = resetGameState;
+
+        resetGameState();
+
         const introModal = document.getElementById('intro-modal');
         const gameContent = document.getElementById('game-content');
         const startGameBtn = document.getElementById('start-game-btn');
 
         setTimeout(() => {
-            introModal.classList.add('animate-modal-show');
-            gameContent.classList.add('game-blur');
+            if (introModal) {
+                introModal.classList.add('animate-modal-show');
+                gameContent.classList.add('game-blur');
+            }
         }, 100);
 
-        startGameBtn.addEventListener('click', function() {
-            introModal.classList.remove('animate-modal-show');
-            introModal.classList.add('animate-modal-fade-out');
+        if (startGameBtn) {
+            startGameBtn.addEventListener('click', function() {
+                introModal.classList.remove('animate-modal-show');
+                introModal.classList.add('animate-modal-fade-out');
 
-            setTimeout(() => {
-                introModal.style.display = 'none';
-                gameContent.classList.remove('game-blur');
-                gameContent.classList.add('animate-unblur');
-            }, 300);
-        });
+                setTimeout(() => {
+                    introModal.style.display = 'none';
+                    gameContent.classList.remove('game-blur');
+                    gameContent.classList.add('animate-unblur');
+                }, 300);
+            });
+        }
 
         const cardGrid = document.getElementById('card-grid');
-        const cards = Array.from(cardGrid.children);
-        
-        for (let i = cards.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            cardGrid.appendChild(cards[j]);
+        if (cardGrid) {
+            const cards = Array.from(cardGrid.children);
+            
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                cardGrid.appendChild(cards[j]);
+            }
         }
-        
-        let correctSelections = 0;
-        const requiredSelections = 2;
-        let selectedCards = [];
-        let currentInfoModalCard = null;
         
         document.querySelectorAll('.card-option').forEach(card => {
             card.addEventListener('click', function() {
@@ -44,6 +126,7 @@
                 
                 if (isCorrect) {
                     this.querySelector('div').classList.add('border-green-500', 'border-2');
+                    this.querySelector('div').classList.remove('border-indigo-200');
                     correctSelections++;
                     selectedCards.push(cardType);
                     
@@ -57,11 +140,14 @@
                     }, 800);
                 } else {
                     this.querySelector('div').classList.add('border-red-500', 'border-2');
+                    this.querySelector('div').classList.remove('border-indigo-200');
                     
                     this.querySelector('.card-image').classList.add('opacity-50');
                     const textElement = this.querySelector('.text-indigo-700');
-                    textElement.classList.add('text-gray-500');
-                    textElement.classList.remove('text-indigo-700');
+                    if (textElement) {
+                        textElement.classList.add('text-gray-500');
+                        textElement.classList.remove('text-indigo-700');
+                    }
                     
                     const marker = this.querySelector('.marker-overlay');
                     marker.classList.remove('hidden');
@@ -107,12 +193,16 @@
             const modal = document.getElementById('game-complete-modal');
             const startNextBtn = document.getElementById('start-next-game-btn');
             
-            modal.classList.remove('hidden');
-            modal.classList.add('animate-modal-show');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('animate-modal-show');
+            }
             
-            startNextBtn.onclick = function() {
-                window.location.href = "{{ route('game_4_1') }}";
-            };
+            if (startNextBtn) {
+                startNextBtn.onclick = function() {
+                    window.location.href = "{{ route('game_4_1') }}";
+                };
+            }
         }
 
         function hideModal(modal, callback) {
@@ -293,5 +383,9 @@
     .card-option:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+
+    .card-option div {
+        transition: all 0.3s ease;
     }
 </style>

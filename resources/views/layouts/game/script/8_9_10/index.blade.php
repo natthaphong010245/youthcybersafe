@@ -1,25 +1,24 @@
 <script>
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+
+    window.addEventListener('beforeunload', function() {
+        sessionStorage.setItem('gamePageLeft', 'true');
+    });
+
+    window.addEventListener('load', function() {
+        if (sessionStorage.getItem('gamePageLeft') === 'true') {
+            sessionStorage.removeItem('gamePageLeft');
+            if (typeof window.resetGameState === 'function') {
+                window.resetGameState();
+            }
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
-        const introModal = document.getElementById('intro-modal');
-        const gameContent = document.getElementById('game-content');
-        const startGameBtn = document.getElementById('start-game-btn');
-
-        setTimeout(() => {
-            introModal.classList.add('animate-modal-show');
-            gameContent.classList.add('game-blur');
-        }, 100);
-
-        startGameBtn.addEventListener('click', function() {
-            introModal.classList.remove('animate-modal-show');
-            introModal.classList.add('animate-modal-fade-out');
-
-            setTimeout(() => {
-                introModal.style.display = 'none';
-                gameContent.classList.remove('game-blur');
-                gameContent.classList.add('animate-unblur');
-            }, 300);
-        });
-
         const infoOverlay = document.getElementById('info-overlay');
         const successOverlay = document.getElementById('success-overlay');
         const wrongOverlay = document.getElementById('wrong-overlay');
@@ -34,6 +33,81 @@
         const correctChoice = document.querySelector('.correct-choice');
         const wrongChoice = document.querySelector('.wrong-choice');
         
+        const illegalBtn = document.getElementById('illegal-btn');
+        const legalBtn = document.getElementById('legal-btn');
+
+        function resetGameState() {
+            const introModal = document.getElementById('intro-modal');
+            const gameContent = document.getElementById('game-content');
+            
+            [infoOverlay, successOverlay, wrongOverlay].forEach(modal => {
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('animate-fadeIn', 'animate-fadeOut');
+                    modal.style.opacity = '0';
+                }
+            });
+            
+            document.querySelectorAll('.choice-card').forEach(card => {
+                if (card) {
+                    card.style.transform = '';
+                    card.style.boxShadow = '0 0 15px rgba(0,0,0,0.2)';
+                    card.style.pointerEvents = 'auto';
+                    card.classList.remove('border-green-500', 'border-red-500');
+                    card.classList.add('border-transparent');
+                }
+            });
+            
+            [illegalBtn, legalBtn].forEach(btn => {
+                if (btn) {
+                    btn.style.transform = '';
+                    btn.style.backgroundColor = '';
+                    btn.style.pointerEvents = 'auto';
+                    btn.classList.remove('bg-green-500', 'bg-red-500');
+                    btn.classList.add('bg-[#929AFF]');
+                }
+            });
+            
+            if (gameContent) {
+                gameContent.classList.remove('game-blur', 'animate-unblur');
+            }
+            
+            if (introModal && introModal.style.display !== 'none') {
+                gameContent.classList.add('game-blur');
+                setTimeout(() => {
+                    introModal.classList.add('animate-modal-show');
+                }, 100);
+            }
+        }
+
+        window.resetGameState = resetGameState;
+
+        resetGameState();
+
+        const introModal = document.getElementById('intro-modal');
+        const gameContent = document.getElementById('game-content');
+        const startGameBtn = document.getElementById('start-game-btn');
+
+        setTimeout(() => {
+            if (introModal) {
+                introModal.classList.add('animate-modal-show');
+                gameContent.classList.add('game-blur');
+            }
+        }, 100);
+
+        if (startGameBtn) {
+            startGameBtn.addEventListener('click', function() {
+                introModal.classList.remove('animate-modal-show');
+                introModal.classList.add('animate-modal-fade-out');
+
+                setTimeout(() => {
+                    introModal.style.display = 'none';
+                    gameContent.classList.remove('game-blur');
+                    gameContent.classList.add('animate-unblur');
+                }, 300);
+            });
+        }
+        
         if (correctChoice && wrongChoice) {
             correctChoice.addEventListener('click', function() {
                 showInfoModal();
@@ -44,12 +118,9 @@
             });
         }
         
-        const illegalBtn = document.getElementById('illegal-btn');
-        const legalBtn = document.getElementById('legal-btn');
-        
         if (illegalBtn && legalBtn) {
             illegalBtn.addEventListener('click', function() {
-                showInfoModal(); 
+                showInfoModal();
             });
 
             legalBtn.addEventListener('click', function() {
@@ -97,6 +168,7 @@
             if (infoOverlay) {
                 infoOverlay.classList.remove('hidden');
                 infoOverlay.classList.add('animate-fadeIn');
+                infoOverlay.style.opacity = '1';
             }
         }
 
@@ -104,6 +176,7 @@
             if (successOverlay) {
                 successOverlay.classList.remove('hidden');
                 successOverlay.classList.add('animate-fadeIn');
+                successOverlay.style.opacity = '1';
             }
         }
         
@@ -111,6 +184,7 @@
             if (wrongOverlay) {
                 wrongOverlay.classList.remove('hidden');
                 wrongOverlay.classList.add('animate-fadeIn');
+                wrongOverlay.style.opacity = '1';
             }
         }
         
@@ -121,6 +195,7 @@
                 setTimeout(() => {
                     modal.classList.add('hidden');
                     modal.classList.remove('animate-fadeOut');
+                    modal.style.opacity = '0';
                     if (callback) callback();
                 }, 500);
             }
@@ -175,7 +250,6 @@
         0% {
             background-color: rgba(0, 0, 0, 0);
         }
-
         100% {
             background-color: rgba(0, 0, 0, 0.4);
         }
@@ -186,7 +260,6 @@
             opacity: 0;
             transform: scale(0.8);
         }
-
         100% {
             opacity: 1;
             transform: scale(1);
@@ -197,7 +270,6 @@
         0% {
             background-color: rgba(0, 0, 0, 0.4);
         }
-
         100% {
             background-color: rgba(0, 0, 0, 0);
             visibility: hidden;
@@ -209,7 +281,6 @@
             opacity: 1;
             transform: scale(1);
         }
-
         100% {
             opacity: 0;
             transform: scale(0.3);
@@ -236,7 +307,6 @@
             filter: blur(3px);
             transform: scale(1.02);
         }
-
         100% {
             filter: blur(0px);
             transform: scale(1);
@@ -292,12 +362,14 @@
         box-shadow: 0 0 15px rgba(0,0,0,0.1) !important;
     }
     
-    button:hover {
+    button:hover:not(:disabled) {
         transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
-    button:active {
+    button:active:not(:disabled) {
         transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     img {

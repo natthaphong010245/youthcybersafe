@@ -87,7 +87,7 @@
             </div>
 
             <button onclick="closeSignalModal()"
-                class="bg-[#929AFF] text-white px-8 py-2 rounded-xl font-medium hover:bg-purple-600 transition-colors">
+                class="bg-[#929AFF] text-white px-6 py-1 rounded-xl font-medium  transition-colors">
                 ปิด
             </button>
         </div>
