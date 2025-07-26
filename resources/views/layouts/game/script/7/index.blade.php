@@ -87,9 +87,9 @@
             correctBoxIndex = Math.floor(Math.random() * 3);
             
             const boxConfigs = [
-                { size: 'w-36 h-36', position: 'top-4 left-8' },
-                { size: 'w-48 h-48', position: 'top-12 right-8' },
-                { size: 'w-44 h-44', position: 'top-52 left-1/2 transform -translate-x-1/2' }
+                { size: 'w-48 h-48 sm:w-36 sm:h-36', position: 'top-0 left-3' },   
+                { size: 'w-48 h-48 sm:w-36 sm:h-36', position: 'top-20 right-3' }, 
+                { size: 'w-52 h-52 sm:w-40 sm:h-40', position: 'top-80 sm:top-60 bottom-0 left-1/2 transform -translate-x-1/2' } 
             ];
             
             for (let i = boxConfigs.length - 1; i > 0; i--) {
@@ -349,7 +349,7 @@
     #mystery-container {
         position: relative;
         width: 100%;
-        height: 400px;
+        height: 550px; 
         max-width: 100%;
         overflow: hidden; 
     }
@@ -371,29 +371,32 @@
 
     @media (max-width: 640px) {
         #mystery-container {
-            height: 350px;
+            height: 500px;
         }
         
         .cursor-pointer {
-            max-width: 120px;
-            max-height: 120px;
+            max-width: 140px;
+            max-height: 140px;
         }
         
-        .w-36 { width: 8rem; }
-        .h-36 { height: 8rem; }
-        .w-44 { width: 9rem; }
-        .h-44 { height: 9rem; }
         .w-48 { width: 10rem; }
         .h-48 { height: 10rem; }
+        .w-52 { width: 11rem; }
+        .h-52 { height: 11rem; }
     }
 
     @media (max-width: 480px) {
         #mystery-container {
-            height: 300px;
+            height: 450px;
         }
         
-        .top-52 {
-            top: 11rem; 
+        .top-80 {
+            top: 16rem; 
         }
+        
+        .w-48 { width: 8rem; }
+        .h-48 { height: 8rem; }
+        .w-52 { width: 9rem; }
+        .h-52 { height: 9rem; }
     }
 </style>
