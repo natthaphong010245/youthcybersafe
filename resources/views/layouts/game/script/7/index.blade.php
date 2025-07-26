@@ -1,8 +1,67 @@
 <script>
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+
+    window.addEventListener('beforeunload', function() {
+        sessionStorage.setItem('gamePageLeft', 'true');
+    });
+
+    window.addEventListener('load', function() {
+        if (sessionStorage.getItem('gamePageLeft') === 'true') {
+            sessionStorage.removeItem('gamePageLeft');
+            resetGameState();
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
         const introModal = document.getElementById('intro-modal');
         const gameContent = document.getElementById('game-content');
         const startGameBtn = document.getElementById('start-game-btn');
+        const container = document.getElementById('mystery-container');
+        const wrongOverlay = document.getElementById('wrong-overlay');
+        const infoOverlay = document.getElementById('info-overlay');
+        const successOverlay = document.getElementById('success-overlay');
+        const tryAgainBtn = document.getElementById('try-again-btn');
+        const skipBtn = document.getElementById('skip-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const finishBtn = document.getElementById('finish-btn');
+        
+        let gameBoxes = [];
+        let correctBoxIndex = -1;
+        let gameCompleted = false;
+
+        function resetGameState() {
+            [wrongOverlay, infoOverlay, successOverlay].forEach(modal => {
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('animate-fadeIn', 'animate-fadeOut');
+                }
+            });
+
+            gameCompleted = false;
+            correctBoxIndex = -1;
+            gameBoxes = [];
+
+            if (gameContent) {
+                gameContent.classList.remove('game-blur', 'animate-unblur');
+            }
+
+            if (container) {
+                container.innerHTML = '';
+            }
+
+            if (introModal && !introModal.style.display === 'none') {
+                gameContent.classList.add('game-blur');
+                setTimeout(() => {
+                    introModal.classList.add('animate-modal-show');
+                }, 100);
+            }
+        }
+
+        resetGameState();
 
         setTimeout(() => {
             introModal.classList.add('animate-modal-show');
@@ -17,28 +76,8 @@
                 introModal.style.display = 'none';
                 gameContent.classList.remove('game-blur');
                 gameContent.classList.add('animate-unblur');
+                createMysteryBoxes();
             }, 300);
-        });
-
-        const container = document.getElementById('mystery-container');
-        const wrongOverlay = document.getElementById('wrong-overlay');
-        const infoOverlay = document.getElementById('info-overlay');
-        const successOverlay = document.getElementById('success-overlay');
-        const tryAgainBtn = document.getElementById('try-again-btn');
-        const skipBtn = document.getElementById('skip-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const finishBtn = document.getElementById('finish-btn');
-        
-        let gameBoxes = [];
-        let correctBoxIndex = -1;
-        let gameCompleted = false;
-        
-        window.addEventListener('pageshow', function(event) {
-            if (event.persisted || performance.navigation.type === 2) {
-                if (gameCompleted) {
-                    window.location.reload();
-                }
-            }
         });
         
         function createMysteryBoxes() {
@@ -48,9 +87,9 @@
             correctBoxIndex = Math.floor(Math.random() * 3);
             
             const boxConfigs = [
-                { size: 'w-36 h-36', position: 'top-0 left-3' },
-                { size: 'w-48 h-48', position: 'top-20 right-3' },
-                { size: 'w-44 h-44', position: 'top-80 bottom-0 left-1/2 transform -translate-x-1/2' }
+                { size: 'w-36 h-36', position: 'top-4 left-8' },
+                { size: 'w-48 h-48', position: 'top-12 right-8' },
+                { size: 'w-44 h-44', position: 'top-52 left-1/2 transform -translate-x-1/2' }
             ];
             
             for (let i = boxConfigs.length - 1; i > 0; i--) {
@@ -148,8 +187,8 @@
                 window.location.href = "{{ route('game_8') }}";
             });
         });
-        
-        createMysteryBoxes();
+
+        window.resetGameState = resetGameState;
     });
 </script>
 
@@ -310,7 +349,9 @@
     #mystery-container {
         position: relative;
         width: 100%;
-        height: 200px;
+        height: 400px;
+        max-width: 100%;
+        overflow: hidden; 
     }
 
     button:hover {
@@ -326,5 +367,33 @@
     .cursor-pointer:hover {
         filter: brightness(1.1);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 640px) {
+        #mystery-container {
+            height: 350px;
+        }
+        
+        .cursor-pointer {
+            max-width: 120px;
+            max-height: 120px;
+        }
+        
+        .w-36 { width: 8rem; }
+        .h-36 { height: 8rem; }
+        .w-44 { width: 9rem; }
+        .h-44 { height: 9rem; }
+        .w-48 { width: 10rem; }
+        .h-48 { height: 10rem; }
+    }
+
+    @media (max-width: 480px) {
+        #mystery-container {
+            height: 300px;
+        }
+        
+        .top-52 {
+            top: 11rem; 
+        }
     }
 </style>
