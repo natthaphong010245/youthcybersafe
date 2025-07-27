@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        <div id="answer-clouds-container" class="relative min-h-80 mb-2">
+        <div id="answer-clouds-container" class="relative min-h-80 mb-4">
         </div>
 
         <div class="text-center mb-2">
