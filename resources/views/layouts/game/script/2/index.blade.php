@@ -44,13 +44,38 @@
         let gameInitialized = false;
         let usedAnswers = new Set();
 
-        // ปรับตำแหน่ง clouds ให้อยู่ในกรอบและเหมาะสมกับมือถือ
+        // ปรับปรุงตำแหน่งเมฆให้เหมาะสมกับทุกขนาดหน้าจอ
         const cloudPositions = [
-            { position: 'top-2 left-4', size: 'w-28 h-auto' },
-            { position: 'top-2 right-4', size: 'w-24 h-auto' },
-            { position: 'top-16 left-8', size: 'w-32 h-auto' },
-            { position: 'top-20 right-8', size: 'w-28 h-auto' },
-            { position: 'top-32 left-1/2 transform -translate-x-1/2', size: 'w-30 h-auto' }
+            {
+                position: 'top-4 left-8',
+                size: 'w-28 h-auto',
+                mobilePosition: 'top-2 left-4',
+                mobileSize: 'w-20 h-auto'
+            },
+            {
+                position: 'top-8 right-12',
+                size: 'w-24 h-auto',
+                mobilePosition: 'top-6 right-6',
+                mobileSize: 'w-18 h-auto'
+            },
+            {
+                position: 'top-20 left-20',
+                size: 'w-26 h-auto',
+                mobilePosition: 'top-16 left-8',
+                mobileSize: 'w-20 h-auto'
+            },
+            {
+                position: 'top-24 right-6',
+                size: 'w-28 h-auto',
+                mobilePosition: 'top-20 right-2',
+                mobileSize: 'w-22 h-auto'
+            },
+            {
+                position: 'top-40 left-1/2 transform -translate-x-1/2',
+                size: 'w-24 h-auto',
+                mobilePosition: 'top-32 left-1/2 transform -translate-x-1/2',
+                mobileSize: 'w-20 h-auto'
+            }
         ];
 
         // ฟังก์ชันรีเซ็ตสถานะเกม
@@ -73,14 +98,14 @@
                 zone.innerHTML = '<img src="{{ asset("images/material/cloud.png") }}" alt="Empty Cloud" class="w-32 h-22 opacity-30">';
             });
 
+            // เคลียร์ container
+            if (answerCloudsContainer) {
+                answerCloudsContainer.innerHTML = '';
+            }
+
             // รีเซ็ต game content
             if (gameContent) {
                 gameContent.classList.remove('game-blur', 'animate-unblur');
-            }
-
-            // รีเซ็ต container
-            if (answerCloudsContainer) {
-                answerCloudsContainer.innerHTML = '';
             }
 
             // แสดง intro modal อีกครั้งถ้ายังมี
@@ -125,6 +150,10 @@
             return shuffled;
         }
 
+        function isMobile() {
+            return window.innerWidth <= 640;
+        }
+
         function createAnswerClouds() {
             answerCloudsContainer.innerHTML = '';
             const shuffledAnswers = shuffleArray(allAnswers);
@@ -133,12 +162,18 @@
             shuffledAnswers.forEach((answer, index) => {
                 const cloud = document.createElement('div');
                 const position = shuffledPositions[index];
+                
+                // เลือกตำแหน่งและขนาดตามขนาดหน้าจอ
+                const mobile = isMobile();
+                const positionClass = mobile ? position.mobilePosition : position.position;
+                const sizeClass = mobile ? position.mobileSize : position.size;
+                
+                const hasTransform = positionClass.includes('transform');
+                const cleanPositionClass = positionClass.replace('transform -translate-x-1/2', '').trim();
+                const cleanSizeClass = sizeClass.replace('transform -translate-x-1/2', '').trim();
 
-                const hasTransform = position.size.includes('transform');
-                const sizeClasses = position.size.replace('transform -translate-x-1/2', '').trim();
-
-                cloud.className =
-                    `absolute ${position.position} ${sizeClasses} cursor-pointer answer-cloud`;
+                cloud.className = `absolute ${cleanPositionClass} ${cleanSizeClass} cursor-pointer answer-cloud`;
+                
                 if (hasTransform) {
                     cloud.classList.add('transform', '-translate-x-1/2');
                 }
@@ -511,50 +546,45 @@
         20%, 40%, 60%, 80% { transform: translateX(-50%) translateX(5px); }
     }
 
-    /* ปรับ container height ให้เหมาะสมกับตำแหน่งใหม่ */
-    #answer-clouds-container {
-        min-height: 260px !important;
-        max-height: 260px;
-        overflow: hidden;
-    }
-
-    /* เพิ่ม custom classes สำหรับ Tailwind */
-    .w-30 { width: 7.5rem; }
+    /* กำหนดขนาดที่ชัดเจน */
     .w-18 { width: 4.5rem; }
-    .h-9 { height: 2.25rem; }
-    .h-10 { height: 2.5rem; }
-    .h-12 { height: 3rem; }
-    .h-13 { height: 3.25rem; }
-    .h-14 { height: 3.5rem; }
-    .h-18 { height: 4.5rem; }
-    .h-22 { height: 5.5rem; }
     .w-20 { width: 5rem; }
     .w-22 { width: 5.5rem; }
     .w-24 { width: 6rem; }
+    .w-26 { width: 6.5rem; }
+    .w-28 { width: 7rem; }
     .w-32 { width: 8rem; }
     .w-36 { width: 9rem; }
+    .h-22 { height: 5.5rem; }
     .h-24 { height: 6rem; }
 
-    /* Responsive design ที่ปรับปรุงแล้ว */
+    /* ปรับ container ให้เหมาะสมกับเมฆ */
+    #answer-clouds-container {
+        min-height: 280px;
+        max-height: 320px;
+        overflow: hidden;
+    }
+
+    /* Responsive Design ที่ปรับปรุงแล้ว */
     @media (max-width: 640px) {
         #answer-clouds-container {
-            min-height: 220px !important;
-            max-height: 220px;
+            min-height: 220px;
+            max-height: 260px;
         }
 
         .drop-zone {
             width: 7rem !important;
-            height: 5rem !important;
+            height: 4.5rem !important;
             margin: 0 0.25rem;
         }
 
         .drop-zone img {
             width: 6rem !important;
-            height: 4rem !important;
+            height: 3.5rem !important;
         }
 
         .answer-cloud {
-            font-size: 0.7rem;
+            font-size: 0.8rem;
         }
 
         #drop-zones-container {
@@ -563,50 +593,31 @@
             justify-content: center;
         }
 
-        .answer-cloud {
-            min-width: 3rem;
-            min-height: 2rem;
-        }
-
         .card-container {
-            padding: 0.5rem 0.5rem;
+            padding: 0.5rem 1rem;
         }
 
-        /* ปรับขนาด clouds ในมือถือ */
-        .answer-cloud .w-28,
-        .answer-cloud .w-24,
-        .answer-cloud .w-32,
-        .answer-cloud .w-30 {
-            width: 5rem !important;
-            height: auto !important;
+        .text-xl {
+            font-size: 1.1rem;
         }
 
-        .sun-container {
-            width: 4rem !important;
-            height: 4rem !important;
+        .text-lg {
+            font-size: 1rem;
         }
 
-        h2 {
-            font-size: 1rem !important;
-            line-height: 1.4 !important;
-        }
+        /* ขนาดเมฆในมือถือ */
+        .w-18 { width: 3.5rem; }
+        .w-20 { width: 4rem; }
+        .w-22 { width: 4.5rem; }
 
-        p {
-            font-size: 0.9rem !important;
-        }
+        /* ปรับตำแหน่งให้เหมาะสมกับหน้าจอเล็ก */
+        .top-32 { top: 7rem; }
     }
 
     @media (max-width: 480px) {
         #answer-clouds-container {
-            min-height: 180px !important;
-            max-height: 180px;
-        }
-
-        .answer-cloud .w-28,
-        .answer-cloud .w-24,
-        .answer-cloud .w-32,
-        .answer-cloud .w-30 {
-            width: 4rem !important;
+            min-height: 200px;
+            max-height: 240px;
         }
 
         .drop-zone {

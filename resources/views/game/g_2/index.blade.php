@@ -1,3 +1,4 @@
+{{-- resources/views/game/g_2/index.blade.php --}}
 @extends('layouts.game.bullying.index')
 
 @php
@@ -26,7 +27,7 @@
             </div>
         </div>
 
-        <div id="answer-clouds-container" class="relative min-h-80 mb-4">
+        <div id="answer-clouds-container" class="relative min-h-80 mb-2">
         </div>
 
         <div class="text-center mb-2">
