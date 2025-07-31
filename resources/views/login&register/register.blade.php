@@ -1,6 +1,38 @@
 @extends('layouts.login&register.index')
 
 @section('content')
+    <style>
+        .eye-icon-container {
+            position: absolute;
+            top: 50%;
+            right: 1.5rem;
+            transform: translateY(-50%);
+            width: 1.5rem;
+            height: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6B7280;
+            transition: color 0.2s;
+        }
+        
+        .eye-icon-container:hover {
+            color: #374151;
+        }
+        
+        .eye-icon-container svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+            display: none;
+        }
+    </style>
+
     <div class="bg-white w-full flex-grow rounded-t-[50px] px-10 pt-8 flex flex-col mt-16">
         <h1 class="text-center mb-6 text-[#3F359E] text-3xl font-bold">
             ลงทะเบียน
@@ -126,8 +158,16 @@
 
             <div class="mb-4">
                 <label for="password" class="block text-left text-[16px] font-medium mb-1">รหัสผ่าน</label>
-                <input type="password" id="password" name="password" placeholder="กรุณากรอกรหัสผ่าน"
-                    class="w-full px-6 py-3 border {{ $errors->has('password') ? 'border-red-500' : 'border-gray-400' }} rounded-xl text-gray-700 placeholder-gray-500 focus:outline-none focus:border-[#929AFF]">
+                <div class="relative">
+                    <input type="password" id="password" name="password" placeholder="กรุณากรอกรหัสผ่าน"
+                        class="w-full px-6 pr-14 py-3 border {{ $errors->has('password') ? 'border-red-500' : 'border-gray-400' }} rounded-xl text-gray-700 placeholder-gray-500 focus:outline-none focus:border-[#929AFF]">
+                    <div id="togglePassword" class="eye-icon-container" style="display: none;">
+                        <svg id="eyeIconPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </div>
+                </div>
                 @if ($errors->has('password'))
                     <div class="flex items-center mt-1 text-red-500">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20"
@@ -144,9 +184,17 @@
             <div class="mb-4">
                 <label for="password_confirmation"
                     class="block text-left text-[16px] font-medium mb-1">ยืนยันรหัสผ่าน</label>
-                <input type="password" id="password_confirmation" name="password_confirmation"
-                    placeholder="กรุณากรอกยืนยันรหัสผ่าน"
-                    class="w-full px-6 py-3 border {{ $errors->has('password_confirmation') ? 'border-red-500' : 'border-gray-400' }} rounded-xl text-gray-700 placeholder-gray-500 focus:outline-none focus:border-[#929AFF]">
+                <div class="relative">
+                    <input type="password" id="password_confirmation" name="password_confirmation"
+                        placeholder="กรุณากรอกยืนยันรหัสผ่าน"
+                        class="w-full px-6 pr-14 py-3 border {{ $errors->has('password_confirmation') ? 'border-red-500' : 'border-gray-400' }} rounded-xl text-gray-700 placeholder-gray-500 focus:outline-none focus:border-[#929AFF]">
+                    <div id="togglePasswordConfirmation" class="eye-icon-container" style="display: none;">
+                        <svg id="eyeIconPasswordConfirm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </div>
+                </div>
                 @if ($errors->has('password_confirmation'))
                     <div class="flex items-center mt-1 text-red-500">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20"
@@ -177,5 +225,100 @@
             </p>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const eyeOpenPath = {
+                path1: "M15 12a3 3 0 11-6 0 3 3 0 016 0z",
+                path2: "M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+            };
+            
+            const eyeClosedPath = {
+                path1: "M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+            };
+
+            function updateIcon(iconElement, paths) {
+                const pathElements = iconElement.querySelectorAll('path');
+                pathElements.forEach(path => path.remove());
+                
+                if (paths.path1) {
+                    const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path1.setAttribute('stroke-linecap', 'round');
+                    path1.setAttribute('stroke-linejoin', 'round');
+                    path1.setAttribute('stroke-width', '2');
+                    path1.setAttribute('d', paths.path1);
+                    iconElement.appendChild(path1);
+                }
+                
+                if (paths.path2) {
+                    const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path2.setAttribute('stroke-linecap', 'round');
+                    path2.setAttribute('stroke-linejoin', 'round');
+                    path2.setAttribute('stroke-width', '2');
+                    path2.setAttribute('d', paths.path2);
+                    iconElement.appendChild(path2);
+                }
+            }
+
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+            const eyeIconPassword = document.getElementById('eyeIconPassword');
+            let isPasswordVisible = false;
+            
+            passwordInput.addEventListener('input', function() {
+                if (this.value.length > 0) {
+                    togglePassword.style.display = 'flex';
+                    updateIcon(eyeIconPassword, eyeOpenPath);
+                    isPasswordVisible = false;
+                } else {
+                    togglePassword.style.display = 'none';
+                    this.setAttribute('type', 'password');
+                    isPasswordVisible = false;
+                }
+            });
+
+            togglePassword.addEventListener('click', function() {
+                if (isPasswordVisible) {
+                    passwordInput.setAttribute('type', 'password');
+                    updateIcon(eyeIconPassword, eyeOpenPath);
+                    isPasswordVisible = false;
+                } else {
+                    passwordInput.setAttribute('type', 'text');
+                    updateIcon(eyeIconPassword, eyeClosedPath);
+                    isPasswordVisible = true;
+                }
+            });
+
+            const togglePasswordConfirmation = document.getElementById('togglePasswordConfirmation');
+            const passwordConfirmationInput = document.getElementById('password_confirmation');
+            const eyeIconPasswordConfirm = document.getElementById('eyeIconPasswordConfirm');
+            let isPasswordConfirmVisible = false;
+
+            passwordConfirmationInput.addEventListener('input', function() {
+                if (this.value.length > 0) {
+                    togglePasswordConfirmation.style.display = 'flex';
+                    updateIcon(eyeIconPasswordConfirm, eyeOpenPath);
+                    isPasswordConfirmVisible = false;
+                } else {
+                    togglePasswordConfirmation.style.display = 'none';
+                    this.setAttribute('type', 'password');
+                    isPasswordConfirmVisible = false;
+                }
+            });
+
+            togglePasswordConfirmation.addEventListener('click', function() {
+                if (isPasswordConfirmVisible) {
+                    passwordConfirmationInput.setAttribute('type', 'password');
+                    updateIcon(eyeIconPasswordConfirm, eyeOpenPath);
+                    isPasswordConfirmVisible = false;
+                } else {
+                    passwordConfirmationInput.setAttribute('type', 'text');
+                    updateIcon(eyeIconPasswordConfirm, eyeClosedPath);
+                    isPasswordConfirmVisible = true;
+                }
+            });
+        });
+    </script>
+
     @extends('layouts.login&register.script')
 @endsection

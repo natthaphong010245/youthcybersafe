@@ -138,5 +138,31 @@
         });
       }
     });
+   
+        // Function to go to main scenarios page
+        function goToMainScenarios() {
+            // Replace with your actual route to main scenarios page
+            window.location.href = '/scenario'; // หรือ route ที่เหมาะสม
+        }
+
+        // Function to restart from first scenario
+        function restartFromFirstScenario() {
+            // Replace with your actual route to first scenario
+            window.location.href = '/scenario/1'; // หรือ route ที่เหมาะสม
+        }
+
+        // Function to close modal (if needed)
+        function closeCompletionModal() {
+            const modal = document.getElementById('completionModal');
+            modal.classList.remove('show');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('completionModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCompletionModal();
+            }
+        });
+    
   </script>
 @endpush

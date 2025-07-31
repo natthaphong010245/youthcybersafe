@@ -1,4 +1,5 @@
 <?php
+// routes/web.php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
@@ -12,8 +13,9 @@ use App\Http\Controllers\Game\BullyingGameController;
 use App\Http\Controllers\Game\ScenarioController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\VideoController;
-use App\Http\Controllers\InfographicController; // Added for infographic
-use Illuminate\Support\Facades\File; // Added for test route
+use App\Http\Controllers\InfographicController;
+use Illuminate\Support\Facades\File;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -256,3 +258,8 @@ if (app()->environment('local')) {
         return response()->json($result, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     })->name('test.infographic.structure');
 }
+Route::get('/main_dashboard', [DashboardController::class, 'index'])->name('main.dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard/assessment', [DashboardController::class, 'assessment'])->name('assessment-dashboard');
+Route::get('/dashboard/behavioral-report', [DashboardController::class, 'behavioralReport'])->name('behavioral-report-dashboard');
+Route::get('/dashboard/safe-area', [DashboardController::class, 'safeArea'])->name('safe-area-dashboard');
