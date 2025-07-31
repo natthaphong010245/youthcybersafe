@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anti-Cyberbullying</title>
+  <title>YOUTH CYBERSAFE</title>
   <link rel="icon" href="./images/logo.png">
   <link href="https://fonts.googleapis.com/css2?family=K2D:wght@500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
