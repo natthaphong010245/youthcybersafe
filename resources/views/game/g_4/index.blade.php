@@ -60,7 +60,7 @@
                     data-image="3">
                     <div class="flex flex-col items-center justify-center h-full">
                         <div class="flex items-center justify-center">
-                            <img src="{{ asset('images/game/4/Impersonate.png') }}" alt="รวมรอบ เป็นคนซัน"
+                            <img src="{{ asset('images/game/4/impersonate.png') }}" alt="รวมรอบ เป็นคนซัน"
                                 class="h-24 object-contain text-center">
                         </div>
                     </div>
