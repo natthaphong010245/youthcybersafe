@@ -31,17 +31,6 @@
         input[type="password"]::-ms-clear {
             display: none;
         }
-
-        .modal-container {
-            border: 3px solid #e5e7eb;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        
-        @media (max-width: 640px) {
-            .modal-container {
-                border: none;
-            }
-        }
     </style>
 
     <div class="bg-white w-full flex-grow rounded-t-[50px] px-10 pt-8 flex flex-col mt-16">
@@ -51,7 +40,7 @@
 
         @if($errors->has('username') && $errors->first('username') == 'คุณไม่มีสิทธิ์เข้าถึงระบบ')
         <div id="accessDeniedModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4">
-            <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-auto text-center modal-container">
+            <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-auto text-center">
                 <div class="text-red-500 mb-6">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -69,7 +58,7 @@
 
         @if($errors->has('username') && $errors->first('username') == 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
         <div id="invalidCredentialsModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4">
-            <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-auto text-center modal-container">
+            <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-auto text-center">
                 <div class="text-red-500 mb-6">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -84,26 +73,9 @@
         </div>
         @endif
 
-        @if(session('success') && session('success') == 'ออกจากระบบเรียบร้อยแล้ว')
-        <div id="logoutSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4">
-            <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-auto text-center modal-container">
-                <div class="text-green-500 mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <h3 class="text-2xl font-bold mb-4 text-gray-800">ออกจากระบบเรียบร้อยแล้ว!</h3>
-                <p class="mb-8 text-gray-600 text-lg">ขอบคุณที่ใช้บริการ</p>
-                <button id="closeLogoutSuccessModal" class="bg-[#929AFF] hover:bg-[#7B84EA] text-white py-3 px-8 rounded-2xl text-center transition duration-300 w-full font-bold text-lg">
-                    ตกลง
-                </button>
-            </div>
-        </div>
-        @endif
-
-        @if(session('success') && session('success') != 'ออกจากระบบเรียบร้อยแล้ว')
-        <div id="registerSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4">
-            <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-auto text-center modal-container">
+        @if(session('success'))
+        <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4">
+            <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-auto text-center">
                 <div class="text-green-500 mb-6">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -111,7 +83,7 @@
                 </div>
                 <h3 class="text-2xl font-bold mb-4 text-gray-800">ลงทะเบียนสำเร็จ!</h3>
                 <p class="mb-8 text-gray-600 text-lg">{{ session('success') }}</p>
-                <button id="closeRegisterSuccessModal" class="bg-[#929AFF] hover:bg-[#7B84EA] text-white py-3 px-8 rounded-2xl text-center transition duration-300 w-full font-bold text-lg">
+                <button id="closeSuccessModal" class="bg-[#929AFF] hover:bg-[#7B84EA] text-white py-3 px-8 rounded-2xl text-center transition duration-300 w-full font-bold text-lg">
                     ตกลง
                 </button>
             </div>
@@ -195,21 +167,12 @@
                 });
             }
             
-            const logoutSuccessModal = document.getElementById('logoutSuccessModal');
-            const closeLogoutSuccessButton = document.getElementById('closeLogoutSuccessModal');
+            const successModal = document.getElementById('successModal');
+            const closeSuccessButton = document.getElementById('closeSuccessModal');
             
-            if (closeLogoutSuccessButton) {
-                closeLogoutSuccessButton.addEventListener('click', function() {
-                    logoutSuccessModal.classList.add('hidden');
-                });
-            }
-            
-            const registerSuccessModal = document.getElementById('registerSuccessModal');
-            const closeRegisterSuccessButton = document.getElementById('closeRegisterSuccessModal');
-            
-            if (closeRegisterSuccessButton) {
-                closeRegisterSuccessButton.addEventListener('click', function() {
-                    registerSuccessModal.classList.add('hidden');
+            if (closeSuccessButton) {
+                closeSuccessButton.addEventListener('click', function() {
+                    successModal.classList.add('hidden');
                 });
             }
 

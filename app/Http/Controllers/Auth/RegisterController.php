@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class RegisterController extends Controller
 {
@@ -33,6 +34,7 @@ class RegisterController extends Controller
             'password_confirmation.same' => 'การยืนยันรหัสผ่านไม่ตรงกัน',
         ];
 
+        // กำหนดกฎการตรวจสอบพื้นฐาน
         $rules = [
             'role' => 'required|in:teacher,researcher',
             'name' => 'required|string|max:255',
@@ -42,13 +44,15 @@ class RegisterController extends Controller
             'password_confirmation' => ['required', 'same:password'],
         ];
 
+        // เพิ่มกฎการตรวจสอบสำหรับโรงเรียนเฉพาะเมื่อเป็นครู
         if ($request->role === 'teacher') {
             $rules['school'] = 'required';
         }
 
         $request->validate($rules, $messages);
 
-        $school = ($request->role === 'researcher') ? null : $request->school;
+        // ใช้ค่าว่างแทนค่า null สำหรับนักวิจัย
+        $school = ($request->role === 'researcher') ? '' : $request->school;
 
         $user = User::create([
             'role' => $request->role,
@@ -56,9 +60,10 @@ class RegisterController extends Controller
             'name' => $request->name,
             'lastname' => $request->lastname,
             'username' => $request->username,
-            'password' => $request->password,
+            'password' => Hash::make($request->password),
+            'role_user' => 0, 
         ]);
         
-        return redirect()->route('login')->with('success', 'เจ้าหน้าที่กำลังตรวจสอบข้อมูลของคุณ กรุณารอการอนุมัติจากผู้ดูแลระบบ');
+        return redirect()->route('login')->with('success', 'เจ้าหน้าที่กำลงัตรวจสอบข้อมูลของคุณ กรุณารอการอนุมัติจากผู้ดูแลระบบ');
     }
 }
