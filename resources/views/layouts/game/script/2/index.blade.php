@@ -44,22 +44,22 @@
         let gameInitialized = false;
         let usedAnswers = new Set();
 
-        // ตำแหน่งสำหรับเดสก์ท็อป - กระจายตัวมากขึ้น
+        // ตำแหน่งสำหรับเดสก์ท็อป
         const cloudPositions = [{
-            position: 'top-8 left-8',
+            position: 'top-4 left-4',
+            size: 'w-32 h-auto'
+        }, {
+            position: 'top-10 right-20',
             size: 'w-24 h-auto'
         }, {
-            position: 'top-12 right-12',
-            size: 'w-20 h-auto'
+            position: 'top-28 left-14',
+            size: 'w-28 h-auto'
         }, {
-            position: 'top-36 left-20',
-            size: 'w-22 h-auto'
+            position: 'top-32 right-6',
+            size: 'w-32 h-auto'
         }, {
-            position: 'top-40 right-20',
-            size: 'w-24 h-auto'
-        }, {
-            position: 'top-64 left-1/2 transform -translate-x-1/2',
-            size: 'w-20 h-auto'
+            position: 'top-52 left-1/2 transform -translate-x-1/2',
+            size: 'w-28 h-auto'
         }];
 
         // ฟังก์ชันรีเซ็ตสถานะเกม
@@ -128,38 +128,63 @@
             return shuffled;
         }
 
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+
         function createAnswerClouds() {
             answerCloudsContainer.innerHTML = '';
             const shuffledAnswers = shuffleArray(allAnswers);
 
-            // สำหรับเดสก์ท็อป: ใช้ absolute positioning
-            answerCloudsContainer.className = 'relative min-h-80 mb-2';
-            const shuffledPositions = shuffleArray(cloudPositions);
+            if (isMobile()) {
+                // สำหรับมือถือ: ใช้ flex layout
+                answerCloudsContainer.className = 'flex flex-wrap justify-center items-center gap-4 p-4 min-h-64';
+                
+                shuffledAnswers.forEach((answer, index) => {
+                    const cloud = document.createElement('div');
+                    cloud.className = 'answer-cloud cursor-pointer w-24 h-16 flex-shrink-0';
+                    cloud.dataset.answer = answer;
+                    cloud.dataset.originalIndex = index;
 
-            shuffledAnswers.forEach((answer, index) => {
-                const cloud = document.createElement('div');
-                const position = shuffledPositions[index];
+                    cloud.innerHTML = `
+                        <div class="relative w-full h-full">
+                            <img src="{{ asset("") }}${answerImages[answer]}" alt="Cloud" class="w-full h-full object-contain">
+                        </div>
+                    `;
 
-                const hasTransform = position.size.includes('transform');
-                const sizeClasses = position.size.replace('transform -translate-x-1/2', '').trim();
+                    cloud.addEventListener('click', handleCloudClick);
+                    answerCloudsContainer.appendChild(cloud);
+                });
+            } else {
+                // สำหรับเดสก์ท็อป: ใช้ absolute positioning
+                answerCloudsContainer.className = 'relative min-h-80 mb-2';
+                const shuffledPositions = shuffleArray(cloudPositions);
 
-                cloud.className = `absolute ${position.position} ${sizeClasses} cursor-pointer answer-cloud`;
-                if (hasTransform) {
-                    cloud.classList.add('transform', '-translate-x-1/2');
-                }
+                shuffledAnswers.forEach((answer, index) => {
+                    const cloud = document.createElement('div');
+                    const position = shuffledPositions[index];
 
-                cloud.dataset.answer = answer;
-                cloud.dataset.originalIndex = index;
+                    const hasTransform = position.size.includes('transform');
+                    const sizeClasses = position.size.replace('transform -translate-x-1/2', '').trim();
 
-                cloud.innerHTML = `
-                    <div class="relative w-full h-full">
-                        <img src="{{ asset("") }}${answerImages[answer]}" alt="Cloud" class="w-full h-full">
-                    </div>
-                `;
+                    cloud.className = `absolute ${position.position} ${sizeClasses} cursor-pointer answer-cloud`;
+                    if (hasTransform) {
+                        cloud.classList.add('transform', '-translate-x-1/2');
+                    }
 
-                cloud.addEventListener('click', handleCloudClick);
-                answerCloudsContainer.appendChild(cloud);
-            });
+                    cloud.dataset.answer = answer;
+                    cloud.dataset.originalIndex = index;
+
+                    cloud.innerHTML = `
+                        <div class="relative w-full h-full">
+                            <img src="{{ asset("") }}${answerImages[answer]}" alt="Cloud" class="w-full h-full">
+                        </div>
+                    `;
+
+                    cloud.addEventListener('click', handleCloudClick);
+                    answerCloudsContainer.appendChild(cloud);
+                });
+            }
         }
 
         function handleCloudClick(e) {
@@ -280,6 +305,13 @@
                 cloud.style.pointerEvents = 'auto';
             });
         }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (gameInitialized) {
+                createAnswerClouds();
+            }
+        });
 
         document.getElementById('continue-correct-btn').addEventListener('click', function() {
             hideModal(correctOverlay);
@@ -502,6 +534,94 @@
         0%, 100% { transform: translateX(-50%); }
         10%, 30%, 50%, 70%, 90% { transform: translateX(-50%) translateX(-5px); }
         20%, 40%, 60%, 80% { transform: translateX(-50%) translateX(5px); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        /* Drop zones responsive */
+        #drop-zones-container {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .drop-zone {
+            width: 6rem !important;
+            height: 4.5rem !important;
+            margin: 0.25rem;
+        }
+
+        .drop-zone img {
+            width: 5rem !important;
+            height: 3.5rem !important;
+        }
+
+        /* Answer clouds responsive */
+        .answer-cloud {
+            width: 6rem !important;
+            height: 4rem !important;
+            margin: 0.25rem;
+        }
+
+        .answer-cloud img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+
+        /* Container adjustments */
+        .card-container {
+            padding: 0.5rem 1rem;
+        }
+
+        /* Sun container */
+        .sun-container {
+            width: 4rem !important;
+            height: 4rem !important;
+        }
+
+        /* Text adjustments */
+        h2 {
+            font-size: 1rem !important;
+            line-height: 1.4;
+            margin: 0.5rem 0;
+        }
+
+        .text-lg {
+            font-size: 0.9rem !important;
+        }
+
+        /* Modal responsive */
+        .bg-white.rounded-2xl {
+            margin: 1rem;
+            padding: 1rem;
+        }
+
+        .bg-white.rounded-2xl img {
+            width: 6rem !important;
+            height: auto;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .answer-cloud {
+            width: 5rem !important;
+            height: 3.5rem !important;
+        }
+
+        .drop-zone {
+            width: 5rem !important;
+            height: 4rem !important;
+        }
+
+        .drop-zone img {
+            width: 4.5rem !important;
+            height: 3rem !important;
+        }
+
+        h2 {
+            font-size: 0.9rem !important;
+        }
     }
 
     /* Utility classes */
