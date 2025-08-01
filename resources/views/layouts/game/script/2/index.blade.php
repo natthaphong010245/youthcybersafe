@@ -44,22 +44,22 @@
         let gameInitialized = false;
         let usedAnswers = new Set();
 
-        // ตำแหน่งสำหรับเดสก์ท็อป
+        // ตำแหน่งสำหรับเดสก์ท็อป - กระจายตัวมากขึ้น
         const cloudPositions = [{
-            position: 'top-4 left-4',
-            size: 'w-32 h-auto'
-        }, {
-            position: 'top-10 right-20',
+            position: 'top-8 left-8',
             size: 'w-24 h-auto'
         }, {
-            position: 'top-28 left-14',
-            size: 'w-28 h-auto'
+            position: 'top-12 right-12',
+            size: 'w-20 h-auto'
         }, {
-            position: 'top-32 right-6',
-            size: 'w-32 h-auto'
+            position: 'top-36 left-20',
+            size: 'w-22 h-auto'
         }, {
-            position: 'top-52 left-1/2 transform -translate-x-1/2',
-            size: 'w-28 h-auto'
+            position: 'top-40 right-20',
+            size: 'w-24 h-auto'
+        }, {
+            position: 'top-64 left-1/2 transform -translate-x-1/2',
+            size: 'w-20 h-auto'
         }];
 
         // ฟังก์ชันรีเซ็ตสถานะเกม
