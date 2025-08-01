@@ -223,11 +223,7 @@
 
             <!-- Custom Dropdown สำหรับโรงเรียน -->
             <div class="mb-4" id="school-container">
-                <label for="school" class="block text-left text-[16px] font-medium mb-1">
-                    โรงเรียน
-                    <span class="text-sm text-red-500" id="school-required-indicator">*</span>
-                    <span class="text-sm text-gray-500" id="school-optional-indicator" style="display: none;">(ไม่จำเป็นสำหรับนักวิจัย)</span>
-                </label>
+                <label for="school" class="block text-left text-[16px] font-medium mb-1">โรงเรียน</label>
                 <div class="relative custom-select">
                     <div id="school-select" class="w-full px-6 pr-14 py-3 border {{ $errors->has('school') ? 'border-red-500' : 'border-gray-400' }} rounded-xl text-gray-700 focus:outline-none focus:border-[#929AFF] cursor-pointer bg-white">
                         <span id="school-selected">--โรงเรียน--</span>
@@ -487,14 +483,10 @@
                 const schoolSelect = document.getElementById('school-select');
                 const schoolSelected = document.getElementById('school-selected');
                 const schoolHiddenInput = document.getElementById('school');
-                const schoolRequiredIndicator = document.getElementById('school-required-indicator');
-                const schoolOptionalIndicator = document.getElementById('school-optional-indicator');
                 
                 if (role === 'researcher') {
-                    // เพิ่ม disabled class และแสดงข้อความว่าไม่จำเป็น
+                    // เพิ่ม disabled class
                     schoolSelect.classList.add('school-disabled');
-                    schoolRequiredIndicator.style.display = 'none';
-                    schoolOptionalIndicator.style.display = 'inline';
                     
                     // รีเซ็ตค่าโรงเรียน
                     schoolSelected.textContent = '--ไม่จำเป็นสำหรับนักวิจัย--';
@@ -507,10 +499,8 @@
                         option.classList.remove('selected');
                     });
                 } else if (role === 'teacher') {
-                    // เอา disabled class ออกและแสดงเครื่องหมาย * 
+                    // เอา disabled class ออก
                     schoolSelect.classList.remove('school-disabled');
-                    schoolRequiredIndicator.style.display = 'inline';
-                    schoolOptionalIndicator.style.display = 'none';
                     
                     // รีเซ็ตข้อความ placeholder
                     if (schoolHiddenInput.value === '') {
@@ -521,8 +511,6 @@
                 } else {
                     // กรณีไม่มีการเลือกบทบาท
                     schoolSelect.classList.add('school-disabled');
-                    schoolRequiredIndicator.style.display = 'none';
-                    schoolOptionalIndicator.style.display = 'none';
                     
                     schoolSelected.textContent = '--โรงเรียน--';
                     schoolSelected.classList.remove('text-gray-700');
@@ -555,18 +543,21 @@
                 closeSchoolDropdown();
             }
             
+            // ปิด dropdown เมื่อคลิกข้างนอก
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.custom-select')) {
                     closeAllDropdowns();
                 }
             });
             
+            // ปิด dropdown เมื่อกด ESC
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     closeAllDropdowns();
                 }
             });
             
+            // กู้คืนค่าที่เลือกไว้ (สำหรับ old() values)
             function restoreSelectedValues() {
                 const roleValue = document.getElementById('role').value;
                 const schoolValue = document.getElementById('school').value;
@@ -579,9 +570,11 @@
                         document.getElementById('role-selected').classList.add('text-gray-700');
                         roleOption.classList.add('selected');
                         
+                        // *** เรียกใช้ฟังก์ชันควบคุมโรงเรียนด้วย ***
                         handleRoleChange(roleValue);
                     }
                 } else {
+                    // ถ้าไม่มีการเลือกบทบาท ให้ disable โรงเรียน
                     handleRoleChange('');
                 }
                 
@@ -690,15 +683,19 @@
                 }
             });
 
+            // *** การจัดการ form submission ***
             document.querySelector('form').addEventListener('submit', function(e) {
                 const roleValue = document.getElementById('role').value;
                 const schoolValue = document.getElementById('school').value;
                 
+                // ถ้าเป็นนักวิจัย และยังไม่ได้กรอกโรงเรียน ให้ส่งค่าว่าง
                 if (roleValue === 'researcher') {
                     document.getElementById('school').value = '';
                 }
                 
+                // ถ้าเป็นครู แต่ไม่ได้เลือกโรงเรียน ให้แสดง error (Laravel validation จะจัดการ)
                 if (roleValue === 'teacher' && !schoolValue) {
+                    // Laravel validation จะจัดการ error ด้านหลัง
                 }
             });
         });
