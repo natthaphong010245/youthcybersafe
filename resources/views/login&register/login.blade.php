@@ -92,8 +92,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <h3 class="text-2xl font-bold mb-4 text-gray-800">ออกจากระบบเรียบร้อยแล้ว!</h3>
-                <p class="mb-8 text-gray-600 text-lg">ขอบคุณที่ใช้บริการ</p>
+                <h3 class="text-2xl font-bold mb-4 text-gray-800">ขอบคุณที่ใช้บริการ</h3>
+                <p class="mb-8 text-gray-600 text-lg">ออกจากระบบเรียบร้อยแล้ว</p>
                 <button id="closeLogoutSuccessModal" class="bg-[#929AFF] hover:bg-[#7B84EA] text-white py-3 px-8 rounded-2xl text-center transition duration-300 w-full font-bold text-lg">
                     ตกลง
                 </button>

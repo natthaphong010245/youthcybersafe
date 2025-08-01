@@ -365,7 +365,7 @@ new Chart(mentalCtx, {
                     label: function(context) {
                         const datasetLabels = ['ภาวะซึมเศร้า', 'ภาวะวิตกกังวล', 'ความเครียด'];
                         const value = context.parsed.y;
-                        return `${datasetLabels[context.datasetIndex]}: ${value} คน`;
+                        return `${datasetLabels[context.datasetIndex]}: ${value} `;
                     }
                 },
                 position: 'average',
