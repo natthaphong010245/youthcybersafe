@@ -42,16 +42,19 @@ class RegisterController extends Controller
             'password_confirmation' => ['required', 'same:password'],
         ];
 
-        // เพิ่มกฎสำหรับโรงเรียนหากเป็นครู
+        // เพิ่มกฎสำหรับโรงเรียนเฉพาะเมื่อเป็นครู
         if ($request->role === 'teacher') {
-            $rules['school'] = 'required';
+            $rules['school'] = 'required|string';
         }
 
         $request->validate($rules, $messages);
 
         try {
-            // กำหนดค่า school (null สำหรับ researcher)
-            $school = ($request->role === 'researcher') ? null : $request->school;
+            // กำหนดค่า school
+            $school = null;
+            if ($request->role === 'teacher' && $request->filled('school')) {
+                $school = $request->school;
+            }
 
             // สร้างผู้ใช้ใหม่
             $user = User::create([
@@ -64,7 +67,13 @@ class RegisterController extends Controller
                 'password' => $request->password, // จะถูก hash อัตโนมัติใน model
             ]);
             
-            return redirect()->route('login')->with('success', 'เจ้าหน้าที่กำลังตรวจสอบข้อมูลของคุณ กรุณารอการอนุมัติจากผู้ดูแลระบบ');
+            $message = 'เจ้าหน้าที่กำลังตรวจสอบข้อมูลของคุณ กรุณารอการอนุมัติจากผู้ดูแลระบบ';
+            
+            if ($request->role === 'researcher') {
+                $message = 'ลงทะเบียนนักวิจัยสำเร็จ! เจ้าหน้าที่กำลังตรวจสอบข้อมูลของคุณ';
+            }
+            
+            return redirect()->route('login')->with('success', $message);
             
         } catch (\Exception $e) {
             // Log error for debugging

@@ -371,249 +371,288 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // ฟังก์ชันสำหรับสร้าง custom dropdown
-            function createCustomDropdown(selectId, optionsId, selectedId, arrowId, hiddenInputId) {
-                const selectElement = document.getElementById(selectId);
-                const optionsElement = document.getElementById(optionsId);
-                const selectedElement = document.getElementById(selectedId);
-                const arrowElement = document.getElementById(arrowId);
-                const hiddenInput = document.getElementById(hiddenInputId);
+    // ฟังก์ชันสำหรับสร้าง custom dropdown
+    function createCustomDropdown(selectId, optionsId, selectedId, arrowId, hiddenInputId) {
+        const selectElement = document.getElementById(selectId);
+        const optionsElement = document.getElementById(optionsId);
+        const selectedElement = document.getElementById(selectedId);
+        const arrowElement = document.getElementById(arrowId);
+        const hiddenInput = document.getElementById(hiddenInputId);
+        
+        let isOpen = false;
+        
+        // เปิด/ปิด dropdown
+        selectElement.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            // ปิด dropdown อื่นๆ ก่อน
+            closeAllDropdowns();
+            
+            if (!isOpen) {
+                optionsElement.classList.remove('hidden');
+                arrowElement.style.transform = 'rotate(180deg)';
+                selectElement.classList.add('border-[#929AFF]');
+                isOpen = true;
                 
-                let isOpen = false;
-                
-                // เปิด/ปิด dropdown
-                selectElement.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    
-                    // ปิด dropdown อื่นๆ ก่อน
-                    closeAllDropdowns();
-                    
-                    if (!isOpen) {
-                        optionsElement.classList.remove('hidden');
-                        arrowElement.style.transform = 'rotate(180deg)';
-                        selectElement.classList.add('border-[#929AFF]');
-                        isOpen = true;
-                        
-                        // ปรับตำแหน่ง dropdown ให้ไม่ล้นออกจากหน้าจอ
-                        adjustDropdownPosition();
-                    } else {
-                        closeDropdown();
-                    }
-                });
-                
-                // เลือกตัวเลือก
-                optionsElement.addEventListener('click', function(e) {
-                    if (e.target.classList.contains('custom-select-option')) {
-                        const value = e.target.getAttribute('data-value');
-                        const text = e.target.textContent;
-                        
-                        selectedElement.textContent = text;
-                        selectedElement.classList.remove('text-gray-500');
-                        selectedElement.classList.add('text-gray-700');
-                        hiddenInput.value = value;
-                        
-                        // ลบการเลือกเก่า
-                        optionsElement.querySelectorAll('.custom-select-option').forEach(option => {
-                            option.classList.remove('selected');
-                        });
-                        
-                        // เพิ่มการเลือกใหม่
-                        e.target.classList.add('selected');
-                        
-                        closeDropdown();
-                    }
-                });
-                
-                function closeDropdown() {
-                    optionsElement.classList.add('hidden');
-                    arrowElement.style.transform = 'rotate(0deg)';
-                    selectElement.classList.remove('border-[#929AFF]');
-                    isOpen = false;
-                }
-                
-                function adjustDropdownPosition() {
-                    const rect = selectElement.getBoundingClientRect();
-                    const optionsRect = optionsElement.getBoundingClientRect();
-                    const viewportHeight = window.innerHeight;
-                    
-                    // ตรวจสอบว่า dropdown จะล้นล่างหรือไม่
-                    if (rect.bottom + optionsRect.height > viewportHeight - 20) {
-                        // แสดง dropdown ทางด้านบน
-                        optionsElement.style.top = 'auto';
-                        optionsElement.style.bottom = '100%';
-                        optionsElement.style.marginBottom = '0.25rem';
-                        optionsElement.classList.add('dropdown-up');
-                    } else {
-                        // แสดง dropdown ทางด้านล่าง (ปกติ)
-                        optionsElement.style.top = '100%';
-                        optionsElement.style.bottom = 'auto';
-                        optionsElement.style.marginTop = '0.25rem';
-                        optionsElement.classList.remove('dropdown-up');
-                    }
-                }
-                
-                // ส่งกลับฟังก์ชัน close เพื่อใช้ปิดจากภายนอก
-                return closeDropdown;
+                // ปรับตำแหน่ง dropdown ให้ไม่ล้นออกจากหน้าจอ
+                adjustDropdownPosition();
+            } else {
+                closeDropdown();
             }
-            
-            // สร้าง dropdown สำหรับบทบาท
-            const closeRoleDropdown = createCustomDropdown(
-                'role-select', 
-                'role-options', 
-                'role-selected', 
-                'role-arrow', 
-                'role'
-            );
-            
-            // สร้าง dropdown สำหรับโรงเรียน
-            const closeSchoolDropdown = createCustomDropdown(
-                'school-select', 
-                'school-options', 
-                'school-selected', 
-                'school-arrow', 
-                'school'
-            );
-            
-            // ฟังก์ชันปิด dropdown ทั้งหมด
-            function closeAllDropdowns() {
-                closeRoleDropdown();
-                closeSchoolDropdown();
-            }
-            
-            // ปิด dropdown เมื่อคลิกข้างนอก
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.custom-select')) {
-                    closeAllDropdowns();
-                }
-            });
-            
-            // ปิด dropdown เมื่อกด ESC
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeAllDropdowns();
-                }
-            });
-            
-            // กู้คืนค่าที่เลือกไว้ (สำหรับ old() values)
-            function restoreSelectedValues() {
-                const roleValue = document.getElementById('role').value;
-                const schoolValue = document.getElementById('school').value;
-                
-                if (roleValue) {
-                    const roleOption = document.querySelector(`#role-options [data-value="${roleValue}"]`);
-                    if (roleOption) {
-                        document.getElementById('role-selected').textContent = roleOption.textContent;
-                        document.getElementById('role-selected').classList.remove('text-gray-500');
-                        document.getElementById('role-selected').classList.add('text-gray-700');
-                        roleOption.classList.add('selected');
-                    }
-                }
-                
-                if (schoolValue) {
-                    const schoolOption = document.querySelector(`#school-options [data-value="${schoolValue}"]`);
-                    if (schoolOption) {
-                        document.getElementById('school-selected').textContent = schoolOption.textContent;
-                        document.getElementById('school-selected').classList.remove('text-gray-500');
-                        document.getElementById('school-selected').classList.add('text-gray-700');
-                        schoolOption.classList.add('selected');
-                    }
-                }
-            }
-            
-            // เรียกใช้งานทันทีเมื่อโหลดหน้า
-            restoreSelectedValues();
-
-            // JavaScript เดิมสำหรับ password toggle
-            const eyeOpenPath = {
-                path1: "M15 12a3 3 0 11-6 0 3 3 0 016 0z",
-                path2: "M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-            };
-            
-            const eyeClosedPath = {
-                path1: "M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
-            };
-
-            function updateIcon(iconElement, paths) {
-                const pathElements = iconElement.querySelectorAll('path');
-                pathElements.forEach(path => path.remove());
-                
-                if (paths.path1) {
-                    const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    path1.setAttribute('stroke-linecap', 'round');
-                    path1.setAttribute('stroke-linejoin', 'round');
-                    path1.setAttribute('stroke-width', '2');
-                    path1.setAttribute('d', paths.path1);
-                    iconElement.appendChild(path1);
-                }
-                
-                if (paths.path2) {
-                    const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    path2.setAttribute('stroke-linecap', 'round');
-                    path2.setAttribute('stroke-linejoin', 'round');
-                    path2.setAttribute('stroke-width', '2');
-                    path2.setAttribute('d', paths.path2);
-                    iconElement.appendChild(path2);
-                }
-            }
-
-            const togglePassword = document.getElementById('togglePassword');
-            const passwordInput = document.getElementById('password');
-            const eyeIconPassword = document.getElementById('eyeIconPassword');
-            let isPasswordVisible = false;
-            
-            passwordInput.addEventListener('input', function() {
-                if (this.value.length > 0) {
-                    togglePassword.style.display = 'flex';
-                    updateIcon(eyeIconPassword, eyeOpenPath);
-                    isPasswordVisible = false;
-                } else {
-                    togglePassword.style.display = 'none';
-                    this.setAttribute('type', 'password');
-                    isPasswordVisible = false;
-                }
-            });
-
-            togglePassword.addEventListener('click', function() {
-                if (isPasswordVisible) {
-                    passwordInput.setAttribute('type', 'password');
-                    updateIcon(eyeIconPassword, eyeOpenPath);
-                    isPasswordVisible = false;
-                } else {
-                    passwordInput.setAttribute('type', 'text');
-                    updateIcon(eyeIconPassword, eyeClosedPath);
-                    isPasswordVisible = true;
-                }
-            });
-
-            const togglePasswordConfirmation = document.getElementById('togglePasswordConfirmation');
-            const passwordConfirmationInput = document.getElementById('password_confirmation');
-            const eyeIconPasswordConfirm = document.getElementById('eyeIconPasswordConfirm');
-            let isPasswordConfirmVisible = false;
-
-            passwordConfirmationInput.addEventListener('input', function() {
-                if (this.value.length > 0) {
-                    togglePasswordConfirmation.style.display = 'flex';
-                    updateIcon(eyeIconPasswordConfirm, eyeOpenPath);
-                    isPasswordConfirmVisible = false;
-                } else {
-                    togglePasswordConfirmation.style.display = 'none';
-                    this.setAttribute('type', 'password');
-                    isPasswordConfirmVisible = false;
-                }
-            });
-
-            togglePasswordConfirmation.addEventListener('click', function() {
-                if (isPasswordConfirmVisible) {
-                    passwordConfirmationInput.setAttribute('type', 'password');
-                    updateIcon(eyeIconPasswordConfirm, eyeOpenPath);
-                    isPasswordConfirmVisible = false;
-                } else {
-                    passwordConfirmationInput.setAttribute('type', 'text');
-                    updateIcon(eyeIconPasswordConfirm, eyeClosedPath);
-                    isPasswordConfirmVisible = true;
-                }
-            });
         });
+        
+        // เลือกตัวเลือก
+        optionsElement.addEventListener('click', function(e) {
+            if (e.target.classList.contains('custom-select-option')) {
+                const value = e.target.getAttribute('data-value');
+                const text = e.target.textContent;
+                
+                selectedElement.textContent = text;
+                selectedElement.classList.remove('text-gray-500');
+                selectedElement.classList.add('text-gray-700');
+                hiddenInput.value = value;
+                
+                // ลบการเลือกเก่า
+                optionsElement.querySelectorAll('.custom-select-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                // เพิ่มการเลือกใหม่
+                e.target.classList.add('selected');
+                
+                // *** เพิ่มการควบคุมโรงเรียน เมื่อเลือก role ***
+                if (hiddenInputId === 'role') {
+                    handleRoleChange(value);
+                }
+                
+                closeDropdown();
+            }
+        });
+        
+        function closeDropdown() {
+            optionsElement.classList.add('hidden');
+            arrowElement.style.transform = 'rotate(0deg)';
+            selectElement.classList.remove('border-[#929AFF]');
+            isOpen = false;
+        }
+        
+        function adjustDropdownPosition() {
+            const rect = selectElement.getBoundingClientRect();
+            const optionsRect = optionsElement.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            
+            // ตรวจสอบว่า dropdown จะล้นล่างหรือไม่
+            if (rect.bottom + optionsRect.height > viewportHeight - 20) {
+                // แสดง dropdown ทางด้านบน
+                optionsElement.style.top = 'auto';
+                optionsElement.style.bottom = '100%';
+                optionsElement.style.marginBottom = '0.25rem';
+                optionsElement.classList.add('dropdown-up');
+            } else {
+                // แสดง dropdown ทางด้านล่าง (ปกติ)
+                optionsElement.style.top = '100%';
+                optionsElement.style.bottom = 'auto';
+                optionsElement.style.marginTop = '0.25rem';
+                optionsElement.classList.remove('dropdown-up');
+            }
+        }
+        
+        // ส่งกลับฟังก์ชัน close เพื่อใช้ปิดจากภายนอก
+        return closeDropdown;
+    }
+    
+    // *** ฟังก์ชันควบคุมการแสดงผลโรงเรียน ***
+    function handleRoleChange(role) {
+        const schoolContainer = document.getElementById('school-container');
+        const schoolSelect = document.getElementById('school-select');
+        const schoolSelected = document.getElementById('school-selected');
+        const schoolHiddenInput = document.getElementById('school');
+        
+        if (role === 'researcher') {
+            // ซ่อนและ disable ฟิลด์โรงเรียน
+            schoolContainer.style.display = 'none';
+            schoolSelect.style.pointerEvents = 'none';
+            schoolSelect.style.opacity = '0.5';
+            
+            // รีเซ็ตค่าโรงเรียน
+            schoolSelected.textContent = '--โรงเรียน--';
+            schoolSelected.classList.remove('text-gray-700');
+            schoolSelected.classList.add('text-gray-500');
+            schoolHiddenInput.value = '';
+            
+            // ลบการเลือกทั้งหมด
+            document.querySelectorAll('#school-options .custom-select-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+        } else {
+            // แสดงและ enable ฟิลด์โรงเรียน
+            schoolContainer.style.display = 'block';
+            schoolSelect.style.pointerEvents = 'auto';
+            schoolSelect.style.opacity = '1';
+        }
+    }
+    
+    // สร้าง dropdown สำหรับบทบาท
+    const closeRoleDropdown = createCustomDropdown(
+        'role-select', 
+        'role-options', 
+        'role-selected', 
+        'role-arrow', 
+        'role'
+    );
+    
+    // สร้าง dropdown สำหรับโรงเรียน
+    const closeSchoolDropdown = createCustomDropdown(
+        'school-select', 
+        'school-options', 
+        'school-selected', 
+        'school-arrow', 
+        'school'
+    );
+    
+    // ฟังก์ชันปิด dropdown ทั้งหมด
+    function closeAllDropdowns() {
+        closeRoleDropdown();
+        closeSchoolDropdown();
+    }
+    
+    // ปิด dropdown เมื่อคลิกข้างนอก
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.custom-select')) {
+            closeAllDropdowns();
+        }
+    });
+    
+    // ปิด dropdown เมื่อกด ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeAllDropdowns();
+        }
+    });
+    
+    // กู้คืนค่าที่เลือกไว้ (สำหรับ old() values)
+    function restoreSelectedValues() {
+        const roleValue = document.getElementById('role').value;
+        const schoolValue = document.getElementById('school').value;
+        
+        if (roleValue) {
+            const roleOption = document.querySelector(`#role-options [data-value="${roleValue}"]`);
+            if (roleOption) {
+                document.getElementById('role-selected').textContent = roleOption.textContent;
+                document.getElementById('role-selected').classList.remove('text-gray-500');
+                document.getElementById('role-selected').classList.add('text-gray-700');
+                roleOption.classList.add('selected');
+                
+                // *** เรียกใช้ฟังก์ชันควบคุมโรงเรียนด้วย ***
+                handleRoleChange(roleValue);
+            }
+        }
+        
+        if (schoolValue && roleValue !== 'researcher') {
+            const schoolOption = document.querySelector(`#school-options [data-value="${schoolValue}"]`);
+            if (schoolOption) {
+                document.getElementById('school-selected').textContent = schoolOption.textContent;
+                document.getElementById('school-selected').classList.remove('text-gray-500');
+                document.getElementById('school-selected').classList.add('text-gray-700');
+                schoolOption.classList.add('selected');
+            }
+        }
+    }
+    
+    // เรียกใช้งานทันทีเมื่อโหลดหน้า
+    restoreSelectedValues();
+
+    // JavaScript เดิมสำหรับ password toggle
+    const eyeOpenPath = {
+        path1: "M15 12a3 3 0 11-6 0 3 3 0 016 0z",
+        path2: "M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+    };
+    
+    const eyeClosedPath = {
+        path1: "M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+    };
+
+    function updateIcon(iconElement, paths) {
+        const pathElements = iconElement.querySelectorAll('path');
+        pathElements.forEach(path => path.remove());
+        
+        if (paths.path1) {
+            const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path1.setAttribute('stroke-linecap', 'round');
+            path1.setAttribute('stroke-linejoin', 'round');
+            path1.setAttribute('stroke-width', '2');
+            path1.setAttribute('d', paths.path1);
+            iconElement.appendChild(path1);
+        }
+        
+        if (paths.path2) {
+            const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path2.setAttribute('stroke-linecap', 'round');
+            path2.setAttribute('stroke-linejoin', 'round');
+            path2.setAttribute('stroke-width', '2');
+            path2.setAttribute('d', paths.path2);
+            iconElement.appendChild(path2);
+        }
+    }
+
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const eyeIconPassword = document.getElementById('eyeIconPassword');
+    let isPasswordVisible = false;
+    
+    passwordInput.addEventListener('input', function() {
+        if (this.value.length > 0) {
+            togglePassword.style.display = 'flex';
+            updateIcon(eyeIconPassword, eyeOpenPath);
+            isPasswordVisible = false;
+        } else {
+            togglePassword.style.display = 'none';
+            this.setAttribute('type', 'password');
+            isPasswordVisible = false;
+        }
+    });
+
+    togglePassword.addEventListener('click', function() {
+        if (isPasswordVisible) {
+            passwordInput.setAttribute('type', 'password');
+            updateIcon(eyeIconPassword, eyeOpenPath);
+            isPasswordVisible = false;
+        } else {
+            passwordInput.setAttribute('type', 'text');
+            updateIcon(eyeIconPassword, eyeClosedPath);
+            isPasswordVisible = true;
+        }
+    });
+
+    const togglePasswordConfirmation = document.getElementById('togglePasswordConfirmation');
+    const passwordConfirmationInput = document.getElementById('password_confirmation');
+    const eyeIconPasswordConfirm = document.getElementById('eyeIconPasswordConfirm');
+    let isPasswordConfirmVisible = false;
+
+    passwordConfirmationInput.addEventListener('input', function() {
+        if (this.value.length > 0) {
+            togglePasswordConfirmation.style.display = 'flex';
+            updateIcon(eyeIconPasswordConfirm, eyeOpenPath);
+            isPasswordConfirmVisible = false;
+        } else {
+            togglePasswordConfirmation.style.display = 'none';
+            this.setAttribute('type', 'password');
+            isPasswordConfirmVisible = false;
+        }
+    });
+
+    togglePasswordConfirmation.addEventListener('click', function() {
+        if (isPasswordConfirmVisible) {
+            passwordConfirmationInput.setAttribute('type', 'password');
+            updateIcon(eyeIconPasswordConfirm, eyeOpenPath);
+            isPasswordConfirmVisible = false;
+        } else {
+            passwordConfirmationInput.setAttribute('type', 'text');
+            updateIcon(eyeIconPasswordConfirm, eyeClosedPath);
+            isPasswordConfirmVisible = true;
+        }
+    });
+});
     </script>
 
     @extends('layouts.login&register.script')
