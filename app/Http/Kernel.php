@@ -67,6 +67,6 @@ class Kernel extends HttpKernel
         
         'check.role.user' => \App\Http\Middleware\CheckRoleUser::class,
         'check.researcher' => \App\Http\Middleware\CheckResearcher::class,
-        'admin' => \App\Http\Middleware\AdminMiddleware::class, // หากมี
+        'admin' => \App\Http\Middleware\AdminMiddleware::class,
     ];
 }
