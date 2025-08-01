@@ -78,8 +78,10 @@
                     <select id="school" name="school"
                         class="w-full px-6 pr-14 py-3 border {{ $errors->has('school') ? 'border-red-500' : 'border-gray-400' }} rounded-xl text-gray-700 focus:outline-none focus:border-[#929AFF] appearance-none">
                         <option value="" disabled selected>--โรงเรียน--</option>
-                        <option value="school1" {{ old('school') == 'school1' ? 'selected' : '' }}>โรงเรียน 1</option>
-                        <option value="school2" {{ old('school') == 'school2' ? 'selected' : '' }}>โรงเรียน 2</option>
+                        <option value="โรงเรียนวาวีวิทยาคม" {{ old('school') == 'โรงเรียนวาวีวิทยาคม' ? 'selected' : '' }}>โรงเรียนวาวีวิทยาคม</option>
+                        <option value="โรงเรียนสหศาสตร์ศึกษา" {{ old('school') == 'โรงเรียนสหศาสตร์ศึกษา' ? 'selected' : '' }}>โรงเรียนสหศาสตร์ศึกษา</option>
+                        <option value="โรงเรียนราชประชานุเคราะห์ 62" {{ old('school') == 'โรงเรียนราชประชานุเคราะห์ 62' ? 'selected' : '' }}>โรงเรียนราชประชานุเคราะห์ 62</option>
+                        <option value="โรงเรียนห้วยไร่สามัคคี" {{ old('school') == 'โรงเรียนห้วยไร่สามัคคี' ? 'selected' : '' }}>โรงเรียนห้วยไร่สามัคคี</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-6 flex items-center">
                         <svg class="h-6 w-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
