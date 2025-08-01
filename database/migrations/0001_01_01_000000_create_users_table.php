@@ -1,5 +1,5 @@
 <?php
-
+// database/migrations/2024_01_01_000001_update_users_table_for_admin.php
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,16 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('role');
-            $table->boolean('role_user')->default(0);
-            $table->string('school')->nullable(); // กำหนดเป็น nullable ตั้งแต่ต้น
-            $table->string('name');
-            $table->string('lastname');
-            $table->string('username')->unique();
-            $table->string('password');
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            // อัปเดต role enum เพื่อรองรับ admin
+            $table->string('role')->change();
+            
+            // เพิ่ม index สำหรับ performance
+            $table->index(['role', 'role_user']);
+            $table->index('role_user');
         });
     }
 
@@ -29,6 +26,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::table('users', function (Blueprint $table) {
+            // ลบ index
+            $table->dropIndex(['role', 'role_user']);
+            $table->dropIndex(['role_user']);
+        });
     }
 };
