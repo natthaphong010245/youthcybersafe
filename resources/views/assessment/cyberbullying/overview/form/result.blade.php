@@ -10,7 +10,16 @@
             </div>
         </div>
 
-        <div class="relative overflow-hidden rounded-lg mt-8 flex-grow">
+        @if(!empty($riskLevel))
+        <div class="mb-6 p-4 rounded-lg {{ $riskLevel['bg_color'] }} border {{ $riskLevel['border_color'] }}">
+            <div class="text-center">
+                <h3 class="text-lg font-bold {{ $riskLevel['color'] }} mb-1">{{ $riskLevel['text'] }}</h3>
+                <p class="text-sm {{ $riskLevel['color'] }}">{{ $riskLevel['description'] }}</p>
+            </div>
+        </div>
+        @endif
+
+        <div class="relative overflow-hidden rounded-lg mt-4 flex-grow">
             <button id="prev-arrow" class="absolute left-2 top-1/3 transform -translate-y-1/2 z-10 w-10 h-10 bg-white bg-opacity-80 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:bg-opacity-100">
                 <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -33,7 +42,7 @@
 
                         <div class="flex flex-col items-center">
                             <div class="flex justify-center mb-4">
-                                @if ($personActionScore == 0)
+                                @if (!$hasPersonActionExperience)
                                     <img src="{{ asset('images/mental_health/normal.png') }}" alt="Normal"
                                         class="w-32 h-32 object-contain">
                                 @else
@@ -58,7 +67,7 @@
 
                             <div class="border-t border-gray-300 w-full pt-4">
                                 <h2 class="text-sm font-bold text-[#3E36AE] mb-2">ผลการประเมิน</h2>
-                                @if ($personActionScore == 0)
+                                @if (!$hasPersonActionExperience)
                                     <p class="text-green-600 font-medium mb-2 text-center text-xl">
                                         ไม่มีพฤติกรรมการกลั่นแกล้ง</p>
                                     <p class="text-gray-600 text-sm">คำแนะนำ: ไม่มีพฤติกรรมการกลั่นแกล้ง</p>
@@ -66,13 +75,6 @@
                                     <p class="text-red-600 font-medium mb-2 text-center text-xl">มีพฤติกรรมการกลั่นแกล้ง</p>
                                     <p class="text-gray-600 text-lg">คำแนะนำ: มีพฤติกรรมการกลั่นแกล้ง</p>
                                 @endif
-
-                                <div class="flex justify-center mt-4">
-                                    <a href="/assessment/cyberbullying/person_action/form"
-                                        class="text-base px-8 py-2 rounded-xl text-white font-medium shadow-md bg-[#929AFF] transition-all duration-300 hover:bg-[#7B84FC]">
-                                        ดูรายละเอียดเพิ่มเติม
-                                    </a>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -86,7 +88,7 @@
 
                         <div class="flex flex-col items-center">
                             <div class="flex justify-center mb-4">
-                                @if ($victimScore == 0)
+                                @if (!$hasVictimExperience)
                                     <img src="{{ asset('images/mental_health/normal.png') }}" alt="Normal"
                                         class="w-32 h-32 object-contain">
                                 @else
@@ -111,24 +113,43 @@
 
                             <div class="border-t border-gray-300 w-full pt-4">
                                 <h2 class="text-sm font-bold text-[#3E36AE] mb-2">ผลการประเมิน</h2>
-                                @if ($victimScore == 0)
+                                @if (!$hasVictimExperience)
                                     <p class="text-green-600 font-medium mb-2 text-center text-xl">ไม่เคยถูกกลั่นแกล้ง</p>
                                     <p class="text-gray-600 text-sm">คำแนะนำ: ไม่เคยถูกกลั่นแกล้ง</p>
                                 @else
                                     <p class="text-red-600 font-medium mb-2 text-center text-xl">เคยถูกกลั่นแกล้ง</p>
                                     <p class="text-gray-600 text-lg">คำแนะนำ: เคยถูกกลั่นแกล้ง</p>
                                 @endif
-
-                                <div class="flex justify-center mt-4">
-                                    <a href="/assessment/cyberbullying/victim/form"
-                                        class="text-base px-8 py-2 rounded-xl text-white font-medium shadow-md bg-[#929AFF] transition-all duration-300 hover:bg-[#7B84FC]">
-                                        ดูรายละเอียดเพิ่มเติม
-                                    </a>
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                @if(!empty($recommendations))
+                <div class="swiper-slide w-full flex-shrink-0 px-2">
+                    <div class="bg-white w-full max-w-2xl mx-auto rounded-lg px-4 pt-4 flex flex-col pb-6">
+                        <div class="text-center mb-4">
+                            <h3 class="text-xl font-bold text-[#3E36AE] mb-2">คำแนะนำ</h3>
+                        </div>
+
+                        <div class="space-y-4">
+                            @foreach($recommendations as $recommendation)
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h4 class="font-semibold text-[#3E36AE] mb-3">{{ $recommendation['title'] }}</h4>
+                                    <ul class="space-y-2">
+                                        @foreach($recommendation['items'] as $item)
+                                            <li class="flex items-start">
+                                                <span class="inline-block w-2 h-2 bg-[#3E36AE] rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                                                <span class="text-gray-700 text-sm">{{ $item }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
 
@@ -136,6 +157,9 @@
             <div class="flex space-x-2">
                 <button class="dot w-3 h-3 rounded-full bg-[#3E36AE] transition-all duration-300" data-slide="0"></button>
                 <button class="dot w-3 h-3 rounded-full bg-gray-300 transition-all duration-300" data-slide="1"></button>
+                @if(!empty($recommendations))
+                <button class="dot w-3 h-3 rounded-full bg-gray-300 transition-all duration-300" data-slide="2"></button>
+                @endif
             </div>
         </div>
 

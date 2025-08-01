@@ -94,7 +94,7 @@
                     <p class="position-text">สาขาวิชาสาธารณสุขศาสตร์ และศูนย์ความเป็นเลิศการวิจัยสุขภาพชนชาติพันธุ์</p>
                     <p class="position-text">สำนักวิชาวิทยาศาสตร์สุขภาพ มหาวิทยาลัยแม่ฟ้าหลวง</p>
                 </div>
-                <p class="mt-4 font-bold text-center section-title text-gray-600">พัฒนาโดย</p>
+                <p class="mt-4 font-bold text-center section-title text-gray-600">พัฒนาเว็บไซต์</p>
 
                 <div class="pr-3 pl-3 pb-2 pt-1 text-center">
                     <p class="name-text font-medium">นายณัฐพงศ์ พาเจริญ</p>

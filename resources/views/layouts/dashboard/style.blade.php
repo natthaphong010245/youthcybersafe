@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/dashboard/style.blade.php --}}
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
 
@@ -51,7 +50,6 @@ body {
     box-shadow: 0 4px 10px rgba(98, 109, 247, 0.3);
 }
 
-/* Profile section at bottom of sidebar */
 .sidebar-profile {
     margin-top: auto;
     padding: 0;
@@ -202,7 +200,6 @@ body {
     font-size: 1rem;
 }
 
-/* Donut Chart Hover Effects */
 .donut-chart {
     position: relative;
     width: 200px;
@@ -218,7 +215,6 @@ body {
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
 }
 
-/* Chart Legend Styling - Enhanced for better interactivity */
 .chart-legend {
     margin-top: 20px;
     padding: 0;
@@ -263,7 +259,6 @@ body {
     border-radius: 2px;
 }
 
-/* Horizontal Legend Styling (like Image 2) */
 .chart-legend-horizontal {
     display: flex;
     justify-content: space-around;
@@ -328,7 +323,6 @@ body {
     color: #333;
 }
 
-/* Custom Tooltip Styling */
 .custom-tooltip {
     position: absolute;
     background: rgba(0, 0, 0, 0.8);
@@ -364,7 +358,6 @@ body {
     opacity: 0.8;
 }
 
-/* Bottom Row Equal Height - Fixed container heights */
 .bottom-row-container {
     height: 450px;
     display: flex;
@@ -377,7 +370,6 @@ body {
     flex-direction: column;
 }
 
-/* Safe Area Cards */
 .safe-area-cards {
     display: flex;
     gap: 15px;
@@ -444,30 +436,25 @@ body {
     opacity: 0.8;
 }
 
-/* Chart Container Improvements for Better Fitting */
 .chart-container canvas {
     width: 100% !important;
     height: 100% !important;
     max-height: 100%;
 }
 
-/* Mental Health Chart Specific Styling */
 .chart-container canvas#mentalHealthChart {
     border: none !important;
     background: transparent !important;
 }
 
-/* Hide any chart.js default borders or lines */
 .chart-container .chartjs-render-monitor {
     border: none !important;
 }
 
-/* Specific fixes for chart overflow issues */
 .bottom-row-container canvas {
     max-height: 300px !important;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .sidebar {
         position: relative;
@@ -498,7 +485,6 @@ body {
     }
 }
 
-/* Chart Animations */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -518,7 +504,6 @@ body {
     animation: fadeInUp 0.6s ease-out;
 }
 
-/* Enhanced Chart Legend Animations */
 @keyframes highlightPulse {
     0% {
         box-shadow: 0 2px 8px rgba(212, 218, 255, 0.4);
@@ -535,7 +520,6 @@ body {
     animation: highlightPulse 2s ease-in-out infinite;
 }
 
-/* Custom Scrollbar for Sidebar */
 .sidebar::-webkit-scrollbar {
     width: 6px;
 }
@@ -554,7 +538,6 @@ body {
     background: rgba(255,255,255,0.5);
 }
 
-/* Loading Animation */
 .loading {
     display: inline-block;
     width: 20px;
@@ -569,14 +552,12 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* Additional improvements for chart containers */
 .chart-container > div:last-child {
     position: relative;
     flex: 1;
     min-height: 0;
 }
 
-/* Ensure proper spacing and alignment */
 .chart-legend-item span {
     display: flex;
     align-items: center;
@@ -588,7 +569,6 @@ body {
     min-width: 120px;
 }
 
-/* Tooltip styling improvements */
 .chart-legend-item {
     user-select: none;
 }
@@ -597,14 +577,12 @@ body {
     transform: scale(0.98);
 }
 
-/* Sidebar height fix */
 .sidebar .p-3 {
     height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
-/* Behavioral Report Specific Styling */
 .behavioral-overview .row {
     margin: 0 -10px;
 }
@@ -625,7 +603,6 @@ body {
     text-align: center;
 }
 
-/* Ensure equal width for behavioral report cards */
 @media (min-width: 768px) {
     .behavioral-overview .col-md-2 {
         flex: 0 0 20%;

@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/dashboard.blade.php --}}
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -27,7 +26,6 @@
         text-shadow: 0 0 1px rgba(0,0,0,0.3);
         letter-spacing: 0.5px;
     }
-    /* Updated sidebar and main content layout */
     .sidebar {
         background: #f5f5f5;
         box-shadow: 2px 0 10px rgba(0,0,0,0.05);
@@ -38,7 +36,6 @@
         background: #f5f5f5;
         min-height: 100vh;
     }
-    /* Fix navigation text wrapping */
     .sidebar .nav-link {
         line-height: 1.3 !important;
         padding: 12px 20px !important;
@@ -52,7 +49,6 @@
         margin-right: 25px !important;
         margin-top: 2px !important;
     }
-    /* Responsive design */
     @media (max-width: 768px) {
         .sidebar {
             width: 100% !important;
@@ -70,7 +66,6 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
             <div class="sidebar p-0" style="width: 20%; position: fixed; height: 100vh;">
                 <div class="p-3 d-flex flex-column h-100 mt-3">
                     <div class="d-flex align-items-center mb-4">
@@ -82,7 +77,8 @@
                             <h6 class="mb-0 logo-text" style="color: #2b2b2b;">CYBERSAFE</h6>
                         </div>
                     </div>
-                    <nav class="nav flex-column flex-grow-1">
+                    
+                    <nav class="nav flex-column">
                         <a class="nav-link @if(request()->routeIs('dashboard') || request()->routeIs('main.dashboard')) active @endif" href="{{ route('dashboard') }}">
                             <i class="fas fa-th-large me-2"></i> Dashboard
                         </a>
@@ -95,22 +91,23 @@
                         <a class="nav-link @if(request()->routeIs('safe-area-dashboard')) active @endif" href="{{ route('safe-area-dashboard') }}">
                             <i class="fas fa-shield-alt me-2"></i> Safe Area
                         </a>
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-sign-out-alt me-2"></i> Sign Out
-                        </a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="nav-link w-100 bg-transparent border-0 text-start">
+                                <i class="fas fa-sign-out-alt me-2"></i> Sign Out
+                            </button>
+                        </form>
                     </nav>
                     
-                    <!-- Profile section moved to bottom -->
                     <div class="sidebar-profile mt-auto">
                         <div class="profile-card">
-                            <div><strong>Natthaphong Pajaroen</strong></div>
-                            <div><small>Researcher</small></div>
+                            <div><strong>{{ Auth::user()->name ?? 'ผู้ใช้' }} {{ Auth::user()->lastname ?? '' }}</strong></div>
+                            <div><small>{{ Auth::user()->role === 'researcher' ? 'นักวิจัย' : 'คุณครู' }}</small></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Main Content -->
             <div class="main-content" style="width: 80%; margin-left: 20%; padding: 30px;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2>@yield('page-title', 'Dashboard')</h2>

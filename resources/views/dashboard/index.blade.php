@@ -1,11 +1,9 @@
-{{-- resources/views/dashboard/index.blade.php --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Dashboard - Youth Cybersafe')
 @section('page-title', 'Dashboard')
 
 @section('content')
-<!-- Stats Cards -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="chart-container">
@@ -51,7 +49,6 @@
     </div>
 </div>
 
-<!-- Charts Row -->
 <div class="row mb-4">
     <!-- Action Experiences -->
     <div class="col-md-6">
@@ -116,7 +113,6 @@
     </div>
 </div>
 
-<!-- Bottom Row -->
 <div class="row">
     <!-- Assessment Mental Health -->
     <div class="col-md-4">
@@ -173,19 +169,15 @@
 
 @section('scripts')
 <script>
-// Global chart instances
 let actionChart, victimChart;
 
-// Function to highlight segments
 function highlightSegment(chartId, segmentIndex) {
     const chart = chartId === 'actionChart' ? actionChart : victimChart;
     const chartContainer = chartId === 'actionChart' ? '' : '.victim-chart ';
     
-    // Reset all segments to normal
     chart.data.datasets[0].backgroundColor = ['#8593ED', '#4252B8'];
     chart.data.datasets[0].borderWidth = [0, 0];
     
-    // Highlight selected segment
     const newColors = ['#8593ED', '#4252B8'];
     const borderWidths = [0, 0];
     
@@ -198,14 +190,12 @@ function highlightSegment(chartId, segmentIndex) {
     
     chart.update();
     
-    // Update legend highlighting
     document.querySelectorAll(`${chartContainer}.legend-item-horizontal`).forEach(item => {
         item.classList.remove('active');
     });
     document.querySelector(`${chartContainer}[data-segment="${segmentIndex}"]`).classList.add('active');
 }
 
-// Function to show tooltip on hover
 function showTooltip(chartId, segmentIndex, event) {
     const chart = chartId === 'actionChart' ? actionChart : victimChart;
     const data = chartId === 'actionChart' ? 
@@ -224,7 +214,6 @@ function showTooltip(chartId, segmentIndex, event) {
     const assessments = [data.assessed, data.total - data.assessed];
     const percentages = [data.percentage, 100 - data.percentage];
     
-    // Create tooltip
     let tooltip = document.getElementById('custom-tooltip');
     if (!tooltip) {
         tooltip = document.createElement('div');
@@ -253,7 +242,6 @@ function hideTooltip() {
     }
 }
 
-// Action Experiences Donut Chart
 const actionCtx = document.getElementById('actionChart').getContext('2d');
 actionChart = new Chart(actionCtx, {
     type: 'doughnut',
@@ -290,7 +278,6 @@ actionChart = new Chart(actionCtx, {
     }
 });
 
-// Victim Experiences Donut Chart
 const victimCtx = document.getElementById('victimChart').getContext('2d');
 victimChart = new Chart(victimCtx, {
     type: 'doughnut',
@@ -327,10 +314,8 @@ victimChart = new Chart(victimCtx, {
     }
 });
 
-// Mental Health Horizontal Bar Chart (percentage-based) - Updated tooltip
 const mentalCtx = document.getElementById('mentalHealthChart').getContext('2d');
 
-// Calculate percentages for each severity level
 const mentalHealthData = {!! json_encode($data['mental_health_data']) !!};
 const labels = Object.keys(mentalHealthData);
 const seriousPercentages = [];
@@ -474,15 +459,12 @@ new Chart(mentalCtx, {
                         const datasetLabels = ['ภาวะซึมเศร้า', 'ภาวะวิตกกังวล', 'ความเครียด'];
                         const percentage = Math.round(context.parsed.x * 10) / 10;
                         
-                        // Updated: Remove "คน" and restructure the display
                         return `${datasetLabels[datasetIndex]}: ${values[datasetIndex]}`;
                     },
                     afterLabel: function(context) {
                         const percentage = Math.round(context.parsed.x * 10) / 10;
-                        // Add percentage on separate line
                         return `${percentage}%`;
                     }
-                    // Removed afterBody to eliminate "รวมทั้งหมด: ... คน"
                 }
             }
         },
@@ -493,7 +475,6 @@ new Chart(mentalCtx, {
     }
 });
 
-// Behavioral Report Bar Chart
 const behavioralCtx = document.getElementById('behavioralChart').getContext('2d');
 new Chart(behavioralCtx, {
     type: 'bar',

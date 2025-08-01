@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\MentalHealthAssessment;
@@ -14,7 +13,6 @@ class MentalHealthController extends Controller
 
     public function submitForm(Request $request)
     {
-        // สร้าง validation rules
         $validationRules = [];
         for ($i = 1; $i <= 21; $i++) {
             $validationRules['question' . $i] = 'required|integer|min:0|max:3';
@@ -22,43 +20,43 @@ class MentalHealthController extends Controller
         
         $request->validate($validationRules);
 
-        // แยกคำถามตามหมวดหมู่
         $stressQuestions = [];
         $anxietyQuestions = [];
         $depressionQuestions = [];
 
-        // ด้านความเครียด (ข้อ 1-7)
         for ($i = 1; $i <= 7; $i++) {
             $stressQuestions[] = (int)$request->{'question' . $i};
         }
 
-        // ด้านภาวะวิตกกังวล (ข้อ 8-14)
         for ($i = 8; $i <= 14; $i++) {
             $anxietyQuestions[] = (int)$request->{'question' . $i};
         }
 
-        // ด้านภาวะซึมเศร้า (ข้อ 15-21)
         for ($i = 15; $i <= 21; $i++) {
             $depressionQuestions[] = (int)$request->{'question' . $i};
         }
 
-        // บันทึกข้อมูล
-        $assessment = MentalHealthAssessment::create([
-            'stress' => $stressQuestions,
-            'anxiety' => $anxietyQuestions,
-            'depression' => $depressionQuestions
-        ]);
-
-        // คำนวณคะแนน
         $stressScore = array_sum($stressQuestions);
         $anxietyScore = array_sum($anxietyQuestions);
         $depressionScore = array_sum($depressionQuestions);
 
-        // เก็บคะแนนใน session
+        $stressLevel = $this->calculateStressLevel($stressScore);
+        $anxietyLevel = $this->calculateAnxietyLevel($anxietyScore);
+        $depressionLevel = $this->calculateDepressionLevel($depressionScore);
+
+        $assessment = MentalHealthAssessment::create([
+            'stress' => [$stressQuestions, $stressLevel],
+            'anxiety' => [$anxietyQuestions, $anxietyLevel],
+            'depression' => [$depressionQuestions, $depressionLevel]
+        ]);
+
         session([
             'stress_score' => $stressScore,
             'anxiety_score' => $anxietyScore,
-            'depression_score' => $depressionScore
+            'depression_score' => $depressionScore,
+            'stress_level' => $stressLevel,
+            'anxiety_level' => $anxietyLevel,
+            'depression_level' => $depressionLevel
         ]);
 
         return redirect()->route('mental_health/result');
@@ -75,5 +73,50 @@ class MentalHealthController extends Controller
             'anxietyScore',
             'depressionScore'
         ));
+    }
+
+    private function calculateStressLevel($score)
+    {
+        if ($score <= 7) {
+            return 'normal';
+        } elseif ($score <= 9) {
+            return 'mild';
+        } elseif ($score <= 12) {
+            return 'moderate';
+        } elseif ($score <= 16) {
+            return 'severe';
+        } else {
+            return 'verysevere';
+        }
+    }
+
+    private function calculateAnxietyLevel($score)
+    {
+        if ($score <= 3) {
+            return 'normal';
+        } elseif ($score <= 5) {
+            return 'mild';
+        } elseif ($score <= 7) {
+            return 'moderate';
+        } elseif ($score <= 9) {
+            return 'severe';
+        } else {
+            return 'verysevere';
+        }
+    }
+
+    private function calculateDepressionLevel($score)
+    {
+        if ($score <= 4) {
+            return 'normal';
+        } elseif ($score <= 6) {
+            return 'mild';
+        } elseif ($score <= 10) {
+            return 'moderate';
+        } elseif ($score <= 13) {
+            return 'severe';
+        } else {
+            return 'verysevere';
+        }
     }
 }

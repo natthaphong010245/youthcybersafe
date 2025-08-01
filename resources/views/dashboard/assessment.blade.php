@@ -1,11 +1,9 @@
-{{-- resources/views/dashboard/assessment.blade.php --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Assessment - Youth Cybersafe')
 @section('page-title', 'Assessment')
 
 @section('content')
-<!-- Charts Row -->
 <div class="row mb-4">
     <!-- Action Experiences -->
     <div class="col-md-6">
@@ -91,19 +89,15 @@
 
 @section('scripts')
 <script>
-// Global chart instances
 let actionChart, victimChart;
 
-// Function to highlight segments
 function highlightSegment(chartId, segmentIndex) {
     const chart = chartId === 'actionChart' ? actionChart : victimChart;
     const chartContainer = chartId === 'actionChart' ? '' : '.victim-chart ';
     
-    // Reset all segments to normal
     chart.data.datasets[0].backgroundColor = ['#8593ED', '#4252B8'];
     chart.data.datasets[0].borderWidth = [0, 0];
     
-    // Highlight selected segment
     const newColors = ['#8593ED', '#4252B8'];
     const borderWidths = [0, 0];
     
@@ -116,14 +110,12 @@ function highlightSegment(chartId, segmentIndex) {
     
     chart.update();
     
-    // Update legend highlighting
     document.querySelectorAll(`${chartContainer}.legend-item-horizontal`).forEach(item => {
         item.classList.remove('active');
     });
     document.querySelector(`${chartContainer}[data-segment="${segmentIndex}"]`).classList.add('active');
 }
 
-// Function to show tooltip on hover
 function showTooltip(chartId, segmentIndex, event) {
     const chart = chartId === 'actionChart' ? actionChart : victimChart;
     const data = chartId === 'actionChart' ? 
@@ -142,7 +134,6 @@ function showTooltip(chartId, segmentIndex, event) {
     const assessments = [data.assessed, data.total - data.assessed];
     const percentages = [data.percentage, 100 - data.percentage];
     
-    // Create tooltip
     let tooltip = document.getElementById('custom-tooltip');
     if (!tooltip) {
         tooltip = document.createElement('div');
@@ -171,7 +162,6 @@ function hideTooltip() {
     }
 }
 
-// Action Experiences Donut Chart
 const actionCtx = document.getElementById('actionChart').getContext('2d');
 actionChart = new Chart(actionCtx, {
     type: 'doughnut',
@@ -208,7 +198,6 @@ actionChart = new Chart(actionCtx, {
     }
 });
 
-// Victim Experiences Donut Chart
 const victimCtx = document.getElementById('victimChart').getContext('2d');
 victimChart = new Chart(victimCtx, {
     type: 'doughnut',
@@ -245,12 +234,10 @@ victimChart = new Chart(victimCtx, {
     }
 });
 
-// Mental Health Vertical Bar Chart (Changed from horizontal to vertical like Image 2)
 const mentalCtx = document.getElementById('mentalHealthChart').getContext('2d');
 const mentalHealthData = {!! json_encode($data['mental_health_data']) !!};
 const labels = Object.keys(mentalHealthData);
 
-// Prepare data for vertical bar chart
 const seriousData = [];
 const moderateData = [];
 const mildData = [];
@@ -261,6 +248,10 @@ labels.forEach(level => {
     moderateData.push(data.moderate);
     mildData.push(data.mild);
 });
+
+const allValues = [...seriousData, ...moderateData, ...mildData];
+const maxValue = Math.max(...allValues);
+const dynamicMax = maxValue > 0 ? Math.ceil(maxValue * 1.3) : 10;
 
 new Chart(mentalCtx, {
     type: 'bar',
@@ -308,7 +299,7 @@ new Chart(mentalCtx, {
         scales: {
             y: { 
                 beginAtZero: true,
-                max: 30,
+                max: dynamicMax,
                 grid: {
                     display: true,
                     color: '#f0f0f0'
@@ -318,7 +309,11 @@ new Chart(mentalCtx, {
                         size: 12,
                         weight: '500'
                     },
-                    color: '#333333'
+                    color: '#333333',
+                    stepSize: Math.max(1, Math.ceil(dynamicMax / 10)), 
+                    callback: function(value) {
+                        return Number.isInteger(value) ? value : '';
+                    }
                 },
                 border: {
                     display: false
@@ -370,10 +365,9 @@ new Chart(mentalCtx, {
                     label: function(context) {
                         const datasetLabels = ['ภาวะซึมเศร้า', 'ภาวะวิตกกังวล', 'ความเครียด'];
                         const value = context.parsed.y;
-                        return `${datasetLabels[context.datasetIndex]}: ${value}`;
+                        return `${datasetLabels[context.datasetIndex]}: ${value} คน`;
                     }
                 },
-                // Custom tooltip with assessment count display
                 position: 'average',
                 caretPadding: 10
             }
@@ -383,6 +377,16 @@ new Chart(mentalCtx, {
             easing: 'easeInOutQuart'
         }
     }
+});
+
+console.log('Mental Health Chart Info:');
+console.log('Max value in data:', maxValue);
+console.log('Dynamic max used:', dynamicMax);
+console.log('Step size:', Math.max(1, Math.ceil(dynamicMax / 10)));
+console.log('Data distribution:', {
+    serious: seriousData,
+    moderate: moderateData,
+    mild: mildData
 });
 </script>
 @endsection

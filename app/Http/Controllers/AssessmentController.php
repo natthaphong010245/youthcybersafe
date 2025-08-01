@@ -7,259 +7,192 @@ use Illuminate\Http\Request;
 
 class AssessmentController extends Controller
 {
-    /**
-     * Show the form for victim assessment.
-     */
+
     public function showVictimForm()
     {
         return view('assessment.cyberbullying.victim.form.form');
     }
 
-    /**
-     * Show the form for person action assessment.
-     */
     public function showPersonActionForm()
     {
         return view('assessment.cyberbullying.person_action.form.form');
     }
 
-    /**
-     * Process the victim assessment form submission.
-     */
+    public function showOverviewForm()
+    {
+        return view('assessment.cyberbullying.overview.form.form');
+    }
+
+
     public function submitVictimForm(Request $request)
     {
-        // Validate the request
-        $request->validate([
-            'question1' => 'required|integer|min:0|max:4',
-            'question2' => 'required|integer|min:0|max:4',
-            'question3' => 'required|integer|min:0|max:4',
-            'question4' => 'required|integer|min:0|max:4',
-            'question5' => 'required|integer|min:0|max:4',
-            'question6' => 'required|integer|min:0|max:4',
-            'question7' => 'required|integer|min:0|max:4',
-            'question8' => 'required|integer|min:0|max:4',
-            'question9' => 'required|integer|min:0|max:4',
-        ]);
+        $validationRules = [];
+        for ($i = 1; $i <= 9; $i++) {
+            $validationRules["question{$i}"] = 'required|integer|min:0|max:4';
+        }
+        $request->validate($validationRules);
 
-        // Collect all question answers into an array
-        $questionsArray = [
-            (int)$request->question1,
-            (int)$request->question2,
-            (int)$request->question3,
-            (int)$request->question4,
-            (int)$request->question5,
-            (int)$request->question6,
-            (int)$request->question7,
-            (int)$request->question8,
-            (int)$request->question9,
-        ];
+        $scores = [];
+        for ($i = 1; $i <= 9; $i++) {
+            $scores[] = (int)$request->{"question{$i}"};
+        }
 
-        // ✅ Create assessment data structure: [person_action, victim]
+        $totalScore = array_sum($scores);
+        $hasVictimExperience = $totalScore > 0;
+
         $assessmentData = [
-            [], // person_action array (empty)
-            $questionsArray // victim array
+            [], 
+            [$scores, [$hasVictimExperience]] 
         ];
 
-        // Create new assessment record
         $assessment = CyberbullyingAssessment::create([
             'assessment_data' => $assessmentData
         ]);
 
-        // Calculate total score
-        $totalScore = array_sum($questionsArray);
-        $maxPossibleScore = 9 * 4; // 9 questions with max value of 4 each
-        $percentageScore = ($totalScore / $maxPossibleScore) * 100;
+        $maxPossibleScore = 9 * 4;
+        $percentage = ($totalScore / $maxPossibleScore) * 100;
 
-        // Store the score in the session for the results page
         session([
-            'score' => $totalScore, 
-            'percentage' => $percentageScore,
+            'score' => $totalScore,
+            'percentage' => $percentage,
+            'hasVictimExperience' => $hasVictimExperience,
             'assessment_id' => $assessment->id
         ]);
 
-        // Redirect to the results page
         return redirect()->route('victim/result');
     }
 
-    /**
-     * Process the person action assessment form submission.
-     */
     public function submitPersonActionForm(Request $request)
     {
-        // Validate the request
-        $request->validate([
-            'question1' => 'required|integer|min:0|max:4',
-            'question2' => 'required|integer|min:0|max:4',
-            'question3' => 'required|integer|min:0|max:4',
-            'question4' => 'required|integer|min:0|max:4',
-            'question5' => 'required|integer|min:0|max:4',
-            'question6' => 'required|integer|min:0|max:4',
-            'question7' => 'required|integer|min:0|max:4',
-            'question8' => 'required|integer|min:0|max:4',
-            'question9' => 'required|integer|min:0|max:4',
-        ]);
+        $validationRules = [];
+        for ($i = 1; $i <= 9; $i++) {
+            $validationRules["question{$i}"] = 'required|integer|min:0|max:4';
+        }
+        $request->validate($validationRules);
 
-        // Collect all question answers into an array
-        $questionsArray = [
-            (int)$request->question1,
-            (int)$request->question2,
-            (int)$request->question3,
-            (int)$request->question4,
-            (int)$request->question5,
-            (int)$request->question6,
-            (int)$request->question7,
-            (int)$request->question8,
-            (int)$request->question9,
-        ];
+        $scores = [];
+        for ($i = 1; $i <= 9; $i++) {
+            $scores[] = (int)$request->{"question{$i}"};
+        }
 
-        // ✅ Create assessment data structure: [person_action, victim]
+        $totalScore = array_sum($scores);
+        $hasPersonActionExperience = $totalScore > 0;
+
         $assessmentData = [
-            $questionsArray, // person_action array
-            [] // victim array (empty)
+            [$scores, [$hasPersonActionExperience]], 
+            []
         ];
 
-        // Create new assessment record
         $assessment = CyberbullyingAssessment::create([
             'assessment_data' => $assessmentData
         ]);
 
-        // Calculate total score
-        $totalScore = array_sum($questionsArray);
-        $maxPossibleScore = 9 * 4; // 9 questions with max value of 4 each
-        $percentageScore = ($totalScore / $maxPossibleScore) * 100;
+        $maxPossibleScore = 9 * 4;
+        $percentage = ($totalScore / $maxPossibleScore) * 100;
 
-        // Store the score in the session for the results page
         session([
-            'score' => $totalScore, 
-            'percentage' => $percentageScore,
+            'score' => $totalScore,
+            'percentage' => $percentage,
+            'hasPersonActionExperience' => $hasPersonActionExperience,
             'assessment_id' => $assessment->id
         ]);
 
-        // Redirect to the results page
         return redirect()->route('person_action/result');
     }
 
-    /**
-     * Submit both assessments together
-     */
-    public function submitBothAssessments(Request $request)
+    public function submitOverviewForm(Request $request)
     {
-        // Validate both victim and person action questions
-        $request->validate([
-            'victim_question1' => 'required|integer|min:0|max:4',
-            'victim_question2' => 'required|integer|min:0|max:4',
-            'victim_question3' => 'required|integer|min:0|max:4',
-            'victim_question4' => 'required|integer|min:0|max:4',
-            'victim_question5' => 'required|integer|min:0|max:4',
-            'victim_question6' => 'required|integer|min:0|max:4',
-            'victim_question7' => 'required|integer|min:0|max:4',
-            'victim_question8' => 'required|integer|min:0|max:4',
-            'victim_question9' => 'required|integer|min:0|max:4',
-            'person_action_question1' => 'required|integer|min:0|max:4',
-            'person_action_question2' => 'required|integer|min:0|max:4',
-            'person_action_question3' => 'required|integer|min:0|max:4',
-            'person_action_question4' => 'required|integer|min:0|max:4',
-            'person_action_question5' => 'required|integer|min:0|max:4',
-            'person_action_question6' => 'required|integer|min:0|max:4',
-            'person_action_question7' => 'required|integer|min:0|max:4',
-            'person_action_question8' => 'required|integer|min:0|max:4',
-            'person_action_question9' => 'required|integer|min:0|max:4',
-        ]);
+        $validationRules = [];
+        for ($i = 1; $i <= 18; $i++) {
+            $validationRules["question{$i}"] = 'required|integer|min:0|max:4';
+        }
+        $request->validate($validationRules);
 
-        // Collect person action assessment answers
-        $personActionQuestions = [
-            (int)$request->person_action_question1,
-            (int)$request->person_action_question2,
-            (int)$request->person_action_question3,
-            (int)$request->person_action_question4,
-            (int)$request->person_action_question5,
-            (int)$request->person_action_question6,
-            (int)$request->person_action_question7,
-            (int)$request->person_action_question8,
-            (int)$request->person_action_question9,
-        ];
+        $personActionScores = [];
+        for ($i = 1; $i <= 9; $i++) {
+            $personActionScores[] = (int)$request->{"question{$i}"};
+        }
 
-        // Collect victim assessment answers
-        $victimQuestions = [
-            (int)$request->victim_question1,
-            (int)$request->victim_question2,
-            (int)$request->victim_question3,
-            (int)$request->victim_question4,
-            (int)$request->victim_question5,
-            (int)$request->victim_question6,
-            (int)$request->victim_question7,
-            (int)$request->victim_question8,
-            (int)$request->victim_question9,
-        ];
+        $victimScores = [];
+        for ($i = 10; $i <= 18; $i++) {
+            $victimScores[] = (int)$request->{"question{$i}"};
+        }
 
-        // ✅ Create assessment data structure: [person_action, victim]
+        $personActionScore = array_sum($personActionScores);
+        $victimScore = array_sum($victimScores);
+        $hasPersonActionExperience = $personActionScore > 0;
+        $hasVictimExperience = $victimScore > 0;
+
         $assessmentData = [
-            $personActionQuestions, // person_action array (index 0)
-            $victimQuestions        // victim array (index 1)
+            [$personActionScores, [$hasPersonActionExperience]], 
+            [$victimScores, [$hasVictimExperience]]  
         ];
 
-        // Create new assessment record
         $assessment = CyberbullyingAssessment::create([
             'assessment_data' => $assessmentData
         ]);
 
-        // Calculate scores for both assessments
-        $victimScore = array_sum($victimQuestions);
-        $personActionScore = array_sum($personActionQuestions);
-        $totalScore = $victimScore + $personActionScore;
-        $maxPossibleScore = 18 * 4; // 18 questions total with max value of 4 each
-        $percentageScore = ($totalScore / $maxPossibleScore) * 100;
+        $maxPossibleScore = 9 * 4;
+        $personActionPercentage = ($personActionScore / $maxPossibleScore) * 100;
+        $victimPercentage = ($victimScore / $maxPossibleScore) * 100;
+        $totalScore = $personActionScore + $victimScore;
+        $totalPercentage = ($totalScore / (18 * 4)) * 100;
 
-        // Store the scores in the session for the results page
         session([
-            'victim_score' => $victimScore,
-            'person_action_score' => $personActionScore,
-            'total_score' => $totalScore,
-            'percentage' => $percentageScore,
+            'personActionScore' => $personActionScore,
+            'victimScore' => $victimScore,
+            'personActionPercentage' => $personActionPercentage,
+            'victimPercentage' => $victimPercentage,
+            'totalScore' => $totalScore,
+            'totalPercentage' => $totalPercentage,
+            'hasPersonActionExperience' => $hasPersonActionExperience,
+            'hasVictimExperience' => $hasVictimExperience,
             'assessment_id' => $assessment->id
         ]);
 
-        // Redirect to the combined results page
-        return redirect()->route('cyberbullying/result');
+        return redirect()->route('cyberbullying/overview/result');
     }
 
-    /**
-     * Show the victim assessment results page.
-     */
+
     public function showVictimResults()
     {
         $score = session('score', 0);
         $percentage = session('percentage', 0);
+        $hasVictimExperience = session('hasVictimExperience', false);
 
-        return view('assessment.cyberbullying.victim.form.result', compact('score', 'percentage'));
+        return view('assessment.cyberbullying.victim.form.result', compact(
+            'score', 
+            'percentage', 
+            'hasVictimExperience'
+        ));
     }
 
-    /**
-     * Show the person action assessment results page.
-     */
     public function showPersonActionResults()
     {
         $score = session('score', 0);
         $percentage = session('percentage', 0);
+        $hasPersonActionExperience = session('hasPersonActionExperience', false);
 
-        return view('assessment.cyberbullying.person_action.form.result', compact('score', 'percentage'));
+        return view('assessment.cyberbullying.person_action.form.result', compact(
+            'score', 
+            'percentage', 
+            'hasPersonActionExperience'
+        ));
     }
 
-    /**
-     * Show the combined assessment results page.
-     */
-    public function showCombinedResults()
+    public function showOverviewResults()
     {
-        $victimScore = session('victim_score', 0);
-        $personActionScore = session('person_action_score', 0);
-        $totalScore = session('total_score', 0);
-        $percentage = session('percentage', 0);
+        $data = [
+            'personActionScore' => session('personActionScore', 0),
+            'victimScore' => session('victimScore', 0),
+            'personActionPercentage' => session('personActionPercentage', 0),
+            'victimPercentage' => session('victimPercentage', 0),
+            'totalScore' => session('totalScore', 0),
+            'totalPercentage' => session('totalPercentage', 0),
+            'hasPersonActionExperience' => session('hasPersonActionExperience', false),
+            'hasVictimExperience' => session('hasVictimExperience', false)
+        ];
 
-        return view('assessment.cyberbullying.combined.result', compact(
-            'victimScore', 
-            'personActionScore', 
-            'totalScore', 
-            'percentage'
-        ));
+        return view('assessment.cyberbullying.overview.form.result', $data);
     }
 }

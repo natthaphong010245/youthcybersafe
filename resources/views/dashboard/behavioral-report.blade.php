@@ -1,11 +1,9 @@
-{{-- resources/views/dashboard/behavioral-report.blade.php --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Behavioral Report - Youth Cybersafe')
 @section('page-title', 'Behavioral Report')
 
 @section('content')
-<!-- Overview Summary - Updated to match Dashboard style -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="chart-container">
@@ -17,7 +15,7 @@
                         <div class="stat-icon stat-icon-pink">
                             <i class="fas fa-school"></i>
                         </div>
-                        <div class="stat-number">{{ $data['overview']['โรงเรียนวารีวิทยาคม'] }}</div>
+                        <div class="stat-number">{{ $data['overview']['โรงเรียนวาวีวิทยาคม'] }}</div>
                         <div class="stat-label">วารีวิทยาคม</div>
                     </div>
                 </div>
@@ -53,7 +51,6 @@
     </div>
 </div>
 
-<!-- Schools in Chiang Rai Province Chart -->
 <div class="row">
     <div class="col-12">
         <div class="chart-container">
@@ -69,13 +66,11 @@
 
 @section('scripts')
 <script>
-// Schools in Chiang Rai Province Vertical Bar Chart
 const schoolsCtx = document.getElementById('schoolsChart').getContext('2d');
 const schoolsData = {!! json_encode($data['schools_data']) !!};
 const labels = Object.keys(schoolsData);
 const values = Object.values(schoolsData);
 
-// Colors matching the design: pink, orange, green, purple, dark blue
 const backgroundColors = ['#FA5A7E', '#FF957A', '#3CD956', '#BF83FF', '#4252B8'];
 
 new Chart(schoolsCtx, {
