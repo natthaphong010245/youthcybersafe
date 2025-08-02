@@ -7,9 +7,92 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## Database
+# Mental Health & Cyberbullying Assessment System
 
-###users
+ระบบประเมินสุขภาพจิตและการกลั่นแกล้งทางไซเบอร์สำหรับสถานศึกษา พัฒนาด้วย Laravel Framework
+
+## คุณสมบัติหลัก
+
+- 🧠 **ระบบประเมินสุขภาพจิต** - ประเมินระดับความเครียด ความวิตกกังวล และภาวะซึมเศร้า
+- 🛡️ **ระบบประเมินการกลั่นแกล้งทางไซเบอร์** - ตรวจสอบและประเมินพฤติกรรมการกลั่นแกล้งออนไลน์
+- 🔊 **Safe Area** - พื้นที่ปลอดภัยสำหรับบันทึกข้อความเสียง
+- 👥 **ระบบผู้ใช้** - รองรับบทบาทต่างๆ ในสถานศึกษา
+- 🏫 **ระบบโรงเรียน** - จัดการข้อมูลแยกตามสถานศึกษา
+
+## ข้อกำหนดระบบ
+
+- PHP >= 8.0
+- Laravel >= 9.0
+- MySQL >= 5.7
+- Composer
+- Node.js & NPM (สำหรับ frontend assets)
+
+## การติดตั้ง
+
+### 1. Clone โปรเจค
+```bash
+git clone <repository-url>
+cd <project-name>
+```
+
+### 2. ติดตั้ง Dependencies
+```bash
+composer install
+npm install
+```
+
+### 3. ตั้งค่าสภาพแวดล้อม
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+### 4. ตั้งค่าฐานข้อมูลใน .env
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=your_database_name
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+```
+
+### 5. รันการ Migration
+```bash
+php artisan migrate
+```
+
+### 6. Compile Assets
+```bash
+npm run dev
+# หรือสำหรับ production
+npm run build
+```
+
+### 7. เริ่มเซิร์ฟเวอร์
+```bash
+php artisan serve
+```
+
+## โครงสร้างฐานข้อมูล
+
+### Table: users
+เก็บข้อมูลผู้ใช้ระบบ
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | BIGINT UNSIGNED | Primary Key |
+| role | VARCHAR(255) | บทบาทของผู้ใช้ |
+| role_user | TINYINT(1) | สถานะบทบาทผู้ใช้ |
+| school | VARCHAR(255) | ชื่อสถานศึกษา |
+| name | VARCHAR(255) | ชื่อ |
+| lastname | VARCHAR(255) | นามสกุล |
+| username | VARCHAR(255) | ชื่อผู้ใช้ (UNIQUE) |
+| password | VARCHAR(255) | รหัสผ่าน (Hashed) |
+| created_at | TIMESTAMP | วันที่สร้าง |
+| updated_at | TIMESTAMP | วันที่อัปเดต |
+
+```sql
 CREATE TABLE `users` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `role` VARCHAR(255) NOT NULL,
@@ -24,9 +107,19 @@ CREATE TABLE `users` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `users_username_unique` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
 
+### Table: safe_area
+เก็บข้อมูลพื้นที่ปลอดภัย
 
-###safe_area
+| Field | Type | Description |
+|-------|------|-------------|
+| id | BIGINT UNSIGNED | Primary Key |
+| voice_message | JSON | ข้อมูลข้อความเสียง |
+| created_at | TIMESTAMP | วันที่สร้าง |
+| updated_at | TIMESTAMP | วันที่อัปเดต |
+
+```sql
 CREATE TABLE `safe_area` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `voice_message` JSON NOT NULL,
@@ -35,9 +128,19 @@ CREATE TABLE `safe_area` (
     PRIMARY KEY (`id`),
     INDEX `safe_area_created_at_index` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
 
+### Table: cyberbullying_assessment
+เก็บข้อมูลการประเมินการกลั่นแกล้งทางไซเบอร์
 
-###cyberbullying_assessment
+| Field | Type | Description |
+|-------|------|-------------|
+| id | BIGINT UNSIGNED | Primary Key |
+| assessment_data | JSON | ข้อมูลการประเมิน |
+| created_at | TIMESTAMP | วันที่สร้าง |
+| updated_at | TIMESTAMP | วันที่อัปเดต |
+
+```sql
 CREATE TABLE `cyberbullying_assessment` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `assessment_data` JSON NOT NULL,
@@ -46,70 +149,124 @@ CREATE TABLE `cyberbullying_assessment` (
     PRIMARY KEY (`id`),
     INDEX `cyberbullying_assessment_created_at_index` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
 
+### Table: mental_health_assessment
+เก็บข้อมูลการประเมินสุขภาพจิต
 
-###mental_health_assessment
+| Field | Type | Description |
+|-------|------|-------------|
+| id | BIGINT UNSIGNED | Primary Key |
+| stress | JSON | ข้อมูลการประเมินความเครียด |
+| anxiety | JSON | ข้อมูลการประเมินความวิตกกังวล |
+| depression | JSON | ข้อมูลการประเมินภาวะซึมเศร้า |
+| created_at | TIMESTAMP | วันที่สร้าง |
+| updated_at | TIMESTAMP | วันที่อัปเดต |
+
+```sql
 CREATE TABLE `mental_health_assessment` (
-
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    
     `stress` JSON NOT NULL,
-    
     `anxiety` JSON NOT NULL,
-    
     `depression` JSON NOT NULL,
-    
     `created_at` TIMESTAMP NULL DEFAULT NULL,
-    
     `updated_at` TIMESTAMP NULL DEFAULT NULL,
-    
     PRIMARY KEY (`id`),
-    
     INDEX `mental_health_assessment_created_at_index` (`created_at`)
-    
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
 
+## API Endpoints
 
-## Learning Laravel
+### Authentication
+- `POST /api/login` - เข้าสู่ระบบ
+- `POST /api/logout` - ออกจากระบบ
+- `POST /api/register` - สมัครสมาชิก
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Mental Health Assessment
+- `GET /api/mental-health-assessments` - ดึงข้อมูลการประเมิน
+- `POST /api/mental-health-assessments` - สร้างการประเมินใหม่
+- `GET /api/mental-health-assessments/{id}` - ดึงข้อมูลการประเมินตาม ID
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Cyberbullying Assessment
+- `GET /api/cyberbullying-assessments` - ดึงข้อมูลการประเมิน
+- `POST /api/cyberbullying-assessments` - สร้างการประเมินใหม่
+- `GET /api/cyberbullying-assessments/{id}` - ดึงข้อมูลการประเมินตาม ID
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Safe Area
+- `GET /api/safe-area` - ดึงข้อมูลพื้นที่ปลอดภัย
+- `POST /api/safe-area` - สร้างข้อความใหม่ในพื้นที่ปลอดภัย
 
-## Laravel Sponsors
+## การพัฒนา
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Code Style
+โปรเจคนี้ใช้ Laravel coding standards และ PSR-12
 
-### Premium Partners
+### Testing
+```bash
+# รันการทดสอบ
+php artisan test
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+# รันการทดสอบพร้อม coverage
+php artisan test --coverage
+```
 
-## Contributing
+### Linting
+```bash
+# PHP CS Fixer
+./vendor/bin/php-cs-fixer fix
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# PHPStan
+./vendor/bin/phpstan analyse
+```
 
-## Code of Conduct
+## การ Deploy
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### สำหรับ Production
+```bash
+# อัปเดต dependencies
+composer install --optimize-autoloader --no-dev
 
-## Security Vulnerabilities
+# Cache configurations
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Compile assets
+npm run build
+```
 
-## License
+## การสนับสนุน
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+หากมีปัญหาหรือข้อสงสัย สามารถติดต่อได้ผ่าน:
+- GitHub Issues
+- Email: [your-email@example.com]
+
+## ใบอนุญาต
+
+โปรเจคนี้อยู่ภายใต้ใบอนุญาต [MIT License](https://opensource.org/licenses/MIT)
+
+## ผู้พัฒนา
+
+- **ชื่อทีมพัฒนา** - พัฒนาเริ่มต้น
+- ดูรายชื่อผู้ร่วมพัฒนาทั้งหมดได้ที่ [contributors](https://github.com/your-repo/contributors)
+
+## เวอร์ชัน
+
+ดูประวัติการเปลี่ยนแปลงได้ที่ [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## About Laravel
+
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
