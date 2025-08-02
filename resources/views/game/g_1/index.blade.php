@@ -1,4 +1,3 @@
-{{-- resources/views/game/g_1/index.blade.php --}}
 @extends('layouts.game.bullying.index')
 
 @php

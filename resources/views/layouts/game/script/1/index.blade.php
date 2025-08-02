@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/game/script/1/index.blade.php --}}
 <script>
     window.addEventListener('pageshow', function(event) {
         if (event.persisted) {

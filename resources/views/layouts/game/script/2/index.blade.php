@@ -1,6 +1,4 @@
-{{-- resources/views/layouts/game/script/2/index.blade.php --}}
 <script>
-    // เพิ่มการจัดการเมื่อผู้เล่นย้อนกลับหน้า
     window.addEventListener('pageshow', function(event) {
         if (event.persisted) {
             window.location.reload();
@@ -22,71 +20,48 @@
         const introModal = document.getElementById('intro-modal');
         const gameContent = document.getElementById('game-content');
         const startGameBtn = document.getElementById('start-game-btn');
-        const answerCloudsContainer = document.getElementById('answer-clouds-container');
-        const dropZonesContainer = document.getElementById('drop-zones-container');
-        const correctOverlay = document.getElementById('correct-overlay');
-        const wrongOverlay = document.getElementById('wrong-overlay');
-        const completeOverlay = document.getElementById('complete-overlay');
+        const cloudOptions = document.querySelectorAll('.cloud-option');
+        const answerSlots = document.querySelectorAll('.answer-slot');
+        const successModal = document.getElementById('success-modal');
+        const failureModal = document.getElementById('failure-modal');
+        const successBtn = document.getElementById('success-btn');
+        const tryAgainBtn = document.getElementById('try-again-btn');
+        const skipBtn = document.getElementById('skip-btn');
 
-        const correctAnswers = ['เจตนา', 'เจ็บปวด', 'จงใจทำซ้ำ'];
-        const wrongAnswers = ['จิ๊จ๊ะ', 'จ๊ะจ๋า'];
-        const allAnswers = [...correctAnswers, ...wrongAnswers];
+        let selectedAnswers = [];
+        let usedOptions = new Set();
+        const correctAnswers = ['เจตนา', 'จงใจทำซ้ำ', 'เจ็บปวด'];
 
-        const answerImages = {
-            'เจตนา': 'images/game/2/intent.png',
-            'เจ็บปวด': 'images/game/2/painful.png',
-            'จงใจทำซ้ำ': 'images/game/2/intentionally_repetitive.png',
-            'จิ๊จ๊ะ': 'images/game/2/jijja.png',
-            'จ๊ะจ๋า': 'images/game/2/jaja.png'
-        };
-
-        let completedZones = 0;
-        let gameInitialized = false;
-        let usedAnswers = new Set();
-
-        // ตำแหน่งสำหรับเดสก์ท็อป
-        const cloudPositions = [{
-            position: 'top-4 left-4',
-            size: 'w-32 h-auto'
-        }, {
-            position: 'top-10 right-20',
-            size: 'w-24 h-auto'
-        }, {
-            position: 'top-28 left-14',
-            size: 'w-28 h-auto'
-        }, {
-            position: 'top-32 right-6',
-            size: 'w-32 h-auto'
-        }, {
-            position: 'top-52 left-1/2 transform -translate-x-1/2',
-            size: 'w-28 h-auto'
-        }];
-
-        // ฟังก์ชันรีเซ็ตสถานะเกม
         function resetGameState() {
-            [correctOverlay, wrongOverlay, completeOverlay].forEach(modal => {
+            selectedAnswers = [];
+            usedOptions.clear();
+            
+            [successModal, failureModal].forEach(modal => {
                 if (modal) {
                     modal.classList.add('hidden');
-                    modal.classList.remove('animate-fadeIn', 'animate-fadeOut');
+                    modal.classList.remove('animate-modal-show', 'animate-modal-fade-out');
                 }
             });
 
-            completedZones = 0;
-            usedAnswers.clear();
-            gameInitialized = false;
+            // Reset cloud options
+            cloudOptions.forEach(option => {
+                option.style.opacity = '1';
+                option.style.pointerEvents = 'auto';
+                option.classList.remove('used');
+            });
+
+            // Reset answer slots
+            answerSlots.forEach(slot => {
+                slot.innerHTML = `
+                    <img src="{{ asset('images/material/cloud.png') }}" alt="ช่องคำตอบ" class="w-full h-full object-contain opacity-30">
+                `;
+                slot.classList.remove('filled');
+                slot.dataset.answer = '';
+            });
 
             if (gameContent) {
                 gameContent.classList.remove('game-blur', 'animate-unblur');
             }
-
-            if (answerCloudsContainer) {
-                answerCloudsContainer.innerHTML = '';
-            }
-
-            // รีเซ็ต drop zones
-            document.querySelectorAll('.drop-zone').forEach(zone => {
-                zone.innerHTML = '<img src="{{ asset("images/material/cloud.png") }}" alt="Empty Cloud" class="w-32 h-22 opacity-30">';
-            });
 
             if (introModal && !introModal.style.display === 'none') {
                 gameContent.classList.add('game-blur');
@@ -98,238 +73,175 @@
 
         resetGameState();
 
-        setTimeout(() => {
-            introModal.classList.add('animate-modal-show');
-            gameContent.classList.add('game-blur');
-        }, 100);
-
-        startGameBtn.addEventListener('click', function() {
-            introModal.classList.remove('animate-modal-show');
-            introModal.classList.add('animate-modal-fade-out');
-
+        // Intro modal handling
+        if (introModal) {
             setTimeout(() => {
-                introModal.style.display = 'none';
-                gameContent.classList.remove('game-blur');
-                gameContent.classList.add('animate-unblur');
+                introModal.classList.add('animate-modal-show');
+                gameContent.classList.add('game-blur');
+            }, 100);
 
-                if (!gameInitialized) {
-                    createAnswerClouds();
-                    gameInitialized = true;
+            startGameBtn.addEventListener('click', function() {
+                introModal.classList.remove('animate-modal-show');
+                introModal.classList.add('animate-modal-fade-out');
+
+                setTimeout(() => {
+                    introModal.style.display = 'none';
+                    gameContent.classList.remove('game-blur');
+                    gameContent.classList.add('animate-unblur');
+                }, 300);
+            });
+        }
+
+        cloudOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                if (usedOptions.has(option.dataset.text)) {
+                    return;
                 }
-            }, 300);
+
+                const isCorrect = option.dataset.correct === 'true';
+                
+                if (!isCorrect) {
+                    setTimeout(() => {
+                        showFailureModal();
+                    }, 300);
+                    return;
+                }
+
+                const emptySlot = findEmptySlot();
+                if (!emptySlot) {
+                    return; 
+                }
+
+                addAnswerToSlot(emptySlot, option);
+                
+                usedOptions.add(option.dataset.text);
+                option.style.opacity = '0.3';
+                option.style.pointerEvents = 'none';
+                option.classList.add('used');
+
+                if (selectedAnswers.length === 3) {
+                    setTimeout(() => {
+                        showSuccessModal();
+                    }, 500);
+                }
+            });
         });
 
-        function shuffleArray(array) {
-            const shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        }
-
-        function isMobile() {
-            return window.innerWidth <= 768;
-        }
-
-        function createAnswerClouds() {
-            answerCloudsContainer.innerHTML = '';
-            const shuffledAnswers = shuffleArray(allAnswers);
-
-            if (isMobile()) {
-                // สำหรับมือถือ: ใช้ flex layout
-                answerCloudsContainer.className = 'flex flex-wrap justify-center items-center gap-4 p-4 min-h-64';
-                
-                shuffledAnswers.forEach((answer, index) => {
-                    const cloud = document.createElement('div');
-                    cloud.className = 'answer-cloud cursor-pointer w-24 h-16 flex-shrink-0';
-                    cloud.dataset.answer = answer;
-                    cloud.dataset.originalIndex = index;
-
-                    cloud.innerHTML = `
-                        <div class="relative w-full h-full">
-                            <img src="{{ asset("") }}${answerImages[answer]}" alt="Cloud" class="w-full h-full object-contain">
-                        </div>
-                    `;
-
-                    cloud.addEventListener('click', handleCloudClick);
-                    answerCloudsContainer.appendChild(cloud);
-                });
-            } else {
-                // สำหรับเดสก์ท็อป: ใช้ absolute positioning
-                answerCloudsContainer.className = 'relative min-h-80 mb-2';
-                const shuffledPositions = shuffleArray(cloudPositions);
-
-                shuffledAnswers.forEach((answer, index) => {
-                    const cloud = document.createElement('div');
-                    const position = shuffledPositions[index];
-
-                    const hasTransform = position.size.includes('transform');
-                    const sizeClasses = position.size.replace('transform -translate-x-1/2', '').trim();
-
-                    cloud.className = `absolute ${position.position} ${sizeClasses} cursor-pointer answer-cloud`;
-                    if (hasTransform) {
-                        cloud.classList.add('transform', '-translate-x-1/2');
-                    }
-
-                    cloud.dataset.answer = answer;
-                    cloud.dataset.originalIndex = index;
-
-                    cloud.innerHTML = `
-                        <div class="relative w-full h-full">
-                            <img src="{{ asset("") }}${answerImages[answer]}" alt="Cloud" class="w-full h-full">
-                        </div>
-                    `;
-
-                    cloud.addEventListener('click', handleCloudClick);
-                    answerCloudsContainer.appendChild(cloud);
-                });
-            }
-        }
-
-        function handleCloudClick(e) {
-            const clickedCloud = e.target.closest('.answer-cloud');
-            if (!clickedCloud) return;
-
-            const answer = clickedCloud.dataset.answer;
-
-            if (usedAnswers.has(answer)) {
-                return;
-            }
-
-            clickedCloud.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                if (clickedCloud.classList.contains('transform')) {
-                    clickedCloud.style.transform = 'translateX(-50%) scale(1)';
-                } else {
-                    clickedCloud.style.transform = 'scale(1)';
+        answerSlots.forEach(slot => {
+            slot.addEventListener('click', function() {
+                if (slot.classList.contains('filled')) {
+                    removeAnswerFromSlot(slot);
                 }
-            }, 150);
+            });
+        });
 
-            if (correctAnswers.includes(answer)) {
-                const nextDropZone = findNextAvailableDropZone();
-                
-                if (nextDropZone) {
-                    placeCloudInZone(clickedCloud, nextDropZone, answer);
-                    usedAnswers.add(answer);
-                    completedZones++;
+        function findEmptySlot() {
+            return Array.from(answerSlots).find(slot => !slot.classList.contains('filled'));
+        }
 
-                    if (completedZones < 3) {
-                        showCorrectModal();
-                    } else {
-                        showCompleteModal();
-                    }
-                }
-            } else {
-                showWrongModal();
-                clickedCloud.classList.add('shake-animation');
-                setTimeout(() => {
-                    clickedCloud.classList.remove('shake-animation');
-                }, 600);
+        function addAnswerToSlot(slot, option) {
+            const answerText = option.dataset.text;
+            const isCorrect = option.dataset.correct === 'true';
+            
+            selectedAnswers.push({
+                text: answerText,
+                correct: isCorrect,
+                slot: slot.dataset.slot,
+                originalOption: option
+            });
+
+            slot.classList.add('filled');
+            slot.dataset.answer = answerText;
+            
+            const cloudImg = option.cloneNode(true);
+            cloudImg.classList.remove('cloud-option', 'cursor-pointer', 'hover:scale-105');
+            cloudImg.classList.add('w-full', 'h-full', 'object-contain');
+            cloudImg.style.opacity = '1';
+            cloudImg.style.pointerEvents = 'none';
+            
+            slot.innerHTML = '';
+            slot.appendChild(cloudImg);
+            
+            slot.title = 'คลิกเพื่อลบ';
+        }
+
+        function removeAnswerFromSlot(slot) {
+            const answerText = slot.dataset.answer;
+            
+            selectedAnswers = selectedAnswers.filter(answer => answer.text !== answerText);
+            
+            usedOptions.delete(answerText);
+            
+            const originalOption = Array.from(cloudOptions).find(option => option.dataset.text === answerText);
+            if (originalOption) {
+                originalOption.style.opacity = '1';
+                originalOption.style.pointerEvents = 'auto';
+                originalOption.classList.remove('used');
             }
+            
+            slot.innerHTML = `
+                <img src="{{ asset('images/material/cloud.png') }}" alt="ช่องคำตอบ" class="w-full h-full object-contain opacity-30">
+            `;
+            slot.classList.remove('filled');
+            slot.dataset.answer = '';
+            slot.title = '';
         }
 
-        function findNextAvailableDropZone() {
-            const dropZones = document.querySelectorAll('.drop-zone');
-            for (let zone of dropZones) {
-                if (!zone.querySelector('.placed-cloud')) {
-                    return zone;
-                }
-            }
-            return null;
+        function showSuccessModal() {
+            successModal.classList.remove('hidden');
+            successModal.classList.add('animate-modal-show');
         }
 
-        function placeCloudInZone(cloud, zone, answer) {
-            const cloudRect = cloud.getBoundingClientRect();
-            const zoneRect = zone.getBoundingClientRect();
-            
-            const flyingCloud = cloud.cloneNode(true);
-            flyingCloud.style.position = 'fixed';
-            flyingCloud.style.left = cloudRect.left + 'px';
-            flyingCloud.style.top = cloudRect.top + 'px';
-            flyingCloud.style.zIndex = '1000';
-            flyingCloud.style.pointerEvents = 'none';
-            flyingCloud.style.transition = 'all 0.6s ease-out';
-            
-            document.body.appendChild(flyingCloud);
-            
-            cloud.style.opacity = '0.3';
-            cloud.style.pointerEvents = 'none';
-            
-            setTimeout(() => {
-                flyingCloud.style.left = (zoneRect.left + (zoneRect.width - cloudRect.width) / 2) + 'px';
-                flyingCloud.style.top = (zoneRect.top + (zoneRect.height - cloudRect.height) / 2) + 'px';
-                flyingCloud.style.transform = 'scale(0.8)';
-            }, 50);
-            
-            setTimeout(() => {
-                zone.innerHTML = `<img src="{{ asset("") }}${answerImages[answer]}" alt="Cloud" class="w-32 h-22 placed-cloud">`;
-                document.body.removeChild(flyingCloud);
-            }, 650);
-        }
-
-        function showCorrectModal() {
-            correctOverlay.classList.remove('hidden');
-            correctOverlay.classList.add('animate-fadeIn');
-        }
-
-        function showWrongModal() {
-            wrongOverlay.classList.remove('hidden');
-            wrongOverlay.classList.add('animate-fadeIn');
-        }
-
-        function showCompleteModal() {
-            completeOverlay.classList.remove('hidden');
-            completeOverlay.classList.add('animate-fadeIn');
+        function showFailureModal() {
+            failureModal.classList.remove('hidden');
+            failureModal.classList.add('animate-modal-show');
         }
 
         function hideModal(modal) {
-            modal.classList.remove('animate-fadeIn');
-            modal.classList.add('animate-fadeOut');
+            modal.classList.remove('animate-modal-show');
+            modal.classList.add('animate-modal-fade-out');
+            
             setTimeout(() => {
                 modal.classList.add('hidden');
-                modal.classList.remove('animate-fadeOut');
-            }, 500);
+                modal.classList.remove('animate-modal-fade-out');
+            }, 300);
         }
 
-        function resetGame() {
-            completedZones = 0;
-            usedAnswers.clear();
-            
-            document.querySelectorAll('.drop-zone').forEach(zone => {
-                zone.innerHTML = '<img src="{{ asset("images/material/cloud.png") }}" alt="Empty Cloud" class="w-32 h-22 opacity-30">';
-            });
-            
-            document.querySelectorAll('.answer-cloud').forEach(cloud => {
-                cloud.style.opacity = '1';
-                cloud.style.pointerEvents = 'auto';
+        function resetAnswers() {
+            selectedAnswers.forEach(answer => {
+                const slot = document.querySelector(`[data-slot="${answer.slot}"]`);
+                if (slot) {
+                    removeAnswerFromSlot(slot);
+                }
             });
         }
 
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (gameInitialized) {
-                createAnswerClouds();
-            }
+        successBtn.addEventListener('click', function() {
+            window.location.href = "@yield('next-route')";
         });
 
-        document.getElementById('continue-correct-btn').addEventListener('click', function() {
-            hideModal(correctOverlay);
-        });
-
-        document.getElementById('try-again-wrong-btn').addEventListener('click', function() {
-            hideModal(wrongOverlay);
-        });
-
-        document.getElementById('skip-btn').addEventListener('click', function() {
-            hideModal(wrongOverlay);
+        tryAgainBtn.addEventListener('click', function() {
+            hideModal(failureModal);
             setTimeout(() => {
-                window.location.href = "{{ route('game_3') }}";
+                resetAnswers();
             }, 300);
         });
 
-        document.getElementById('finish-game-btn').addEventListener('click', function() {
-            window.location.href = "{{ route('game_3') }}";
+        skipBtn.addEventListener('click', function() {
+            window.location.href = "@yield('next-route')";
+        });
+
+        [successModal, failureModal].forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    hideModal(modal);
+                    if (modal === failureModal) {
+                        setTimeout(() => {
+                            resetAnswers();
+                        }, 300);
+                    }
+                }
+            });
         });
 
         window.resetGameState = resetGameState;
@@ -345,20 +257,12 @@
         animation: contentSlideIn 0.4s ease-out 0.15s both;
     }
 
-    .animate-modal-hide {
-        animation: modalHide 0.3s ease-out forwards;
-    }
-
     .animate-modal-fade-out {
         animation: backdropFadeOut 0.3s ease-out forwards;
     }
 
     .animate-modal-fade-out .modal-content {
         animation: contentScaleOut 0.3s ease-out forwards;
-    }
-
-    .animate-fade-in {
-        animation: fadeIn 0.6s ease-out forwards;
     }
 
     @keyframes backdropFadeIn {
@@ -378,17 +282,6 @@
         100% {
             opacity: 1;
             transform: scale(1);
-        }
-    }
-
-    @keyframes modalHide {
-        0% {
-            opacity: 1;
-            transform: scale(1);
-        }
-        100% {
-            opacity: 0;
-            transform: scale(0.8);
         }
     }
 
@@ -413,6 +306,43 @@
         }
     }
 
+    .modal-content {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    .cloud-option {
+        transition: all 0.3s ease;
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+    }
+
+    .cloud-option:hover:not(.used) {
+        transform: translateY(-3px) scale(1.05);
+        filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.2));
+    }
+
+    .cloud-option.used {
+        transition: all 0.3s ease;
+    }
+
+    .answer-slot {
+        transition: all 0.3s ease;
+    }
+
+    .answer-slot:hover:not(.filled) {
+        transform: scale(1.05);
+        filter: brightness(1.1);
+    }
+
+    .answer-slot:hover.filled {
+        transform: scale(0.95);
+    }
+
+    .answer-slot.filled {
+        background-color: transparent;
+        cursor: pointer;
+    }
+
     .game-blur {
         filter: blur(3px);
         transition: filter 0.3s ease-out;
@@ -434,211 +364,13 @@
         }
     }
 
-    #game-content {
-        opacity: 1;
-        transition: all 0.3s ease-out;
+    button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
-    .modal-content {
-        opacity: 0;
-        transform: scale(0.8);
+    button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-
-    .animate-fadeIn {
-        animation: fadeIn 0.5s ease-in-out forwards;
-    }
-
-    .animate-fadeOut {
-        animation: fadeOut 0.5s ease-in-out forwards;
-    }
-
-    @keyframes fadeIn {
-        0% {
-            opacity: 0;
-        }
-        100% {
-            opacity: 1;
-        }
-    }
-
-    @keyframes fadeOut {
-        0% {
-            opacity: 1;
-        }
-        100% {
-            opacity: 0;
-        }
-    }
-
-    .answer-cloud:hover {
-        transform: scale(1.05);
-        transition: transform 0.2s ease;
-    }
-
-    .answer-cloud.transform:hover {
-        transform: translateX(-50%) scale(1.05);
-    }
-
-    .answer-cloud {
-        touch-action: auto;
-        user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        transition: all 0.2s ease;
-        transform-origin: center center;
-    }
-
-    .answer-cloud:active {
-        transform: scale(0.95);
-    }
-
-    .answer-cloud.transform:active {
-        transform: translateX(-50%) scale(0.95);
-    }
-
-    .drop-zone {
-        transition: all 0.3s ease;
-    }
-
-    .drop-zone img {
-        transition: all 0.2s ease;
-    }
-
-    img {
-        border: none !important;
-        outline: none !important;
-        box-shadow: none !important;
-    }
-
-    .sun-container {
-        border: none;
-        outline: none;
-    }
-
-    .shake-animation {
-        animation: shake 0.6s ease-in-out;
-    }
-
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-        20%, 40%, 60%, 80% { transform: translateX(5px); }
-    }
-
-    .shake-animation.transform {
-        animation: shakeTransform 0.6s ease-in-out;
-    }
-
-    @keyframes shakeTransform {
-        0%, 100% { transform: translateX(-50%); }
-        10%, 30%, 50%, 70%, 90% { transform: translateX(-50%) translateX(-5px); }
-        20%, 40%, 60%, 80% { transform: translateX(-50%) translateX(5px); }
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        /* Drop zones responsive */
-        #drop-zones-container {
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            justify-content: center;
-        }
-
-        .drop-zone {
-            width: 6rem !important;
-            height: 4.5rem !important;
-            margin: 0.25rem;
-        }
-
-        .drop-zone img {
-            width: 5rem !important;
-            height: 3.5rem !important;
-        }
-
-        /* Answer clouds responsive */
-        .answer-cloud {
-            width: 6rem !important;
-            height: 4rem !important;
-            margin: 0.25rem;
-        }
-
-        .answer-cloud img {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: contain;
-        }
-
-        /* Container adjustments */
-        .card-container {
-            padding: 0.5rem 1rem;
-        }
-
-        /* Sun container */
-        .sun-container {
-            width: 4rem !important;
-            height: 4rem !important;
-        }
-
-        /* Text adjustments */
-        h2 {
-            font-size: 1rem !important;
-            line-height: 1.4;
-            margin: 0.5rem 0;
-        }
-
-        .text-lg {
-            font-size: 0.9rem !important;
-        }
-
-        /* Modal responsive */
-        .bg-white.rounded-2xl {
-            margin: 1rem;
-            padding: 1rem;
-        }
-
-        .bg-white.rounded-2xl img {
-            width: 6rem !important;
-            height: auto;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .answer-cloud {
-            width: 5rem !important;
-            height: 3.5rem !important;
-        }
-
-        .drop-zone {
-            width: 5rem !important;
-            height: 4rem !important;
-        }
-
-        .drop-zone img {
-            width: 4.5rem !important;
-            height: 3rem !important;
-        }
-
-        h2 {
-            font-size: 0.9rem !important;
-        }
-    }
-
-    /* Utility classes */
-    .w-18 { width: 4.5rem; }
-    .h-9 { height: 2.25rem; }
-    .h-10 { height: 2.5rem; }
-    .h-12 { height: 3rem; }
-    .h-13 { height: 3.25rem; }
-    .h-14 { height: 3.5rem; }
-    .h-16 { height: 4rem; }
-    .h-18 { height: 4.5rem; }
-    .h-22 { height: 5.5rem; }
-    .w-20 { width: 5rem; }
-    .w-22 { width: 5.5rem; }
-    .w-24 { width: 6rem; }
-    .w-32 { width: 8rem; }
-    .w-36 { width: 9rem; }
-    .h-24 { height: 6rem; }
-    .min-h-64 { min-height: 16rem; }
 </style>
