@@ -7,19 +7,59 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+## Database
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+###users
+CREATE TABLE `users` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `role` VARCHAR(255) NOT NULL,
+    `role_user` TINYINT(1) NOT NULL DEFAULT 0,
+    `school` VARCHAR(255) NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `lastname` VARCHAR(255) NOT NULL,
+    `username` VARCHAR(255) NOT NULL,
+    `password` VARCHAR(255) NOT NULL,
+    `created_at` TIMESTAMP NULL DEFAULT NULL,
+    `updated_at` TIMESTAMP NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `users_username_unique` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+###safe_area
+CREATE TABLE `safe_area` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `voice_message` JSON NOT NULL,
+    `created_at` TIMESTAMP NULL DEFAULT NULL,
+    `updated_at` TIMESTAMP NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `safe_area_created_at_index` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+###cyberbullying_assessment
+CREATE TABLE `cyberbullying_assessment` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `assessment_data` JSON NOT NULL,
+    `created_at` TIMESTAMP NULL DEFAULT NULL,
+    `updated_at` TIMESTAMP NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `cyberbullying_assessment_created_at_index` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+###mental_health_assessment
+CREATE TABLE `mental_health_assessment` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `stress` JSON NOT NULL,
+    `anxiety` JSON NOT NULL,
+    `depression` JSON NOT NULL,
+    `created_at` TIMESTAMP NULL DEFAULT NULL,
+    `updated_at` TIMESTAMP NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `mental_health_assessment_created_at_index` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 ## Learning Laravel
 
