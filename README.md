@@ -50,14 +50,23 @@ CREATE TABLE `cyberbullying_assessment` (
 
 ###mental_health_assessment
 CREATE TABLE `mental_health_assessment` (
+
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    
     `stress` JSON NOT NULL,
+    
     `anxiety` JSON NOT NULL,
+    
     `depression` JSON NOT NULL,
+    
     `created_at` TIMESTAMP NULL DEFAULT NULL,
+    
     `updated_at` TIMESTAMP NULL DEFAULT NULL,
+    
     PRIMARY KEY (`id`),
+    
     INDEX `mental_health_assessment_created_at_index` (`created_at`)
+    
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
