@@ -7,9 +7,13 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-# Mental Health & Cyberbullying Assessment System
+# YOUTH CYBERSAFE
 
-ระบบประเมินสุขภาพจิตและการกลั่นแกล้งทางไซเบอร์สำหรับสถานศึกษา พัฒนาด้วย Laravel Framework
+### GMAIL
+
+Username: youthcybersafe1@gmail.com
+
+Password: youthcybersage123
 
 ## คุณสมบัติหลัก
 
