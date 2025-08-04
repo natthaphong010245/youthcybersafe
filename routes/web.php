@@ -523,67 +523,73 @@ Route::get('/test-basic', function() {
 // เพิ่มที่ท้ายไฟล์ routes/web.php
 
 // Test Routes สำหรับ Google Drive
+// แทนที่ route เก่าด้วยนี้
 Route::get('/test-google-drive', function() {
     try {
-        // ตรวจสอบไฟล์ credentials
-        $credentialsPath = storage_path('app/google-credentials.json');
-        $credentialsExists = file_exists($credentialsPath);
-        
-        // ตรวจสอบ .env
-        $folderId = env('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID');
-        $serviceEmail = env('GOOGLE_DRIVE_SERVICE_ACCOUNT_EMAIL');
-        
         $status = [
-            'credentials_file' => [
-                'exists' => $credentialsExists,
-                'path' => $credentialsPath
-            ],
-            'env_config' => [
-                'folder_id' => $folderId ? 'SET' : 'NOT SET',
-                'folder_id_value' => $folderId,
-                'service_email' => $serviceEmail
-            ],
-            'dependencies' => [
+            'step1_dependencies' => [
                 'google_client' => class_exists('Google_Client'),
-                'google_service_drive' => class_exists('Google_Service_Drive')
+                'google_service_drive' => class_exists('Google_Service_Drive'),
+                'composer_autoload' => file_exists(base_path('vendor/autoload.php'))
+            ],
+            'step2_credentials' => [
+                'file_exists' => file_exists(storage_path('app/google-credentials.json')),
+                'file_path' => storage_path('app/google-credentials.json')
+            ],
+            'step3_env_config' => [
+                'folder_id' => env('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID') ? 'SET' : 'NOT SET',
+                'folder_id_value' => env('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID'),
+                'service_email' => env('GOOGLE_DRIVE_SERVICE_ACCOUNT_EMAIL')
             ]
         ];
         
-        if (!$credentialsExists) {
+        // ตรวจสอบ Google Client ก่อนสร้าง Service
+        if (!class_exists('Google_Client')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Google_Client class not found',
+                'solution' => 'Run: composer require google/apiclient && composer dump-autoload',
+                'details' => $status
+            ], 200, [], JSON_PRETTY_PRINT);
+        }
+        
+        // ตรวจสอบ credentials ก่อนสร้าง Service
+        if (!file_exists(storage_path('app/google-credentials.json'))) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Google credentials file not found',
-                'details' => $status,
-                'next_step' => 'Create storage/app/google-credentials.json'
-            ]);
+                'solution' => 'Create storage/app/google-credentials.json with service account JSON',
+                'details' => $status
+            ], 200, [], JSON_PRETTY_PRINT);
         }
         
-        if (!$folderId) {
+        // ตรวจสอบ env config
+        if (!env('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID')) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID not set',
-                'details' => $status,
-                'next_step' => 'Add GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID to .env'
-            ]);
+                'solution' => 'Add GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID to .env file',
+                'details' => $status
+            ], 200, [], JSON_PRETTY_PRINT);
         }
         
-        // ทดสอบสร้าง service (ถ้า credentials มี)
-        if ($credentialsExists && class_exists('App\Services\GoogleDriveService')) {
+        // ทดสอบสร้าง GoogleDriveService
+        if (class_exists('App\Services\GoogleDriveService')) {
             $service = new \App\Services\GoogleDriveService();
             $connectionTest = $service->testConnection();
-            $status['google_drive_test'] = $connectionTest;
+            $status['step4_service_test'] = $connectionTest;
         } else {
-            $status['google_drive_test'] = [
+            $status['step4_service_test'] = [
                 'success' => false,
-                'error' => 'GoogleDriveService not available'
+                'error' => 'GoogleDriveService class not found'
             ];
         }
         
         return response()->json([
             'status' => 'success',
-            'message' => 'Google Drive configuration check',
+            'message' => 'All checks passed!',
             'details' => $status,
-            'timestamp' => now()
+            'next_step' => 'Ready to test file upload/download'
         ], 200, [], JSON_PRETTY_PRINT);
         
     } catch (\Exception $e) {
@@ -591,18 +597,8 @@ Route::get('/test-google-drive', function() {
             'status' => 'error',
             'message' => $e->getMessage(),
             'line' => $e->getLine(),
-            'file' => basename($e->getFile())
-        ]);
+            'file' => basename($e->getFile()),
+            'solution' => 'Check the error details and fix accordingly'
+        ], 200, [], JSON_PRETTY_PRINT);
     }
-});
-
-// Test Route เรียบง่าย
-Route::get('/test-simple', function() {
-    return response()->json([
-        'status' => 'working',
-        'message' => 'Routes are working',
-        'timestamp' => now(),
-        'app_debug' => config('app.debug'),
-        'app_url' => config('app.url')
-    ]);
 });
