@@ -602,3 +602,50 @@ Route::get('/test-google-drive', function() {
         ], 200, [], JSON_PRETTY_PRINT);
     }
 });
+
+// เพิ่ม debug route ใหม่
+Route::get('/test-composer-debug', function() {
+    $info = [
+        'php_version' => PHP_VERSION,
+        'composer_autoload' => file_exists(base_path('vendor/autoload.php')),
+        'google_packages' => []
+    ];
+    
+    // ตรวจสอบ Google packages
+    $googlePackages = [
+        'vendor/google',
+        'vendor/google/apiclient',
+        'vendor/google/auth',
+        'vendor/google/apiclient-services'
+    ];
+    
+    foreach ($googlePackages as $package) {
+        $info['google_packages'][$package] = is_dir(base_path($package));
+    }
+    
+    // ทดสอบ autoload
+    try {
+        require_once base_path('vendor/autoload.php');
+        
+        $info['classes'] = [
+            'Google_Client' => class_exists('Google_Client'),
+            'Google_Service_Drive' => class_exists('Google_Service_Drive'),
+            'Google_Service_Drive_DriveFile' => class_exists('Google_Service_Drive_DriveFile')
+        ];
+        
+        // ทดสอบสร้าง Google_Client
+        if (class_exists('Google_Client')) {
+            $client = new Google_Client();
+            $info['google_client_creation'] = 'SUCCESS';
+            $info['google_client_methods'] = method_exists($client, 'setAuthConfig');
+        } else {
+            $info['google_client_creation'] = 'FAILED - Class not found';
+        }
+        
+    } catch (\Exception $e) {
+        $info['error'] = $e->getMessage();
+        $info['error_line'] = $e->getLine();
+    }
+    
+    return response()->json($info, 200, [], JSON_PRETTY_PRINT);
+});
