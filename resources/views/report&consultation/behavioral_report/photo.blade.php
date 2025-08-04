@@ -1,3 +1,4 @@
+{{-- resources/views/report&consultation/behavioral_report/photo.blade.php --}}
 <div class="mb-6">
     <label class="block text-lg font-medium text-[#3E36AE] mb-2">รูปภาพ</label>
     <div id="imagePreviewContainer" class="flex flex-wrap gap-2 mb-3">

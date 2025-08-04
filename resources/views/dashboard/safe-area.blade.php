@@ -300,7 +300,7 @@ function initializeChart(monthlyData) {
                         },
                         label: function(context) {
                             const value = context.parsed.y;
-                            return `${context.dataset.label}: ${value} รายการ`;
+                            return `${context.dataset.label}: ${value} `;
                         }
                     },
                     position: 'average',

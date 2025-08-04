@@ -1,3 +1,4 @@
+{{-- resources/views/layouts/report&consultation/behavioral_report/behavioral_report.blade.php --}}
 <style>
     .dropdown-container {
         position: relative;

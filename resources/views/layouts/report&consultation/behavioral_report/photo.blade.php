@@ -1,3 +1,4 @@
+{{-- resources/views/layouts/report&consultation/behavioral_report/photo.blade.php --}}
 <script>
 function initImagePreview() {
     const uploadMoreContainer = document.getElementById('uploadMoreContainer');

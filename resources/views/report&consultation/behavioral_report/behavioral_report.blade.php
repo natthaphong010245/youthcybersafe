@@ -1,5 +1,5 @@
 @extends('layouts.category_game')
-
+{{-- resources/views/report&consultation/behavioral_report/behavioral_report.blade.php --}}
 @php
     $mainUrl = '/main';
 @endphp

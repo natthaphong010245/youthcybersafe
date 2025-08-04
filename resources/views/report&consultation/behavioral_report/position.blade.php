@@ -1,3 +1,4 @@
+{{-- resources/views/report&consultation/behavioral_report/position.blade.php --}}
 <div class="mb-6">
     <label class="block text-lg font-medium text-[#3E36AE] mb-2">ตำแหน่งที่ตั้ง</label>
     <div id="mapContainer" class="w-full h-48 rounded-lg overflow-hidden relative">

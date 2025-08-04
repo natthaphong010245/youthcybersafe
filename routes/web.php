@@ -1,11 +1,12 @@
 <?php
+// routes/web.php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\MainController;
 use App\Http\Middleware\CheckRoleUser;
-use App\Http\Middleware\CheckResearcher; // เพิ่ม middleware ใหม่
+use App\Http\Middleware\CheckResearcher; 
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\MentalHealthController;
 use App\Http\Controllers\BehavioralReportController;
