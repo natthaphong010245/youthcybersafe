@@ -3,28 +3,54 @@
 
 namespace App\Services;
 
-use Google\Client;
-use Google\Service\Drive;
-use Google\Service\Drive\DriveFile;
 use Illuminate\Support\Facades\Log;
 
 class GoogleDriveService
 {
     private $client;
     private $service;
+    private $isAvailable = false;
     
     public function __construct()
     {
-        $this->client = new Client();
-        $this->client->setApplicationName('Youth Cyber Safe App');
-        $this->client->setScopes([Drive::DRIVE]);
-        $this->client->setAccessType('offline');
-        $this->client->setPrompt('select_account consent');
-        
-        // ใช้ Service Account JSON file
-        $this->client->setAuthConfig(storage_path('app/google-drive-credentials.json'));
-        
-        $this->service = new Drive($this->client);
+        try {
+            // ตรวจสอบว่า Google Client class มีอยู่หรือไม่
+            if (!class_exists('\Google\Client')) {
+                Log::error('Google Client class not found. Please install google/apiclient package.');
+                throw new \Exception('Google API Client not installed');
+            }
+
+            $this->client = new \Google\Client();
+            $this->client->setApplicationName('Youth Cyber Safe App');
+            $this->client->setScopes([\Google\Service\Drive::DRIVE]);
+            $this->client->setAccessType('offline');
+            $this->client->setPrompt('select_account consent');
+            
+            // ตรวจสอบว่าไฟล์ credentials มีอยู่หรือไม่
+            $credentialsPath = storage_path('app/google-drive-credentials.json');
+            if (!file_exists($credentialsPath)) {
+                Log::error('Google Drive credentials file not found at: ' . $credentialsPath);
+                throw new \Exception('Google Drive credentials file not found');
+            }
+            
+            $this->client->setAuthConfig($credentialsPath);
+            $this->service = new \Google\Service\Drive($this->client);
+            $this->isAvailable = true;
+            
+            Log::info('Google Drive Service initialized successfully');
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to initialize Google Drive Service: ' . $e->getMessage());
+            $this->isAvailable = false;
+        }
+    }
+    
+    /**
+     * ตรวจสอบว่า Google Drive Service พร้อมใช้งานหรือไม่
+     */
+    public function isAvailable()
+    {
+        return $this->isAvailable;
     }
     
     /**
@@ -32,16 +58,20 @@ class GoogleDriveService
      */
     public function createFolder($folderName, $parentFolderId = null)
     {
-        $fileMetadata = new DriveFile([
-            'name' => $folderName,
-            'mimeType' => 'application/vnd.google-apps.folder'
-        ]);
-        
-        if ($parentFolderId) {
-            $fileMetadata->setParents([$parentFolderId]);
+        if (!$this->isAvailable()) {
+            throw new \Exception('Google Drive Service is not available');
         }
         
         try {
+            $fileMetadata = new \Google\Service\Drive\DriveFile([
+                'name' => $folderName,
+                'mimeType' => 'application/vnd.google-apps.folder'
+            ]);
+            
+            if ($parentFolderId) {
+                $fileMetadata->setParents([$parentFolderId]);
+            }
+            
             $folder = $this->service->files->create($fileMetadata, [
                 'fields' => 'id'
             ]);
@@ -58,6 +88,10 @@ class GoogleDriveService
      */
     public function findFolder($folderName, $parentFolderId = null)
     {
+        if (!$this->isAvailable()) {
+            return null;
+        }
+        
         try {
             $query = "name = '{$folderName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
             
@@ -88,6 +122,10 @@ class GoogleDriveService
      */
     public function getOrCreateFolder($folderName, $parentFolderId = null)
     {
+        if (!$this->isAvailable()) {
+            return null;
+        }
+        
         $folderId = $this->findFolder($folderName, $parentFolderId);
         
         if (!$folderId) {
@@ -102,8 +140,12 @@ class GoogleDriveService
      */
     public function uploadFile($fileContent, $fileName, $mimeType, $folderId = null)
     {
+        if (!$this->isAvailable()) {
+            return null;
+        }
+        
         try {
-            $fileMetadata = new DriveFile([
+            $fileMetadata = new \Google\Service\Drive\DriveFile([
                 'name' => $fileName
             ]);
             
@@ -130,6 +172,10 @@ class GoogleDriveService
      */
     public function setupBehavioralReportFolders()
     {
+        if (!$this->isAvailable()) {
+            throw new \Exception('Google Drive Service is not available');
+        }
+        
         // สร้างโฟลเดอร์หลัก behavioral_report
         $mainFolderId = $this->getOrCreateFolder('behavioral_report');
         
@@ -172,6 +218,10 @@ class GoogleDriveService
      */
     public function uploadImage($imageData, $originalName, $reportId)
     {
+        if (!$this->isAvailable()) {
+            return null;
+        }
+        
         $folders = $this->setupBehavioralReportFolders();
         
         if (!$folders['images']) {
@@ -194,6 +244,10 @@ class GoogleDriveService
      */
     public function uploadVoice($audioData, $reportId)
     {
+        if (!$this->isAvailable()) {
+            return null;
+        }
+        
         $folders = $this->setupBehavioralReportFolders();
         
         if (!$folders['voices']) {
@@ -208,42 +262,5 @@ class GoogleDriveService
             'file_id' => $fileId,
             'file_name' => $fileName
         ];
-    }
-    
-    /**
-     * ลบไฟล์จาก Google Drive
-     */
-    public function deleteFile($fileId)
-    {
-        try {
-            $this->service->files->delete($fileId);
-            return true;
-        } catch (\Exception $e) {
-            Log::error('Error deleting file: ' . $e->getMessage());
-            return false;
-        }
-    }
-    
-    /**
-     * รับ URL สำหรับดาวน์โหลดไฟล์
-     */
-    public function getFileDownloadUrl($fileId)
-    {
-        return "https://drive.google.com/uc?id={$fileId}&export=download";
-    }
-    
-    /**
-     * รับข้อมูลไฟล์
-     */
-    public function getFileInfo($fileId)
-    {
-        try {
-            return $this->service->files->get($fileId, [
-                'fields' => 'id, name, size, mimeType, createdTime'
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error getting file info: ' . $e->getMessage());
-            return null;
-        }
     }
 }

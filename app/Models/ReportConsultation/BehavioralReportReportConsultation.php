@@ -1,13 +1,13 @@
 <?php
 // app/Models/ReportConsultation/BehavioralReportReportConsultation.php
-namespace App\Models\ReportConsultation;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Services\GoogleDriveService;
 use Illuminate\Support\Facades\Log;
 
-class BehavioralReportReportConsultation extends Model
+class BehavioralReport extends Model
 {
     use HasFactory;
     
