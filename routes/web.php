@@ -649,3 +649,88 @@ Route::get('/test-composer-debug', function() {
     
     return response()->json($info, 200, [], JSON_PRETTY_PRINT);
 });
+
+Route::get('/test-path-debug', function() {
+    $info = [
+        'current_working_directory' => getcwd(),
+        'document_root' => $_SERVER['DOCUMENT_ROOT'] ?? 'Not set',
+        'script_filename' => $_SERVER['SCRIPT_FILENAME'] ?? 'Not set',
+        'laravel_base_path' => base_path(),
+        'vendor_paths' => []
+    ];
+    
+    // ตรวจสอบ path ต่าง ๆ
+    $pathsToCheck = [
+        'base_path/vendor' => base_path('vendor'),
+        'base_path/vendor/autoload.php' => base_path('vendor/autoload.php'),
+        'base_path/vendor/google' => base_path('vendor/google'),
+        'document_root/../vendor' => ($_SERVER['DOCUMENT_ROOT'] ?? '') . '/../vendor',
+        'current_dir/vendor' => getcwd() . '/vendor',
+        'current_dir/../vendor' => getcwd() . '/../vendor'
+    ];
+    
+    foreach ($pathsToCheck as $name => $path) {
+        $info['vendor_paths'][$name] = [
+            'path' => $path,
+            'exists' => file_exists($path) || is_dir($path)
+        ];
+    }
+    
+    // ตรวจสอบ autoload files
+    $autoloadPaths = [
+        base_path('vendor/autoload.php'),
+        $_SERVER['DOCUMENT_ROOT'] . '/../vendor/autoload.php',
+        __DIR__ . '/../vendor/autoload.php'
+    ];
+    
+    foreach ($autoloadPaths as $autoloadPath) {
+        if (file_exists($autoloadPath)) {
+            $info['working_autoload'] = $autoloadPath;
+            break;
+        }
+    }
+    
+    return response()->json($info, 200, [], JSON_PRETTY_PRINT);
+});
+
+Route::get('/test-manual-google', function() {
+    $paths = [
+        base_path('vendor/autoload.php'),
+        $_SERVER['DOCUMENT_ROOT'] . '/../vendor/autoload.php',
+        __DIR__ . '/../vendor/autoload.php'
+    ];
+    
+    $autoloadFound = false;
+    foreach ($paths as $autoloadPath) {
+        if (file_exists($autoloadPath)) {
+            require_once $autoloadPath;
+            $autoloadFound = $autoloadPath;
+            break;
+        }
+    }
+    
+    if (!$autoloadFound) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Autoload not found',
+            'searched_paths' => $paths
+        ]);
+    }
+    
+    $result = [
+        'autoload_path' => $autoloadFound,
+        'google_client' => class_exists('Google_Client'),
+        'google_service_drive' => class_exists('Google_Service_Drive')
+    ];
+    
+    if (class_exists('Google_Client')) {
+        try {
+            $client = new Google_Client();
+            $result['google_client_creation'] = 'SUCCESS';
+        } catch (\Exception $e) {
+            $result['google_client_creation'] = 'ERROR: ' . $e->getMessage();
+        }
+    }
+    
+    return response()->json($result, 200, [], JSON_PRETTY_PRINT);
+});
