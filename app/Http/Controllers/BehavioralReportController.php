@@ -58,56 +58,74 @@ class BehavioralReportController extends Controller
                 'updated_at' => now(),
             ]);
             
+            Log::info('Created behavioral report with ID: ' . $reportId);
+            
             $voiceFileName = null;
             $imageFileNames = [];
             
             // ตรวจสอบว่า Google Drive Service พร้อมใช้งานหรือไม่
             $useGoogleDrive = $this->googleDriveService->isAvailable();
             
+            Log::info('Google Drive availability: ' . ($useGoogleDrive ? 'Available' : 'Not Available'));
+            
             if ($useGoogleDrive) {
                 Log::info('Using Google Drive for file storage');
                 
                 // Handle voice recording upload to Google Drive
                 if ($request->filled('audio_recording')) {
+                    Log::info('Processing voice recording for Google Drive');
                     $voiceFileName = $this->handleVoiceUploadGoogleDrive($request->audio_recording, $reportId);
+                    Log::info('Voice upload result: ' . ($voiceFileName ? $voiceFileName : 'Failed'));
                 }
                 
                 // Handle image uploads to Google Drive
                 if ($request->hasFile('photos')) {
+                    Log::info('Processing ' . count($request->file('photos')) . ' images for Google Drive');
                     $imageFileNames = $this->handleImageUploadsGoogleDrive($request->file('photos'), $reportId);
+                    Log::info('Image upload results: ' . count($imageFileNames) . ' files uploaded');
                 }
             } else {
-                Log::warning('Google Drive not available, using local storage');
+                Log::info('Google Drive not available, using local storage');
                 
                 // Fallback to local storage
                 if ($request->filled('audio_recording')) {
+                    Log::info('Processing voice recording for local storage');
                     $voiceFileName = $this->handleVoiceUploadLocal($request->audio_recording, $reportId);
                 }
                 
                 // Handle image uploads to local storage
                 if ($request->hasFile('photos')) {
+                    Log::info('Processing ' . count($request->file('photos')) . ' images for local storage');
                     $imageFileNames = $this->handleImageUploadsLocal($request->file('photos'), $reportId);
                 }
             }
             
             // Update the report with file information
+            $updateData = [];
+            
             if ($voiceFileName) {
-                DB::table('behavioral_report')
-                    ->where('id', $reportId)
-                    ->update(['voice' => $voiceFileName]);
+                $updateData['voice'] = $voiceFileName;
+                Log::info('Updating report with voice file: ' . $voiceFileName);
             }
             
             if (!empty($imageFileNames)) {
+                $updateData['image'] = json_encode($imageFileNames, JSON_UNESCAPED_SLASHES);
+                Log::info('Updating report with image files: ' . implode(', ', $imageFileNames));
+            }
+            
+            if (!empty($updateData)) {
                 DB::table('behavioral_report')
                     ->where('id', $reportId)
-                    ->update(['image' => json_encode($imageFileNames, JSON_UNESCAPED_SLASHES)]);
+                    ->update($updateData);
             }
             
             Log::info('Behavioral report created successfully', [
                 'report_id' => $reportId,
                 'storage_type' => $useGoogleDrive ? 'google_drive' : 'local',
                 'voice_file' => $voiceFileName,
-                'image_files' => $imageFileNames
+                'image_files' => $imageFileNames,
+                'voice_count' => $voiceFileName ? 1 : 0,
+                'image_count' => count($imageFileNames)
             ]);
             
             // ส่ง session success เพื่อแสดงป๊อปอัพและ redirect ไปยังหน้า behavioral_report
@@ -132,13 +150,19 @@ class BehavioralReportController extends Controller
     {
         try {
             if (strpos($audioData, 'data:audio') === 0) {
+                Log::info('Processing base64 audio data for Google Drive');
                 $audioData = substr($audioData, strpos($audioData, ',') + 1);
                 $audioData = base64_decode($audioData);
+                
+                Log::info('Audio data size: ' . strlen($audioData) . ' bytes');
                 
                 $result = $this->googleDriveService->uploadVoice($audioData, $reportId);
                 
                 if ($result && $result['file_name']) {
+                    Log::info('Voice successfully uploaded to Google Drive: ' . $result['file_name']);
                     return $result['file_name'];
+                } else {
+                    Log::error('Failed to upload voice to Google Drive');
                 }
             }
             
@@ -158,13 +182,20 @@ class BehavioralReportController extends Controller
         
         try {
             foreach ($photos as $index => $photo) {
+                Log::info('Processing image ' . ($index + 1) . ': ' . $photo->getClientOriginalName());
+                
                 $imageData = file_get_contents($photo->getPathname());
                 $originalName = $photo->getClientOriginalName();
+                
+                Log::info('Image data size: ' . strlen($imageData) . ' bytes');
                 
                 $result = $this->googleDriveService->uploadImage($imageData, $originalName, $reportId . '_' . ($index + 1));
                 
                 if ($result && $result['file_name']) {
                     $imageFileNames[] = $result['file_name'];
+                    Log::info('Image successfully uploaded to Google Drive: ' . $result['file_name']);
+                } else {
+                    Log::error('Failed to upload image to Google Drive: ' . $originalName);
                 }
             }
             
@@ -198,6 +229,7 @@ class BehavioralReportController extends Controller
                 // Save the file
                 File::put($directory . '/' . $audioFilename, $audioData);
                 
+                Log::info('Voice uploaded to local storage: ' . $audioFilename);
                 return $audioFilename;
             }
             
@@ -236,6 +268,8 @@ class BehavioralReportController extends Controller
                 
                 // Add to images array
                 $imageFileNames[] = $filename;
+                
+                Log::info('Image uploaded to local storage: ' . $filename);
             }
             
             return $imageFileNames;
