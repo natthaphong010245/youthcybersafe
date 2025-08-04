@@ -1,347 +1,258 @@
 <?php
-// app/Services/GoogleDriveService.php
 
 namespace App\Services;
 
+use Google_Client;
+use Google_Service_Drive;
+use Google_Service_Drive_DriveFile;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class GoogleDriveService
 {
     private $client;
     private $service;
-    private $isAvailable = false;
-    
+    private $parentFolderId;
+
     public function __construct()
     {
-        try {
-            // ตรวจสอบว่า Google Client class มีอยู่หรือไม่
-            if (!class_exists('\Google\Client')) {
-                Log::error('Google Client class not found. Please install google/apiclient package.');
-                throw new \Exception('Google API Client not installed');
-            }
+        $this->initializeClient();
+    }
 
-            $this->client = new \Google\Client();
-            $this->client->setApplicationName('Youth Cyber Safe App');
-            $this->client->setScopes([\Google\Service\Drive::DRIVE]);
-            $this->client->setAccessType('offline');
-            $this->client->setPrompt('select_account consent');
-            
-            // ตรวจสอบว่าไฟล์ credentials มีอยู่หรือไม่
-            $credentialsPath = storage_path('app/google-drive-credentials.json');
-            if (!file_exists($credentialsPath)) {
-                Log::warning('Google Drive credentials file not found at: ' . $credentialsPath);
-                throw new \Exception('Google Drive credentials file not found');
-            }
-            
-            // ตรวจสอบว่าไฟล์ credentials ไม่ใช่ไฟล์ว่าง
-            $credentialsContent = file_get_contents($credentialsPath);
-            $credentials = json_decode($credentialsContent, true);
-            
-            if (empty($credentials) || $credentials === [] || (count($credentials) == 0)) {
-                Log::warning('Google Drive credentials file is empty or invalid');
-                throw new \Exception('Google Drive credentials file is empty');
-            }
-            
-            $this->client->setAuthConfig($credentialsPath);
-            $this->service = new \Google\Service\Drive($this->client);
-            $this->isAvailable = true;
-            
-            Log::info('Google Drive Service initialized successfully');
-            
-        } catch (\Exception $e) {
-            Log::warning('Google Drive Service not available: ' . $e->getMessage() . ' - Falling back to local storage');
-            $this->isAvailable = false;
-        }
-    }
-    
-    /**
-     * ตรวจสอบว่า Google Drive Service พร้อมใช้งานหรือไม่
-     */
-    public function isAvailable()
+    private function initializeClient()
     {
-        return $this->isAvailable;
-    }
-    
-    /**
-     * สร้างโฟลเดอร์ใน Google Drive
-     */
-    public function createFolder($folderName, $parentFolderId = null)
-    {
-        if (!$this->isAvailable()) {
-            throw new \Exception('Google Drive Service is not available');
-        }
+        $this->client = new Google_Client();
         
-        try {
-            $fileMetadata = new \Google\Service\Drive\DriveFile([
-                'name' => $folderName,
-                'mimeType' => 'application/vnd.google-apps.folder'
-            ]);
-            
-            if ($parentFolderId) {
-                $fileMetadata->setParents([$parentFolderId]);
-            }
-            
-            $folder = $this->service->files->create($fileMetadata, [
-                'fields' => 'id'
-            ]);
-            
-            Log::info('Created folder: ' . $folderName . ' with ID: ' . $folder->getId());
-            return $folder->getId();
-        } catch (\Exception $e) {
-            Log::error('Error creating folder: ' . $e->getMessage());
-            return null;
+        // ใช้ Service Account JSON file
+        $credentialsPath = storage_path('app/google-credentials.json');
+        
+        if (!file_exists($credentialsPath)) {
+            throw new \Exception('Google credentials file not found at: ' . $credentialsPath);
+        }
+
+        $this->client->setAuthConfig($credentialsPath);
+        $this->client->setScopes([Google_Service_Drive::DRIVE_FILE]);
+        $this->service = new Google_Service_Drive($this->client);
+        
+        // ID ของโฟลเดอร์หลัก behavioral_report ใน Google Drive
+        $this->parentFolderId = env('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID');
+        
+        if (!$this->parentFolderId) {
+            throw new \Exception('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID not set in .env file');
         }
     }
-    
-    /**
-     * ค้นหาโฟลเดอร์
-     */
-    public function findFolder($folderName, $parentFolderId = null)
-    {
-        if (!$this->isAvailable()) {
-            return null;
-        }
-        
-        try {
-            $query = "name = '{$folderName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
-            
-            if ($parentFolderId) {
-                $query .= " and '{$parentFolderId}' in parents";
-            }
-            
-            $response = $this->service->files->listFiles([
-                'q' => $query,
-                'fields' => 'files(id, name)'
-            ]);
-            
-            $files = $response->getFiles();
-            
-            if (count($files) > 0) {
-                Log::info('Found folder: ' . $folderName . ' with ID: ' . $files[0]->getId());
-                return $files[0]->getId();
-            }
-            
-            return null;
-        } catch (\Exception $e) {
-            Log::error('Error finding folder: ' . $e->getMessage());
-            return null;
-        }
-    }
-    
-    /**
-     * สร้างหรือหาโฟลเดอร์
-     */
-    public function getOrCreateFolder($folderName, $parentFolderId = null)
-    {
-        if (!$this->isAvailable()) {
-            return null;
-        }
-        
-        $folderId = $this->findFolder($folderName, $parentFolderId);
-        
-        if (!$folderId) {
-            $folderId = $this->createFolder($folderName, $parentFolderId);
-        }
-        
-        return $folderId;
-    }
-    
-    /**
-     * อัปโหลดไฟล์ไป Google Drive
-     */
-    public function uploadFile($fileContent, $fileName, $mimeType, $folderId = null)
-    {
-        if (!$this->isAvailable()) {
-            return null;
-        }
-        
-        try {
-            $fileMetadata = new \Google\Service\Drive\DriveFile([
-                'name' => $fileName
-            ]);
-            
-            if ($folderId) {
-                $fileMetadata->setParents([$folderId]);
-            }
-            
-            $file = $this->service->files->create($fileMetadata, [
-                'data' => $fileContent,
-                'mimeType' => $mimeType,
-                'uploadType' => 'multipart',
-                'fields' => 'id'
-            ]);
-            
-            Log::info('Uploaded file: ' . $fileName . ' with ID: ' . $file->getId());
-            return $file->getId();
-        } catch (\Exception $e) {
-            Log::error('Error uploading file: ' . $e->getMessage());
-            return null;
-        }
-    }
-    
-    /**
-     * สร้างโครงสร้างโฟลเดอร์สำหรับ behavioral_report
-     */
-    public function setupBehavioralReportFolders()
-    {
-        if (!$this->isAvailable()) {
-            throw new \Exception('Google Drive Service is not available');
-        }
-        
-        // สร้างโฟลเดอร์หลัก behavioral_report
-        $mainFolderId = $this->getOrCreateFolder('behavioral_report');
-        
-        if (!$mainFolderId) {
-            throw new \Exception('Cannot create main behavioral_report folder');
-        }
-        
-        // สร้างโฟลเดอร์ย่อย images และ voices
-        $imagesFolderId = $this->getOrCreateFolder('images', $mainFolderId);
-        $voicesFolderId = $this->getOrCreateFolder('voices', $mainFolderId);
-        
-        Log::info('Setup behavioral report folders completed', [
-            'main' => $mainFolderId,
-            'images' => $imagesFolderId,
-            'voices' => $voicesFolderId
-        ]);
-        
-        return [
-            'main' => $mainFolderId,
-            'images' => $imagesFolderId,
-            'voices' => $voicesFolderId
-        ];
-    }
-    
+
     /**
      * สร้างชื่อไฟล์ตามรูปแบบ ปี เดือน วัน เวลา
      */
-    public function generateFileName($extension = '', $suffix = '')
+    public function generateFileName($extension = 'mp3')
     {
-        $timestamp = now()->format('Y_m_d_H_i_s');
-        $filename = $timestamp;
-        
-        if ($suffix) {
-            $filename .= '_' . $suffix;
-        }
-        
-        if ($extension) {
-            $filename .= '.' . $extension;
-        }
-        
-        return $filename;
+        return Carbon::now()->format('Y_m_d_H_i_s') . '.' . $extension;
     }
-    
+
     /**
-     * อัปโหลดรูปภาพไป Google Drive
+     * สร้างโฟลเดอร์ถ้าไม่มี
      */
-    public function uploadImage($imageData, $originalName, $reportId)
+    public function createFolderIfNotExists($folderName, $parentId = null)
     {
-        if (!$this->isAvailable()) {
+        $parentId = $parentId ?: $this->parentFolderId;
+        
+        // ตรวจสอบว่าโฟลเดอร์มีอยู่แล้วหรือไม่
+        $existingFolder = $this->findFolder($folderName, $parentId);
+        if ($existingFolder) {
+            return $existingFolder->getId();
+        }
+
+        // สร้างโฟลเดอร์ใหม่
+        $fileMetadata = new Google_Service_Drive_DriveFile([
+            'name' => $folderName,
+            'mimeType' => 'application/vnd.google-apps.folder',
+            'parents' => [$parentId]
+        ]);
+
+        $folder = $this->service->files->create($fileMetadata);
+        Log::info("Created new folder: {$folderName} with ID: " . $folder->getId());
+        return $folder->getId();
+    }
+
+    /**
+     * ค้นหาโฟลเดอร์
+     */
+    private function findFolder($folderName, $parentId)
+    {
+        $query = "mimeType='application/vnd.google-apps.folder' and name='{$folderName}' and '{$parentId}' in parents and trashed=false";
+        $results = $this->service->files->listFiles(['q' => $query]);
+        
+        return $results->getFiles() ? $results->getFiles()[0] : null;
+    }
+
+    /**
+     * อัปโหลดไฟล์เสียง
+     */
+    public function uploadVoiceFile($audioData, $filename = null)
+    {
+        try {
+            // สร้างโฟลเดอร์ voices ถ้าไม่มี
+            $voicesFolderId = $this->createFolderIfNotExists('voices');
+            
+            // ถ้าไม่ได้กำหนดชื่อไฟล์ให้สร้างใหม่
+            if (!$filename) {
+                $filename = $this->generateFileName('mp3');
+            }
+
+            // แปลง base64 เป็น binary data
+            if (strpos($audioData, 'data:audio') === 0) {
+                $audioData = substr($audioData, strpos($audioData, ',') + 1);
+                $audioData = base64_decode($audioData);
+            }
+
+            // สร้าง temporary file
+            $tempFile = tmpfile();
+            fwrite($tempFile, $audioData);
+            $tempFilePath = stream_get_meta_data($tempFile)['uri'];
+
+            $fileMetadata = new Google_Service_Drive_DriveFile([
+                'name' => $filename,
+                'parents' => [$voicesFolderId]
+            ]);
+
+            $file = $this->service->files->create($fileMetadata, [
+                'data' => file_get_contents($tempFilePath),
+                'mimeType' => 'audio/mpeg',
+                'uploadType' => 'multipart'
+            ]);
+
+            // ปิด temporary file
+            fclose($tempFile);
+
+            Log::info("Voice file uploaded to Google Drive: {$filename}");
+            return $filename;
+
+        } catch (\Exception $e) {
+            Log::error("Failed to upload voice file: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * อัปโหลดไฟล์รูปภาพ
+     */
+    public function uploadImageFiles($imageFiles, $baseFilename = null)
+    {
+        try {
+            // สร้างโฟลเดอร์ images ถ้าไม่มี
+            $imagesFolderId = $this->createFolderIfNotExists('images');
+            
+            $uploadedFiles = [];
+            
+            // ถ้าไม่ได้กำหนด baseFilename ให้สร้างใหม่
+            if (!$baseFilename) {
+                $baseFilename = $this->generateFileName('');
+                $baseFilename = rtrim($baseFilename, '.'); // ตัด extension ออก
+            }
+
+            foreach ($imageFiles as $index => $imageFile) {
+                $extension = $imageFile->getClientOriginalExtension();
+                $filename = $baseFilename . '_' . ($index + 1) . '.' . $extension;
+
+                $fileMetadata = new Google_Service_Drive_DriveFile([
+                    'name' => $filename,
+                    'parents' => [$imagesFolderId]
+                ]);
+
+                $file = $this->service->files->create($fileMetadata, [
+                    'data' => file_get_contents($imageFile->getPathname()),
+                    'mimeType' => $imageFile->getMimeType(),
+                    'uploadType' => 'multipart'
+                ]);
+
+                $uploadedFiles[] = $filename;
+                Log::info("Image file uploaded to Google Drive: {$filename}");
+            }
+
+            return $uploadedFiles;
+
+        } catch (\Exception $e) {
+            Log::error("Failed to upload image files: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * ดาวน์โหลดไฟล์จาก Google Drive
+     */
+    public function downloadFile($filename, $type = 'voice')
+    {
+        try {
+            $folderId = $type === 'voice' ? 
+                $this->createFolderIfNotExists('voices') : 
+                $this->createFolderIfNotExists('images');
+
+            $query = "name='{$filename}' and '{$folderId}' in parents and trashed=false";
+            $results = $this->service->files->listFiles(['q' => $query]);
+            
+            if (empty($results->getFiles())) {
+                return null;
+            }
+
+            $file = $results->getFiles()[0];
+            $response = $this->service->files->get($file->getId(), ['alt' => 'media']);
+            
+            return $response->getBody()->getContents();
+
+        } catch (\Exception $e) {
+            Log::error("Failed to download file {$filename}: " . $e->getMessage());
             return null;
         }
-        
-        $folders = $this->setupBehavioralReportFolders();
-        
-        if (!$folders['images']) {
-            throw new \Exception('Cannot access images folder');
-        }
-        
-        $extension = pathinfo($originalName, PATHINFO_EXTENSION);
-        $fileName = $this->generateFileName($extension, $reportId);
-        
-        $fileId = $this->uploadFile($imageData, $fileName, 'image/' . $extension, $folders['images']);
-        
-        if ($fileId) {
-            Log::info('Successfully uploaded image', [
-                'original_name' => $originalName,
-                'new_name' => $fileName,
-                'file_id' => $fileId,
-                'report_id' => $reportId
-            ]);
-        }
-        
-        return [
-            'file_id' => $fileId,
-            'file_name' => $fileName
-        ];
     }
-    
-    /**
-     * อัปโหลดไฟล์เสียงไป Google Drive
-     */
-    public function uploadVoice($audioData, $reportId)
-    {
-        if (!$this->isAvailable()) {
-            return null;
-        }
-        
-        $folders = $this->setupBehavioralReportFolders();
-        
-        if (!$folders['voices']) {
-            throw new \Exception('Cannot access voices folder');
-        }
-        
-        $fileName = $this->generateFileName('mp3', $reportId);
-        
-        $fileId = $this->uploadFile($audioData, $fileName, 'audio/mpeg', $folders['voices']);
-        
-        if ($fileId) {
-            Log::info('Successfully uploaded voice', [
-                'file_name' => $fileName,
-                'file_id' => $fileId,
-                'report_id' => $reportId
-            ]);
-        }
-        
-        return [
-            'file_id' => $fileId,
-            'file_name' => $fileName
-        ];
-    }
-    
+
     /**
      * ลบไฟล์จาก Google Drive
      */
-    public function deleteFile($fileId)
+    public function deleteFile($filename, $type = 'voice')
     {
-        if (!$this->isAvailable()) {
-            return false;
-        }
-        
         try {
-            $this->service->files->delete($fileId);
-            Log::info('Deleted file with ID: ' . $fileId);
+            $folderId = $type === 'voice' ? 
+                $this->createFolderIfNotExists('voices') : 
+                $this->createFolderIfNotExists('images');
+
+            $query = "name='{$filename}' and '{$folderId}' in parents and trashed=false";
+            $results = $this->service->files->listFiles(['q' => $query]);
+            
+            if (empty($results->getFiles())) {
+                return false;
+            }
+
+            $file = $results->getFiles()[0];
+            $this->service->files->delete($file->getId());
+            
+            Log::info("File deleted from Google Drive: {$filename}");
             return true;
+
         } catch (\Exception $e) {
-            Log::error('Error deleting file: ' . $e->getMessage());
+            Log::error("Failed to delete file {$filename}: " . $e->getMessage());
             return false;
         }
     }
-    
+
     /**
-     * รับ URL สำหรับดาวน์โหลดไฟล์
+     * ตรวจสอบการเชื่อมต่อ Google Drive
      */
-    public function getFileDownloadUrl($fileId)
+    public function testConnection()
     {
-        return "https://drive.google.com/uc?id={$fileId}&export=download";
-    }
-    
-    /**
-     * รับข้อมูลไฟล์
-     */
-    public function getFileInfo($fileId)
-    {
-        if (!$this->isAvailable()) {
-            return null;
-        }
-        
         try {
-            return $this->service->files->get($fileId, [
-                'fields' => 'id, name, size, mimeType, createdTime'
-            ]);
+            // ทดสอบโดยการดึงข้อมูลโฟลเดอร์หลัก
+            $file = $this->service->files->get($this->parentFolderId);
+            return [
+                'success' => true,
+                'folder_name' => $file->getName(),
+                'folder_id' => $file->getId()
+            ];
         } catch (\Exception $e) {
-            Log::error('Error getting file info: ' . $e->getMessage());
-            return null;
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
         }
     }
 }

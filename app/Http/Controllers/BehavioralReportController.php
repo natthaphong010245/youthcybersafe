@@ -1,22 +1,21 @@
 <?php
-// app/Http/Controllers/BehavioralReportController.php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use App\Services\GoogleDriveService;
-use Illuminate\Support\Facades\Log;
+use App\Models\ReportConsultation\BehavioralReportReportConsultation;
 
 class BehavioralReportController extends Controller
 {
     protected $googleDriveService;
-    
+
     public function __construct(GoogleDriveService $googleDriveService)
     {
         $this->googleDriveService = $googleDriveService;
     }
-    
+
     /**
      * Display the behavioral report form.
      *
@@ -39,243 +38,359 @@ class BehavioralReportController extends Controller
         $request->validate([
             'report_to' => 'required|in:teacher,researcher',
             'school' => 'nullable|required_if:report_to,teacher',
-            'message' => 'required',
-            'photos.*' => 'nullable|image|max:10240', // 10MB max
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
+            'message' => 'required|min:10|max:2000',
+            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'audio_recording' => 'nullable|string',
+        ], [
+            'report_to.required' => 'กรุณาเลือกผู้รับรายงาน',
+            'report_to.in' => 'ผู้รับรายงานไม่ถูกต้อง',
+            'school.required_if' => 'กรุณาเลือกโรงเรียนเมื่อรายงานให้ครู',
+            'message.required' => 'กรุณาใส่ข้อความ',
+            'message.min' => 'ข้อความต้องมีอย่างน้อย 10 ตัวอักษร',
+            'message.max' => 'ข้อความต้องไม่เกิน 2000 ตัวอักษร',
+            'photos.*.image' => 'ไฟล์ที่อัปโหลดต้องเป็นรูปภาพเท่านั้น',
+            'photos.*.mimes' => 'รูปภาพต้องเป็นไฟล์ประเภท: jpeg, png, jpg, gif',
+            'photos.*.max' => 'ขนาดรูปภาพต้องไม่เกิน 10MB',
+            'latitude.between' => 'ค่า latitude ไม่ถูกต้อง',
+            'longitude.between' => 'ค่า longitude ไม่ถูกต้อง',
         ]);
         
         try {
-            // Create and save the report to get the ID using DB directly
-            $reportId = DB::table('behavioral_report')->insertGetId([
+            // สร้าง behavioral report record ใหม่
+            $report = BehavioralReportReportConsultation::create([
                 'who' => $request->report_to,
                 'school' => $request->report_to === 'researcher' ? null : $request->school,
                 'message' => $request->message,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
-                'status' => false, // ค่าเริ่มต้นเป็น false
-                'created_at' => now(),
-                'updated_at' => now(),
+                'status' => false, // ค่าเริ่มต้น
             ]);
-            
-            Log::info('Created behavioral report with ID: ' . $reportId);
-            
-            $voiceFileName = null;
-            $imageFileNames = [];
-            
-            // ตรวจสอบว่า Google Drive Service พร้อมใช้งานหรือไม่
-            $useGoogleDrive = $this->googleDriveService->isAvailable();
-            
-            Log::info('Google Drive availability: ' . ($useGoogleDrive ? 'Available' : 'Not Available'));
-            
-            if ($useGoogleDrive) {
-                Log::info('Using Google Drive for file storage');
-                
-                // Handle voice recording upload to Google Drive
-                if ($request->filled('audio_recording')) {
-                    Log::info('Processing voice recording for Google Drive');
-                    $voiceFileName = $this->handleVoiceUploadGoogleDrive($request->audio_recording, $reportId);
-                    Log::info('Voice upload result: ' . ($voiceFileName ? $voiceFileName : 'Failed'));
-                }
-                
-                // Handle image uploads to Google Drive
-                if ($request->hasFile('photos')) {
-                    Log::info('Processing ' . count($request->file('photos')) . ' images for Google Drive');
-                    $imageFileNames = $this->handleImageUploadsGoogleDrive($request->file('photos'), $reportId);
-                    Log::info('Image upload results: ' . count($imageFileNames) . ' files uploaded');
-                }
-            } else {
-                Log::info('Google Drive not available, using local storage');
-                
-                // Fallback to local storage
-                if ($request->filled('audio_recording')) {
-                    Log::info('Processing voice recording for local storage');
-                    $voiceFileName = $this->handleVoiceUploadLocal($request->audio_recording, $reportId);
-                }
-                
-                // Handle image uploads to local storage
-                if ($request->hasFile('photos')) {
-                    Log::info('Processing ' . count($request->file('photos')) . ' images for local storage');
-                    $imageFileNames = $this->handleImageUploadsLocal($request->file('photos'), $reportId);
+
+            \Log::info("Created new behavioral report with ID: {$report->id}");
+
+            // สร้างชื่อไฟล์พื้นฐานจาก timestamp
+            $baseFilename = $this->googleDriveService->generateFileName('');
+            $baseFilename = rtrim($baseFilename, '.'); // ตัด extension ออก
+
+            $uploadErrors = [];
+
+            // Handle voice recording
+            if ($request->filled('audio_recording')) {
+                try {
+                    $voiceFilename = $baseFilename . '.mp3';
+                    $this->googleDriveService->uploadVoiceFile(
+                        $request->audio_recording, 
+                        $voiceFilename
+                    );
+                    
+                    // อัปเดตชื่อไฟล์เสียงในฐานข้อมูล
+                    $report->voice = $voiceFilename;
+                    $report->save();
+                    
+                    \Log::info("Voice file uploaded successfully for report ID: {$report->id}, filename: {$voiceFilename}");
+                    
+                } catch (\Exception $e) {
+                    $uploadErrors[] = 'การอัปโหลดไฟล์เสียงล้มเหลว: ' . $e->getMessage();
+                    \Log::error("Voice upload failed for report ID {$report->id}: " . $e->getMessage());
                 }
             }
             
-            // Update the report with file information
-            $updateData = [];
-            
-            if ($voiceFileName) {
-                $updateData['voice'] = $voiceFileName;
-                Log::info('Updating report with voice file: ' . $voiceFileName);
+            // Handle image uploads
+            if ($request->hasFile('photos')) {
+                try {
+                    $uploadedImages = $this->googleDriveService->uploadImageFiles(
+                        $request->file('photos'), 
+                        $baseFilename
+                    );
+                    
+                    // อัปเดตชื่อไฟล์รูปภาพในฐานข้อมูล
+                    $report->image = $uploadedImages;
+                    $report->save();
+                    
+                    \Log::info("Images uploaded successfully for report ID: {$report->id}, files: " . implode(', ', $uploadedImages));
+                    
+                } catch (\Exception $e) {
+                    $uploadErrors[] = 'การอัปโหลดรูปภาพล้มเหลว: ' . $e->getMessage();
+                    \Log::error("Image upload failed for report ID {$report->id}: " . $e->getMessage());
+                }
             }
             
-            if (!empty($imageFileNames)) {
-                $updateData['image'] = json_encode($imageFileNames, JSON_UNESCAPED_SLASHES);
-                Log::info('Updating report with image files: ' . implode(', ', $imageFileNames));
+            // ตรวจสอบว่ามี error ในการอัปโหลดหรือไม่
+            if (!empty($uploadErrors)) {
+                // ถ้ามี error แต่รายงานถูกสร้างแล้ว ให้แจ้งเตือนแต่ไม่ redirect กลับ
+                $message = 'รายงานถูกส่งเรียบร้อยแล้ว แต่พบปัญหาบางประการ: ' . implode(', ', $uploadErrors);
+                return redirect()->route('behavioral_report')->with('warning', $message);
             }
-            
-            if (!empty($updateData)) {
-                DB::table('behavioral_report')
-                    ->where('id', $reportId)
-                    ->update($updateData);
-            }
-            
-            Log::info('Behavioral report created successfully', [
-                'report_id' => $reportId,
-                'storage_type' => $useGoogleDrive ? 'google_drive' : 'local',
-                'voice_file' => $voiceFileName,
-                'image_files' => $imageFileNames,
-                'voice_count' => $voiceFileName ? 1 : 0,
-                'image_count' => count($imageFileNames)
-            ]);
             
             // ส่ง session success เพื่อแสดงป๊อปอัพและ redirect ไปยังหน้า behavioral_report
             return redirect()->route('behavioral_report')->with('success', 'รายงานพฤติกรรมของคุณถูกส่งเรียบร้อยแล้ว');
             
-        } catch (\Exception $e) {
-            Log::error('Error creating behavioral report: ' . $e->getMessage(), [
-                'request_data' => $request->except(['photos', 'audio_recording']),
-                'error' => $e->getTraceAsString()
-            ]);
-            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation errors
             return redirect()->back()
-                ->withInput()
-                ->withErrors(['error' => 'เกิดข้อผิดพลาดในการส่งรายงาน กรุณาลองใหม่อีกครั้ง']);
+                ->withErrors($e->validator->errors())
+                ->withInput();
+                
+        } catch (\Exception $e) {
+            \Log::error("Behavioral report creation failed: " . $e->getMessage());
+            return redirect()->back()
+                ->withErrors(['error' => 'เกิดข้อผิดพลาดในการส่งรายงาน กรุณาลองใหม่อีกครั้ง'])
+                ->withInput();
         }
     }
-    
+
     /**
-     * Handle voice recording upload to Google Drive
+     * Display the specified behavioral report.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
      */
-    private function handleVoiceUploadGoogleDrive($audioData, $reportId)
+    public function show($id)
     {
         try {
-            if (strpos($audioData, 'data:audio') === 0) {
-                Log::info('Processing base64 audio data for Google Drive');
-                $audioData = substr($audioData, strpos($audioData, ',') + 1);
-                $audioData = base64_decode($audioData);
-                
-                Log::info('Audio data size: ' . strlen($audioData) . ' bytes');
-                
-                $result = $this->googleDriveService->uploadVoice($audioData, $reportId);
-                
-                if ($result && $result['file_name']) {
-                    Log::info('Voice successfully uploaded to Google Drive: ' . $result['file_name']);
-                    return $result['file_name'];
-                } else {
-                    Log::error('Failed to upload voice to Google Drive');
-                }
-            }
+            $report = BehavioralReportReportConsultation::findOrFail($id);
             
-            return null;
+            return view('report&consultation.behavioral_report.show', compact('report'));
+            
         } catch (\Exception $e) {
-            Log::error('Error uploading voice to Google Drive: ' . $e->getMessage());
-            return null;
+            return redirect()->route('behavioral_report')
+                ->withErrors(['error' => 'ไม่พบรายงานที่ต้องการ']);
         }
     }
-    
+
     /**
-     * Handle image uploads to Google Drive
+     * แสดงไฟล์เสียงจาก Google Drive
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
      */
-    private function handleImageUploadsGoogleDrive($photos, $reportId)
+    public function getVoiceFile($id)
     {
-        $imageFileNames = [];
-        
         try {
-            foreach ($photos as $index => $photo) {
-                Log::info('Processing image ' . ($index + 1) . ': ' . $photo->getClientOriginalName());
-                
-                $imageData = file_get_contents($photo->getPathname());
-                $originalName = $photo->getClientOriginalName();
-                
-                Log::info('Image data size: ' . strlen($imageData) . ' bytes');
-                
-                $result = $this->googleDriveService->uploadImage($imageData, $originalName, $reportId . '_' . ($index + 1));
-                
-                if ($result && $result['file_name']) {
-                    $imageFileNames[] = $result['file_name'];
-                    Log::info('Image successfully uploaded to Google Drive: ' . $result['file_name']);
-                } else {
-                    Log::error('Failed to upload image to Google Drive: ' . $originalName);
-                }
-            }
+            $report = BehavioralReportReportConsultation::findOrFail($id);
             
-            return $imageFileNames;
+            if (!$report->voice) {
+                return response()->json(['error' => 'Voice file not found'], 404);
+            }
+
+            $fileContent = $report->getVoiceFileContent();
+            
+            if (!$fileContent) {
+                return response()->json(['error' => 'Voice file not accessible'], 404);
+            }
+
+            return response($fileContent, 200, [
+                'Content-Type' => 'audio/mpeg',
+                'Content-Disposition' => 'inline; filename="' . $report->voice . '"',
+                'Cache-Control' => 'public, max-age=3600',
+                'Accept-Ranges' => 'bytes'
+            ]);
+
         } catch (\Exception $e) {
-            Log::error('Error uploading images to Google Drive: ' . $e->getMessage());
-            return $imageFileNames;
+            \Log::error("Failed to get voice file for report ID {$id}: " . $e->getMessage());
+            return response()->json(['error' => 'File not accessible'], 500);
         }
     }
-    
+
     /**
-     * Handle voice recording upload to local storage (fallback)
+     * แสดงไฟล์รูปภาพจาก Google Drive
+     *
+     * @param int $id
+     * @param string $filename
+     * @return \Illuminate\Http\Response
      */
-    private function handleVoiceUploadLocal($audioData, $reportId)
+    public function getImageFile($id, $filename)
     {
         try {
-            if (strpos($audioData, 'data:audio') === 0) {
-                $audioData = substr($audioData, strpos($audioData, ',') + 1);
-                $audioData = base64_decode($audioData);
-                
-                // Create directory if it doesn't exist
-                $directory = public_path('voice/behavioral_report');
-                if (!File::isDirectory($directory)) {
-                    File::makeDirectory($directory, 0755, true);
-                }
-                
-                // สร้างชื่อไฟล์แบบ timestamp
-                $timestamp = now()->format('Y_m_d_H_i_s');
-                $audioFilename = $timestamp . '_' . $reportId . '.mp3';
-                
-                // Save the file
-                File::put($directory . '/' . $audioFilename, $audioData);
-                
-                Log::info('Voice uploaded to local storage: ' . $audioFilename);
-                return $audioFilename;
-            }
+            $report = BehavioralReportReportConsultation::findOrFail($id);
             
-            return null;
+            if (!$report->image || !in_array($filename, $report->image)) {
+                return response()->json(['error' => 'Image file not found'], 404);
+            }
+
+            $fileContent = $report->getImageFileContent($filename);
+            
+            if (!$fileContent) {
+                return response()->json(['error' => 'Image file not accessible'], 404);
+            }
+
+            $extension = pathinfo($filename, PATHINFO_EXTENSION);
+            $mimeType = $this->getMimeTypeFromExtension($extension);
+
+            return response($fileContent, 200, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                'Cache-Control' => 'public, max-age=3600'
+            ]);
+
         } catch (\Exception $e) {
-            Log::error('Error uploading voice to local storage: ' . $e->getMessage());
-            return null;
+            \Log::error("Failed to get image file {$filename} for report ID {$id}: " . $e->getMessage());
+            return response()->json(['error' => 'File not accessible'], 500);
         }
     }
-    
+
     /**
-     * Handle image uploads to local storage (fallback)
+     * อัปเดตสถานะรายงาน
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
      */
-    private function handleImageUploadsLocal($photos, $reportId)
+    public function updateStatus(Request $request, $id)
     {
-        $imageFileNames = [];
-        
+        $request->validate([
+            'status' => 'required|boolean'
+        ]);
+
         try {
-            // สร้างชื่อไฟล์แบบ timestamp
-            $timestamp = now()->format('Y_m_d_H_i_s');
-            
-            // Create directory if it doesn't exist
-            $directory = public_path("images/behavioral_report/{$timestamp}_{$reportId}");
-            if (!File::isDirectory($directory)) {
-                File::makeDirectory($directory, 0755, true);
-            }
-            
-            // Process each image
-            foreach ($photos as $index => $photo) {
-                $index++; // Start from 1
-                $extension = $photo->getClientOriginalExtension();
-                $filename = "{$timestamp}_{$reportId}_{$index}.{$extension}";
-                
-                // Move the file
-                $photo->move($directory, $filename);
-                
-                // Add to images array
-                $imageFileNames[] = $filename;
-                
-                Log::info('Image uploaded to local storage: ' . $filename);
-            }
-            
-            return $imageFileNames;
+            $report = BehavioralReportReportConsultation::findOrFail($id);
+            $report->updateStatus($request->status);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'อัปเดตสถานะเรียบร้อยแล้ว',
+                'status' => $report->status
+            ]);
+
         } catch (\Exception $e) {
-            Log::error('Error uploading images to local storage: ' . $e->getMessage());
-            return $imageFileNames;
+            \Log::error("Failed to update status for report ID {$id}: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'เกิดข้อผิดพลาดในการอัปเดตสถานะ'
+            ], 500);
         }
+    }
+
+    /**
+     * ลบรายงาน
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        try {
+            $report = BehavioralReportReportConsultation::findOrFail($id);
+            
+            // ลบไฟล์จาก Google Drive ก่อน (จะทำใน Model boot method)
+            $report->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'ลบรายงานเรียบร้อยแล้ว'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error("Failed to delete report ID {$id}: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'เกิดข้อผิดพลาดในการลบรายงาน'
+            ], 500);
+        }
+    }
+
+    /**
+     * ดึงรายงานทั้งหมด (สำหรับ Admin/Dashboard)
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function getAllReports(Request $request)
+    {
+        try {
+            $query = BehavioralReportReportConsultation::query();
+
+            // Filter by status
+            if ($request->has('status') && $request->status !== '') {
+                $query->where('status', $request->status);
+            }
+
+            // Filter by who
+            if ($request->has('who') && $request->who !== '') {
+                $query->where('who', $request->who);
+            }
+
+            // Filter by date range
+            if ($request->has('date_from') && $request->date_from) {
+                $query->whereDate('created_at', '>=', $request->date_from);
+            }
+
+            if ($request->has('date_to') && $request->date_to) {
+                $query->whereDate('created_at', '<=', $request->date_to);
+            }
+
+            // Search in message
+            if ($request->has('search') && $request->search) {
+                $query->where('message', 'like', '%' . $request->search . '%');
+            }
+
+            $reports = $query->orderBy('created_at', 'desc')
+                           ->paginate($request->get('per_page', 15));
+
+            return response()->json($reports);
+
+        } catch (\Exception $e) {
+            \Log::error("Failed to get reports: " . $e->getMessage());
+            return response()->json([
+                'error' => 'เกิดข้อผิดพลาดในการดึงข้อมูล'
+            ], 500);
+        }
+    }
+
+    /**
+     * ดึงสถิติรายงาน
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getStatistics()
+    {
+        try {
+            $stats = [
+                'total_reports' => BehavioralReportReportConsultation::count(),
+                'pending_reports' => BehavioralReportReportConsultation::pending()->count(),
+                'active_reports' => BehavioralReportReportConsultation::active()->count(),
+                'teacher_reports' => BehavioralReportReportConsultation::forTeachers()->count(),
+                'researcher_reports' => BehavioralReportReportConsultation::forResearchers()->count(),
+                'reports_with_voice' => BehavioralReportReportConsultation::whereNotNull('voice')->count(),
+                'reports_with_images' => BehavioralReportReportConsultation::whereNotNull('image')->count(),
+                'today_reports' => BehavioralReportReportConsultation::whereDate('created_at', today())->count(),
+                'this_week_reports' => BehavioralReportReportConsultation::whereBetween('created_at', [
+                    now()->startOfWeek(),
+                    now()->endOfWeek()
+                ])->count(),
+                'this_month_reports' => BehavioralReportReportConsultation::whereMonth('created_at', now()->month)
+                                                                      ->whereYear('created_at', now()->year)
+                                                                      ->count(),
+            ];
+
+            return response()->json($stats);
+
+        } catch (\Exception $e) {
+            \Log::error("Failed to get statistics: " . $e->getMessage());
+            return response()->json([
+                'error' => 'เกิดข้อผิดพลาดในการดึงสถิติ'
+            ], 500);
+        }
+    }
+
+    /**
+     * กำหนด MIME type จาก file extension
+     *
+     * @param string $extension
+     * @return string
+     */
+    private function getMimeTypeFromExtension($extension)
+    {
+        $mimeTypes = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+        ];
+
+        return $mimeTypes[strtolower($extension)] ?? 'image/jpeg';
     }
 }

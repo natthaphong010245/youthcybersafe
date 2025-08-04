@@ -1,13 +1,12 @@
 <?php
-// app/Models/ReportConsultation/BehavioralReportReportConsultation.php
-namespace App\Models;
+
+namespace App\Models\ReportConsultation;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Services\GoogleDriveService;
-use Illuminate\Support\Facades\Log;
 
-class BehavioralReport extends Model
+class BehavioralReportReportConsultation extends Model
 {
     use HasFactory;
     
@@ -45,38 +44,30 @@ class BehavioralReport extends Model
         'longitude' => 'decimal:8',
         'status' => 'boolean',
         'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
      * บันทึกไฟล์เสียงไปยัง Google Drive และอัปเดตค่าในฐานข้อมูล
      *
      * @param string $audioData
-     * @param GoogleDriveService $googleDriveService
-     * @return bool
+     * @return void
      */
-    public function saveVoiceRecordingToGoogleDrive($audioData, GoogleDriveService $googleDriveService)
+    public function saveVoiceRecording($audioData)
     {
         try {
-            // Check if it's a base64 data URL
-            if (strpos($audioData, 'data:audio') === 0) {
-                // Extract base64 data
-                $audioData = substr($audioData, strpos($audioData, ',') + 1);
-                $audioData = base64_decode($audioData);
-                
-                // Upload to Google Drive
-                $result = $googleDriveService->uploadVoice($audioData, $this->id);
-                
-                if ($result && $result['file_name']) {
-                    $this->voice = $result['file_name'];
-                    $this->save();
-                    return true;
-                }
-            }
+            $googleDriveService = new GoogleDriveService();
+            $filename = $googleDriveService->uploadVoiceFile($audioData);
             
-            return false;
+            // Update the model
+            $this->voice = $filename;
+            $this->save();
+
+            \Log::info("Voice recording saved successfully for report ID: {$this->id}, filename: {$filename}");
+
         } catch (\Exception $e) {
-            Log::error('Error saving voice recording to Google Drive: ' . $e->getMessage());
-            return false;
+            \Log::error("Failed to save voice recording for report ID {$this->id}: " . $e->getMessage());
+            throw $e;
         }
     }
 
@@ -84,116 +75,168 @@ class BehavioralReport extends Model
      * บันทึกรูปภาพไปยัง Google Drive และอัปเดตค่าในฐานข้อมูล
      *
      * @param array $photos
-     * @param GoogleDriveService $googleDriveService
-     * @return bool
+     * @return void
      */
-    public function saveImagesToGoogleDrive($photos, GoogleDriveService $googleDriveService)
+    public function saveImages($photos)
     {
         try {
-            $imageFileNames = [];
+            $googleDriveService = new GoogleDriveService();
+            $uploadedFiles = $googleDriveService->uploadImageFiles($photos);
             
-            foreach ($photos as $index => $photo) {
-                $imageData = file_get_contents($photo->getPathname());
-                $originalName = $photo->getClientOriginalName();
-                
-                $result = $googleDriveService->uploadImage($imageData, $originalName, $this->id . '_' . ($index + 1));
-                
-                if ($result && $result['file_name']) {
-                    $imageFileNames[] = $result['file_name'];
-                }
-            }
-            
-            if (!empty($imageFileNames)) {
-                $this->image = $imageFileNames; // จะถูก cast เป็น JSON โดยอัตโนมัติ
-                $this->save();
-                return true;
-            }
-            
-            return false;
+            // Update the model - เก็บเป็น JSON Array
+            $this->image = $uploadedFiles;
+            $this->save();
+
+            \Log::info("Images saved successfully for report ID: {$this->id}, files: " . implode(', ', $uploadedFiles));
+
         } catch (\Exception $e) {
-            Log::error('Error saving images to Google Drive: ' . $e->getMessage());
-            return false;
+            \Log::error("Failed to save images for report ID {$this->id}: " . $e->getMessage());
+            throw $e;
         }
     }
-    
+
     /**
-     * รช ข้อมูล Google Drive ของไฟล์เสียง
+     * ดาวน์โหลดไฟล์เสียงจาก Google Drive
      *
-     * @return array|null
+     * @return string|null
      */
-    public function getVoiceFileInfo()
+    public function getVoiceFileContent()
     {
         if (!$this->voice) {
             return null;
         }
-        
-        return [
-            'filename' => $this->voice,
-            'type' => 'voice',
-            'folder' => 'behavioral_report/voices'
-        ];
+
+        try {
+            $googleDriveService = new GoogleDriveService();
+            return $googleDriveService->downloadFile($this->voice, 'voice');
+        } catch (\Exception $e) {
+            \Log::error("Failed to get voice file content for report ID {$this->id}: " . $e->getMessage());
+            return null;
+        }
     }
-    
+
     /**
-     * ได ข้อมูล Google Drive ของไฟล์รูปภาพ
+     * ดาวน์โหลดไฟล์รูปภาพจาก Google Drive
+     *
+     * @param string $filename
+     * @return string|null
+     */
+    public function getImageFileContent($filename)
+    {
+        try {
+            $googleDriveService = new GoogleDriveService();
+            return $googleDriveService->downloadFile($filename, 'image');
+        } catch (\Exception $e) {
+            \Log::error("Failed to get image file content {$filename} for report ID {$this->id}: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * ลบไฟล์ทั้งหมดจาก Google Drive
+     *
+     * @return void
+     */
+    public function deleteFiles()
+    {
+        try {
+            $googleDriveService = new GoogleDriveService();
+            
+            // ลบไฟล์เสียง
+            if ($this->voice) {
+                $googleDriveService->deleteFile($this->voice, 'voice');
+                \Log::info("Deleted voice file: {$this->voice} for report ID: {$this->id}");
+            }
+            
+            // ลบไฟล์รูปภาพ
+            if ($this->image && is_array($this->image)) {
+                foreach ($this->image as $imageFile) {
+                    $googleDriveService->deleteFile($imageFile, 'image');
+                    \Log::info("Deleted image file: {$imageFile} for report ID: {$this->id}");
+                }
+            }
+
+        } catch (\Exception $e) {
+            \Log::error("Failed to delete files for report ID {$this->id}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * ตรวจสอบว่ารายงานนี้มีไฟล์แนบหรือไม่
+     *
+     * @return bool
+     */
+    public function hasAttachments()
+    {
+        return !empty($this->voice) || !empty($this->image);
+    }
+
+    /**
+     * ดึงข้อมูลสถิติไฟล์แนบ
      *
      * @return array
      */
-    public function getImageFilesInfo()
+    public function getAttachmentStats()
+    {
+        return [
+            'has_voice' => !empty($this->voice),
+            'has_images' => !empty($this->image),
+            'image_count' => is_array($this->image) ? count($this->image) : 0,
+            'voice_filename' => $this->voice,
+            'image_filenames' => $this->image
+        ];
+    }
+
+    /**
+     * สร้าง URL สำหรับเข้าถึงไฟล์เสียง
+     *
+     * @return string|null
+     */
+    public function getVoiceUrl()
+    {
+        if (!$this->voice) {
+            return null;
+        }
+
+        return route('behavioral-report.voice', ['id' => $this->id]);
+    }
+
+    /**
+     * สร้าง URL สำหรับเข้าถึงไฟล์รูปภาพ
+     *
+     * @param string $filename
+     * @return string|null
+     */
+    public function getImageUrl($filename)
+    {
+        if (!$this->image || !in_array($filename, $this->image)) {
+            return null;
+        }
+
+        return route('behavioral-report.image', ['id' => $this->id, 'filename' => $filename]);
+    }
+
+    /**
+     * ดึง URLs ของรูปภาพทั้งหมด
+     *
+     * @return array
+     */
+    public function getImageUrls()
     {
         if (!$this->image || !is_array($this->image)) {
             return [];
         }
-        
-        $imageFiles = [];
+
+        $urls = [];
         foreach ($this->image as $filename) {
-            $imageFiles[] = [
-                'filename' => $filename,
-                'type' => 'image',
-                'folder' => 'behavioral_report/images'
-            ];
+            $urls[] = $this->getImageUrl($filename);
         }
-        
-        return $imageFiles;
+
+        return $urls;
     }
-    
+
     /**
-     * รับรายการไฟล์ทั้งหมดที่เกี่ยวข้องกับรายงานนี้
-     *
-     * @return array
-     */
-    public function getAllFilesInfo()
-    {
-        $files = [];
-        
-        // เพิ่มไฟล์เสียง
-        $voiceInfo = $this->getVoiceFileInfo();
-        if ($voiceInfo) {
-            $files[] = $voiceInfo;
-        }
-        
-        // เพิ่มไฟล์รูปภาพ
-        $imageFiles = $this->getImageFilesInfo();
-        $files = array_merge($files, $imageFiles);
-        
-        return $files;
-    }
-    
-    /**
-     * Scope สำหรับกรองตาม status
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('status', true);
-    }
-    
-    public function scopeInactive($query)
-    {
-        return $query->where('status', false);
-    }
-    
-    /**
-     * อัปเดตสถานะของรายงาน
+     * อัปเดตสถานะรายงาน
      *
      * @param bool $status
      * @return bool
@@ -202,67 +245,81 @@ class BehavioralReport extends Model
     {
         try {
             $this->status = $status;
-            return $this->save();
+            $this->save();
+
+            \Log::info("Updated status to " . ($status ? 'true' : 'false') . " for report ID: {$this->id}");
+            return true;
         } catch (\Exception $e) {
-            Log::error('Error updating behavioral report status: ' . $e->getMessage());
+            \Log::error("Failed to update status for report ID {$this->id}: " . $e->getMessage());
             return false;
         }
     }
-    
+
     /**
-     * ลช ไฟล์ทั้งหมดที่เกี่ยวข้องจาก Google Drive
+     * Scope สำหรับรายงานที่มีสถานะ active
      *
-     * @param GoogleDriveService $googleDriveService
-     * @return bool
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function deleteAllFilesFromGoogleDrive(GoogleDriveService $googleDriveService)
+    public function scopeActive($query)
     {
-        try {
-            $success = true;
-            
-            // ลบไฟล์เสียง
-            if ($this->voice) {
-                // Note: You would need to implement a way to get the Google Drive file ID from the filename
-                // This is a simplified example
-                $success = $success && $this->deleteFileFromGoogleDrive($this->voice, $googleDriveService);
-            }
-            
-            // ลบไฟล์รูปภาพ
-            if ($this->image && is_array($this->image)) {
-                foreach ($this->image as $filename) {
-                    $success = $success && $this->deleteFileFromGoogleDrive($filename, $googleDriveService);
-                }
-            }
-            
-            return $success;
-        } catch (\Exception $e) {
-            Log::error('Error deleting files from Google Drive: ' . $e->getMessage());
-            return false;
-        }
+        return $query->where('status', true);
     }
-    
+
     /**
-     * ลบไฟล์เดี่ยวจาก Google Drive
+     * Scope สำหรับรายงานที่มีสถานะ pending
      *
-     * @param string $filename
-     * @param GoogleDriveService $googleDriveService
-     * @return bool
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    private function deleteFileFromGoogleDrive($filename, GoogleDriveService $googleDriveService)
+    public function scopePending($query)
     {
-        // Note: This is a simplified implementation
-        // You would need to implement a way to map filenames to Google Drive file IDs
-        // This could be done by storing the file ID in a separate table or using Google Drive API to search by filename
-        
-        try {
-            // Example implementation - you would need to modify this based on your requirements
-            // $fileId = $this->getGoogleDriveFileId($filename);
-            // return $googleDriveService->deleteFile($fileId);
-            
-            return true; // Placeholder
-        } catch (\Exception $e) {
-            Log::error('Error deleting individual file from Google Drive: ' . $e->getMessage());
-            return false;
-        }
+        return $query->where('status', false);
+    }
+
+    /**
+     * Scope สำหรับรายงานที่ส่งให้ครู
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeForTeachers($query)
+    {
+        return $query->where('who', 'teacher');
+    }
+
+    /**
+     * Scope สำหรับรายงานที่ส่งให้นักวิจัย
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeForResearchers($query)
+    {
+        return $query->where('who', 'researcher');
+    }
+
+    /**
+     * Boot method to handle model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // ลบไฟล์เมื่อลบรายงาน
+        static::deleting(function ($report) {
+            \Log::info("Deleting report ID: {$report->id} and associated files");
+            $report->deleteFiles();
+        });
+
+        // Log เมื่อสร้างรายงานใหม่
+        static::created(function ($report) {
+            \Log::info("New behavioral report created with ID: {$report->id}");
+        });
+
+        // Log เมื่ออัปเดตรายงาน
+        static::updated(function ($report) {
+            \Log::info("Behavioral report updated, ID: {$report->id}");
+        });
     }
 }
