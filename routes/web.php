@@ -300,6 +300,100 @@ Route::prefix('api')->name('api.')->group(function () {
 
 // เพิ่มใน routes/web.php
 
+
+// เพิ่มใน routes/web.php (หลังจากติดตั้ง Google API Client แล้ว)
+
+Route::get('/migrate-files-to-drive', function() {
+    try {
+        if (!class_exists('Google_Client')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Google API Client not installed'
+            ], 500);
+        }
+
+        $service = new \App\Services\GoogleDriveService();
+        $results = [
+            'voices' => [],
+            'images' => [],
+            'errors' => []
+        ];
+
+        // ย้ายไฟล์เสียง
+        $voicesPath = storage_path('app/behavioral_reports/voices');
+        if (is_dir($voicesPath)) {
+            $voiceFiles = array_diff(scandir($voicesPath), ['.', '..']);
+            
+            foreach ($voiceFiles as $filename) {
+                try {
+                    $filePath = $voicesPath . '/' . $filename;
+                    $fileContent = file_get_contents($filePath);
+                    
+                    $result = $service->uploadVoiceFile($fileContent, $filename);
+                    $results['voices'][] = [
+                        'local_file' => $filename,
+                        'google_drive_id' => $result['id'],
+                        'status' => 'migrated'
+                    ];
+                    
+                    Log::info("Migrated voice file to Google Drive: " . $filename);
+                    
+                } catch (Exception $e) {
+                    $results['errors'][] = "Failed to migrate voice file {$filename}: " . $e->getMessage();
+                }
+            }
+        }
+
+        // ย้ายไฟล์รูปภาพ
+        $imagesPath = storage_path('app/behavioral_reports/images');
+        if (is_dir($imagesPath)) {
+            $imageFiles = array_diff(scandir($imagesPath), ['.', '..']);
+            
+            foreach ($imageFiles as $filename) {
+                try {
+                    $filePath = $imagesPath . '/' . $filename;
+                    $fileContent = file_get_contents($filePath);
+                    $mimeType = mime_content_type($filePath);
+                    
+                    // Create images subfolder and upload
+                    $imagesFolderId = $service->createFolderIfNotExists('images');
+                    $result = $service->uploadFile($fileContent, $filename, $mimeType, $imagesFolderId);
+                    
+                    $results['images'][] = [
+                        'local_file' => $filename,
+                        'google_drive_id' => $result['id'],
+                        'status' => 'migrated'
+                    ];
+                    
+                    Log::info("Migrated image file to Google Drive: " . $filename);
+                    
+                } catch (Exception $e) {
+                    $results['errors'][] = "Failed to migrate image file {$filename}: " . $e->getMessage();
+                }
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'File migration completed',
+            'results' => $results,
+            'summary' => [
+                'voices_migrated' => count($results['voices']),
+                'images_migrated' => count($results['images']),
+                'errors' => count($results['errors'])
+            ]
+        ], 200, [], JSON_PRETTY_PRINT);
+
+    } catch (Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Migration failed',
+            'error' => $e->getMessage()
+        ], 500, [], JSON_PRETTY_PRINT);
+    }
+});
+
+
 // Test Google Drive Upload
 Route::get('/debug-google-drive', function() {
     try {
