@@ -1,5 +1,5 @@
 <?php
-// app/Services/GoogleDriveService.php
+// app/Services/GoogleDriveService.php - Fixed Version
 
 namespace App\Services;
 
@@ -22,18 +22,27 @@ class GoogleDriveService
     private function initializeService()
     {
         try {
-            // ตรวจสอบไฟล์ service account key ก่อน
-            $keyPath = storage_path('app/google/service-account-key.json');
+            // หาไฟล์ service account key ในหลายตำแหน่ง
+            $possiblePaths = [
+                storage_path('app/google/service-account-key.json'),
+                storage_path('app/google-credentials.json'),
+                base_path('google-credentials.json'),
+                base_path('storage/app/google-credentials.json')
+            ];
             
-            Log::info('Initializing Google Drive service', ['key_path' => $keyPath]);
-            
-            if (!file_exists($keyPath)) {
-                throw new Exception("Service account key file not found at: {$keyPath}");
+            $keyPath = null;
+            foreach ($possiblePaths as $path) {
+                if (file_exists($path) && is_readable($path)) {
+                    $keyPath = $path;
+                    break;
+                }
             }
             
-            if (!is_readable($keyPath)) {
-                throw new Exception("Service account key file is not readable at: {$keyPath}");
+            if (!$keyPath) {
+                throw new Exception("Service account key file not found in any of these locations: " . implode(', ', $possiblePaths));
             }
+            
+            Log::info('Google Drive service initializing', ['key_path' => $keyPath]);
             
             // ตรวจสอบขนาดไฟล์
             $fileSize = filesize($keyPath);
@@ -67,14 +76,19 @@ class GoogleDriveService
             $client = new Google_Client();
             $client->setAuthConfig($keyPath);
             $client->addScope(Google_Service_Drive::DRIVE_FILE);
-            $client->setApplicationName('Youth Cyber Safe');
+            $client->setApplicationName('Youth Cyber Safe - Behavioral Report System');
 
             Log::info('Google Client configured successfully');
 
             // สร้าง Google Drive Service
             $this->service = new Google_Service_Drive($client);
             
-            Log::info('Google Drive service initialized successfully');
+            // ตั้งค่า folder ID จาก .env
+            $this->folderId = env('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID');
+            
+            Log::info('Google Drive service initialized successfully', [
+                'folder_id' => $this->folderId
+            ]);
             
         } catch (Exception $e) {
             $errorMessage = 'Failed to initialize Google Drive service: ' . $e->getMessage();
@@ -93,6 +107,11 @@ class GoogleDriveService
     public function createFolderIfNotExists($folderName, $parentId = null)
     {
         try {
+            // ใช้ folder ID จาก .env ถ้าไม่มี parent ID
+            if (!$parentId && $this->folderId) {
+                $parentId = $this->folderId;
+            }
+
             // Search for existing folder
             $query = "name='{$folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false";
             if ($parentId) {
@@ -138,6 +157,11 @@ class GoogleDriveService
     public function uploadFile($fileContent, $fileName, $mimeType, $folderId = null)
     {
         try {
+            // ใช้ folder ID หลักถ้าไม่ระบุ
+            if (!$folderId && $this->folderId) {
+                $folderId = $this->folderId;
+            }
+
             $fileMetadata = new Google_Service_Drive_DriveFile([
                 'name' => $fileName
             ]);
@@ -153,7 +177,10 @@ class GoogleDriveService
                 'fields' => 'id,name,webViewLink'
             ]);
 
-            Log::info("Uploaded file: {$fileName}", ['id' => $file->id]);
+            Log::info("Uploaded file: {$fileName}", [
+                'id' => $file->id,
+                'folder_id' => $folderId
+            ]);
             
             return [
                 'id' => $file->id,
@@ -168,16 +195,13 @@ class GoogleDriveService
     }
 
     /**
-     * Upload voice file to behavioral_report/voices folder
+     * Upload voice file to voices subfolder
      */
     public function uploadVoiceFile($audioData, $fileName)
     {
         try {
-            // Create main folder
-            $mainFolderId = $this->createFolderIfNotExists('behavioral_report');
-            
             // Create voices subfolder
-            $voicesFolderId = $this->createFolderIfNotExists('voices', $mainFolderId);
+            $voicesFolderId = $this->createFolderIfNotExists('voices');
 
             // Decode base64 audio data
             if (strpos($audioData, 'data:audio') === 0) {
@@ -194,16 +218,13 @@ class GoogleDriveService
     }
 
     /**
-     * Upload image file to behavioral_report/images folder
+     * Upload image file to images subfolder
      */
     public function uploadImageFile($imageFile, $fileName)
     {
         try {
-            // Create main folder
-            $mainFolderId = $this->createFolderIfNotExists('behavioral_report');
-            
             // Create images subfolder
-            $imagesFolderId = $this->createFolderIfNotExists('images', $mainFolderId);
+            $imagesFolderId = $this->createFolderIfNotExists('images');
 
             // Get file content
             $fileContent = file_get_contents($imageFile->getPathname());
@@ -233,11 +254,27 @@ class GoogleDriveService
     }
 
     /**
-     * Generate filename with timestamp
+     * Get file info
      */
-    public static function generateFileName($extension = 'png')
+    public function getFileInfo($fileId)
     {
-        return now()->format('Y-m-d_H-i') . '.' . $extension;
+        try {
+            $file = $this->service->files->get($fileId, [
+                'fields' => 'id,name,mimeType,size,createdTime,webViewLink'
+            ]);
+            
+            return [
+                'id' => $file->getId(),
+                'name' => $file->getName(),
+                'mimeType' => $file->getMimeType(),
+                'size' => $file->getSize(),
+                'createdTime' => $file->getCreatedTime(),
+                'webViewLink' => $file->getWebViewLink()
+            ];
+        } catch (Exception $e) {
+            Log::error("Failed to get file info {$fileId}: " . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -245,17 +282,33 @@ class GoogleDriveService
      */
     public static function testBasicConnection()
     {
-        $keyPath = storage_path('app/google/service-account-key.json');
-        
-        $result = [
-            'key_file_exists' => file_exists($keyPath),
-            'key_file_readable' => is_readable($keyPath),
-            'key_file_size' => file_exists($keyPath) ? filesize($keyPath) : 0,
-            'key_path' => $keyPath
+        $possiblePaths = [
+            storage_path('app/google/service-account-key.json'),
+            storage_path('app/google-credentials.json'),
+            base_path('google-credentials.json'),
+            base_path('storage/app/google-credentials.json')
         ];
         
+        $result = [
+            'key_file_exists' => false,
+            'key_file_readable' => false,
+            'key_file_size' => 0,
+            'key_path' => null,
+            'checked_paths' => $possiblePaths
+        ];
+        
+        foreach ($possiblePaths as $path) {
+            if (file_exists($path)) {
+                $result['key_file_exists'] = true;
+                $result['key_file_readable'] = is_readable($path);
+                $result['key_file_size'] = filesize($path);
+                $result['key_path'] = $path;
+                break;
+            }
+        }
+        
         if ($result['key_file_exists'] && $result['key_file_readable']) {
-            $keyContent = file_get_contents($keyPath);
+            $keyContent = file_get_contents($result['key_path']);
             $keyData = json_decode($keyContent, true);
             
             $result['json_valid'] = json_last_error() === JSON_ERROR_NONE;
