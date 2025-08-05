@@ -1,161 +1,273 @@
 <?php
+// app/Services/GoogleDriveService.php
 
 namespace App\Services;
 
 use Google_Client;
 use Google_Service_Drive;
 use Google_Service_Drive_DriveFile;
-use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\Log;
 
 class GoogleDriveService
 {
-    private $client;
     private $service;
-    private $parentFolderId;
+    private $folderId;
 
     public function __construct()
     {
-        $this->initializeClient();
+        $this->initializeService();
     }
 
-    private function initializeClient()
+    private function initializeService()
     {
         try {
-            $this->client = new Google_Client();
+            // ตรวจสอบไฟล์ service account key ก่อน
+            $keyPath = storage_path('app/google/service-account-key.json');
             
-            // ใช้ Service Account JSON file
-            $credentialsPath = storage_path('app/google-credentials.json');
+            Log::info('Initializing Google Drive service', ['key_path' => $keyPath]);
             
-            if (!file_exists($credentialsPath)) {
-                throw new \Exception('Google credentials file not found at: ' . $credentialsPath);
+            if (!file_exists($keyPath)) {
+                throw new Exception("Service account key file not found at: {$keyPath}");
             }
-
-            $this->client->setAuthConfig($credentialsPath);
-            $this->client->setScopes([Google_Service_Drive::DRIVE_FILE]);
-            $this->service = new Google_Service_Drive($this->client);
             
-            // ID ของโฟลเดอร์หลัก behavioral_report ใน Google Drive
-            $this->parentFolderId = env('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID');
-            
-            if (!$this->parentFolderId) {
-                throw new \Exception('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID not set in .env file');
+            if (!is_readable($keyPath)) {
+                throw new Exception("Service account key file is not readable at: {$keyPath}");
             }
-
-            Log::info('GoogleDriveService initialized successfully');
             
-        } catch (\Exception $e) {
-            Log::error('GoogleDriveService initialization failed: ' . $e->getMessage());
-            throw $e;
+            // ตรวจสอบขนาดไฟล์
+            $fileSize = filesize($keyPath);
+            if ($fileSize < 100) {
+                throw new Exception("Service account key file seems too small ({$fileSize} bytes). Please check file content.");
+            }
+            
+            // ตรวจสอบว่าไฟล์เป็น JSON หรือไม่
+            $keyContent = file_get_contents($keyPath);
+            $keyData = json_decode($keyContent, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception("Service account key file is not valid JSON: " . json_last_error_msg());
+            }
+            
+            // ตรวจสอบ required fields
+            $requiredFields = ['type', 'project_id', 'private_key', 'client_email'];
+            foreach ($requiredFields as $field) {
+                if (!isset($keyData[$field]) || empty($keyData[$field])) {
+                    throw new Exception("Missing or empty required field '{$field}' in service account key file");
+                }
+            }
+            
+            Log::info('Service account key file validation passed', [
+                'file_size' => $fileSize,
+                'project_id' => $keyData['project_id'],
+                'client_email' => $keyData['client_email']
+            ]);
+
+            // สร้าง Google Client
+            $client = new Google_Client();
+            $client->setAuthConfig($keyPath);
+            $client->addScope(Google_Service_Drive::DRIVE_FILE);
+            $client->setApplicationName('Youth Cyber Safe');
+
+            Log::info('Google Client configured successfully');
+
+            // สร้าง Google Drive Service
+            $this->service = new Google_Service_Drive($client);
+            
+            Log::info('Google Drive service initialized successfully');
+            
+        } catch (Exception $e) {
+            $errorMessage = 'Failed to initialize Google Drive service: ' . $e->getMessage();
+            Log::error($errorMessage, [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new Exception($errorMessage);
         }
     }
 
     /**
-     * สร้างชื่อไฟล์ตามรูปแบบ ปี เดือน วัน เวลา
-     */
-    public function generateFileName($extension = 'mp3')
-    {
-        return Carbon::now()->format('Y_m_d_H_i_s') . '.' . $extension;
-    }
-
-    /**
-     * ทดสอบการเชื่อมต่อ Google Drive
-     */
-    public function testConnection()
-    {
-        try {
-            // ทดสอบโดยการดึงข้อมูลโฟลเดอร์หลัก
-            $file = $this->service->files->get($this->parentFolderId);
-            
-            Log::info('Google Drive connection test successful');
-            
-            return [
-                'success' => true,
-                'folder_name' => $file->getName(),
-                'folder_id' => $file->getId()
-            ];
-        } catch (\Exception $e) {
-            Log::error('Google Drive connection test failed: ' . $e->getMessage());
-            
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
-        }
-    }
-
-    /**
-     * สร้างโฟลเดอร์ถ้าไม่มี
+     * Create folder if not exists
      */
     public function createFolderIfNotExists($folderName, $parentId = null)
     {
         try {
-            $parentId = $parentId ?: $this->parentFolderId;
-            
-            // ตรวจสอบว่าโฟลเดอร์มีอยู่แล้วหรือไม่
-            $existingFolder = $this->findFolder($folderName, $parentId);
-            if ($existingFolder) {
-                Log::info("Folder '{$folderName}' already exists with ID: " . $existingFolder->getId());
-                return $existingFolder->getId();
+            // Search for existing folder
+            $query = "name='{$folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+            if ($parentId) {
+                $query .= " and '{$parentId}' in parents";
             }
 
-            // สร้างโฟลเดอร์ใหม่
-            $fileMetadata = new Google_Service_Drive_DriveFile([
-                'name' => $folderName,
-                'mimeType' => 'application/vnd.google-apps.folder',
-                'parents' => [$parentId]
+            $response = $this->service->files->listFiles([
+                'q' => $query,
+                'spaces' => 'drive'
             ]);
 
-            $folder = $this->service->files->create($fileMetadata);
-            Log::info("Created new folder: {$folderName} with ID: " . $folder->getId());
-            
-            return $folder->getId();
-            
-        } catch (\Exception $e) {
-            Log::error("Failed to create folder '{$folderName}': " . $e->getMessage());
-            throw $e;
+            if (count($response->files) > 0) {
+                Log::info("Found existing folder: {$folderName}", ['id' => $response->files[0]->id]);
+                return $response->files[0]->id;
+            }
+
+            // Create new folder
+            $fileMetadata = new Google_Service_Drive_DriveFile([
+                'name' => $folderName,
+                'mimeType' => 'application/vnd.google-apps.folder'
+            ]);
+
+            if ($parentId) {
+                $fileMetadata->setParents([$parentId]);
+            }
+
+            $folder = $this->service->files->create($fileMetadata, [
+                'fields' => 'id'
+            ]);
+
+            Log::info("Created folder: {$folderName}", ['id' => $folder->id]);
+            return $folder->id;
+
+        } catch (Exception $e) {
+            Log::error("Failed to create folder {$folderName}: " . $e->getMessage());
+            throw new Exception("Failed to create folder: {$folderName}. Error: " . $e->getMessage());
         }
     }
 
     /**
-     * ค้นหาโฟลเดอร์
+     * Upload file to Google Drive
      */
-    private function findFolder($folderName, $parentId)
+    public function uploadFile($fileContent, $fileName, $mimeType, $folderId = null)
     {
         try {
-            $query = "mimeType='application/vnd.google-apps.folder' and name='{$folderName}' and '{$parentId}' in parents and trashed=false";
-            $results = $this->service->files->listFiles(['q' => $query]);
+            $fileMetadata = new Google_Service_Drive_DriveFile([
+                'name' => $fileName
+            ]);
+
+            if ($folderId) {
+                $fileMetadata->setParents([$folderId]);
+            }
+
+            $file = $this->service->files->create($fileMetadata, [
+                'data' => $fileContent,
+                'mimeType' => $mimeType,
+                'uploadType' => 'multipart',
+                'fields' => 'id,name,webViewLink'
+            ]);
+
+            Log::info("Uploaded file: {$fileName}", ['id' => $file->id]);
             
-            return $results->getFiles() ? $results->getFiles()[0] : null;
-            
-        } catch (\Exception $e) {
-            Log::error("Failed to find folder '{$folderName}': " . $e->getMessage());
-            return null;
+            return [
+                'id' => $file->id,
+                'name' => $file->name,
+                'webViewLink' => $file->webViewLink
+            ];
+
+        } catch (Exception $e) {
+            Log::error("Failed to upload file {$fileName}: " . $e->getMessage());
+            throw new Exception("Failed to upload file: {$fileName}. Error: " . $e->getMessage());
         }
     }
 
     /**
-     * ตรวจสอบว่า Service พร้อมใช้งานหรือไม่
+     * Upload voice file to behavioral_report/voices folder
      */
-    public function isReady()
+    public function uploadVoiceFile($audioData, $fileName)
     {
         try {
-            return $this->service && $this->parentFolderId;
-        } catch (\Exception $e) {
+            // Create main folder
+            $mainFolderId = $this->createFolderIfNotExists('behavioral_report');
+            
+            // Create voices subfolder
+            $voicesFolderId = $this->createFolderIfNotExists('voices', $mainFolderId);
+
+            // Decode base64 audio data
+            if (strpos($audioData, 'data:audio') === 0) {
+                $audioData = substr($audioData, strpos($audioData, ',') + 1);
+                $audioData = base64_decode($audioData);
+            }
+
+            return $this->uploadFile($audioData, $fileName, 'audio/mpeg', $voicesFolderId);
+
+        } catch (Exception $e) {
+            Log::error("Failed to upload voice file: " . $e->getMessage());
+            throw new Exception("Failed to upload voice file: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Upload image file to behavioral_report/images folder
+     */
+    public function uploadImageFile($imageFile, $fileName)
+    {
+        try {
+            // Create main folder
+            $mainFolderId = $this->createFolderIfNotExists('behavioral_report');
+            
+            // Create images subfolder
+            $imagesFolderId = $this->createFolderIfNotExists('images', $mainFolderId);
+
+            // Get file content
+            $fileContent = file_get_contents($imageFile->getPathname());
+            $mimeType = $imageFile->getMimeType();
+
+            return $this->uploadFile($fileContent, $fileName, $mimeType, $imagesFolderId);
+
+        } catch (Exception $e) {
+            Log::error("Failed to upload image file: " . $e->getMessage());
+            throw new Exception("Failed to upload image file: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Delete file from Google Drive
+     */
+    public function deleteFile($fileId)
+    {
+        try {
+            $this->service->files->delete($fileId);
+            Log::info("Deleted file with ID: {$fileId}");
+            return true;
+        } catch (Exception $e) {
+            Log::error("Failed to delete file {$fileId}: " . $e->getMessage());
             return false;
         }
     }
 
     /**
-     * ดึงข้อมูลสถานะ
+     * Generate filename with timestamp
      */
-    public function getStatus()
+    public static function generateFileName($extension = 'png')
     {
-        return [
-            'service_initialized' => isset($this->service),
-            'parent_folder_id' => $this->parentFolderId,
-            'credentials_file_exists' => file_exists(storage_path('app/google-credentials.json')),
-            'ready' => $this->isReady()
+        return now()->format('Y-m-d_H-i') . '.' . $extension;
+    }
+
+    /**
+     * Test connection without initializing full service
+     */
+    public static function testBasicConnection()
+    {
+        $keyPath = storage_path('app/google/service-account-key.json');
+        
+        $result = [
+            'key_file_exists' => file_exists($keyPath),
+            'key_file_readable' => is_readable($keyPath),
+            'key_file_size' => file_exists($keyPath) ? filesize($keyPath) : 0,
+            'key_path' => $keyPath
         ];
+        
+        if ($result['key_file_exists'] && $result['key_file_readable']) {
+            $keyContent = file_get_contents($keyPath);
+            $keyData = json_decode($keyContent, true);
+            
+            $result['json_valid'] = json_last_error() === JSON_ERROR_NONE;
+            $result['json_error'] = json_last_error_msg();
+            
+            if ($result['json_valid']) {
+                $result['project_id'] = $keyData['project_id'] ?? 'missing';
+                $result['client_email'] = $keyData['client_email'] ?? 'missing';
+                $result['has_private_key'] = isset($keyData['private_key']) && !empty($keyData['private_key']);
+            }
+        }
+        
+        return $result;
     }
 }

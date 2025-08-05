@@ -73,6 +73,7 @@ Route::prefix('assessment/mental_health')->group(function () {
 });
 
 // Report & Consultation Routes (handle & character in view names)
+
 Route::get('/report_consultation', function () {
     return view('report&consultation.report&consultation');
 })->name('report&consultation');
@@ -102,7 +103,7 @@ Route::get('/report_consultation/request_consultation/app_center', function () {
 })->name('app_center_report');
 
 // =====================================
-// SAFE AREA ROUTES - UPDATED SYSTEM
+// SAFE AREA ROUTES
 // =====================================
 
 // Safe Area Main Routes (View Only)
@@ -114,7 +115,7 @@ Route::prefix('report_consultation/safe_area')->group(function () {
     Route::get('message/result', fn() => view('report&consultation.safe_area.message.result'))->name('safe_area/message/result');
 });
 
-// Safe Area Functional Routes (Controller Based) - NEW SYSTEM
+// Safe Area Functional Routes (Controller Based)
 Route::prefix('safe-area')->name('safe-area.')->group(function () {
     // Voice routes
     Route::get('/voice', [SafeAreaVoiceController::class, 'index'])->name('voice');
@@ -139,15 +140,17 @@ Route::get('report_consultation/safe_area/voice', [SafeAreaVoiceController::clas
 Route::get('report_consultation/safe_area/message', [SafeAreaMessageController::class, 'index'])->name('report_consultation.safe_area.message');
 
 // =====================================
-// END SAFE AREA ROUTES
+// BEHAVIORAL REPORT ROUTES
 // =====================================
 
-// Behavioral Report Routes
 Route::get('/report&consultation/behavioral_report', [BehavioralReportController::class, 'index'])->name('behavioral-report.index');
 Route::get('/report_consultation/behavioral_report', [BehavioralReportController::class, 'index'])->name('behavioral_report');
 Route::post('/report&consultation/behavioral_report', [BehavioralReportController::class, 'store'])->name('behavioral-report.store');
 
-// Game Routes
+// =====================================
+// GAME ROUTES
+// =====================================
+
 Route::get('/main/game', fn() => view('game'))->name('main_game');
 Route::get('/category/game', fn() => view('game/index'))->name('game');
 
@@ -169,7 +172,10 @@ foreach ($simpleGames as $gameId) {
     Route::get("/game/{$gameId}", fn() => view("game/g_{$gameId}/index"))->name("game_{$gameId}");
 }
 
-// Video Routes
+// =====================================
+// VIDEO ROUTES
+// =====================================
+
 Route::get('/main_video', [VideoController::class, 'mainVideo'])->name('main_video');
 
 foreach ([1, 2, 3, 4, 5, 6, 7] as $lang) {
@@ -179,7 +185,10 @@ foreach ([1, 2, 3, 4, 5, 6, 7] as $lang) {
         ->name("main_video_language{$lang}");
 }
 
-// Infographic Routes
+// =====================================
+// INFOGRAPHIC ROUTES
+// =====================================
+
 Route::prefix('infographic')->name('infographic.')->group(function () {
     Route::get('/', [InfographicController::class, 'index'])->name('index');
     Route::get('/{topicId}', [InfographicController::class, 'show'])->name('show');
@@ -190,7 +199,10 @@ Route::prefix('infographic')->name('infographic.')->group(function () {
 // Update the main route to point to infographic
 Route::get('/main_info', [InfographicController::class, 'index'])->name('main_info');
 
-// Scenario Routes
+// =====================================
+// SCENARIO ROUTES
+// =====================================
+
 Route::prefix('scenario')->group(function () {
     Route::get('/', [ScenarioController::class, 'index'])->name('scenario.index');
     Route::get('completion', [ScenarioController::class, 'completion'])->name('scenario.completion');
@@ -202,12 +214,19 @@ Route::prefix('scenario')->group(function () {
     }
 });
 
-// Authentication Routes
+// =====================================
+// AUTHENTICATION ROUTES
+// =====================================
+
 Route::get('/login', [LoginController::class, 'show'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate'])->name('login.authenticate');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'create'])->name('register');
 Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+
+// =====================================
+// PROTECTED ROUTES
+// =====================================
 
 // Protected Routes (General User)
 Route::middleware(['auth', CheckRoleUser::class])->group(function () {
@@ -223,7 +242,10 @@ Route::middleware(['auth', CheckResearcher::class])->group(function () {
     Route::get('/dashboard/safe-area', [DashboardController::class, 'safeArea'])->name('safe-area-dashboard');
 });
 
-// Admin Routes (Protected)
+// =====================================
+// ADMIN ROUTES
+// =====================================
+
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     // Safe Area Admin Routes
     Route::prefix('safe-area')->name('safe-area.')->group(function () {
@@ -243,7 +265,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     });
 });
 
-// API Routes (for AJAX and mobile apps)
+// =====================================
+// API ROUTES
+// =====================================
+
 Route::prefix('api')->name('api.')->group(function () {
     // Safe Area API
     Route::prefix('safe-area')->name('safe-area.')->group(function () {
@@ -252,7 +277,7 @@ Route::prefix('api')->name('api.')->group(function () {
         Route::get('/stats', [SafeAreaStatsController::class, 'getStats'])->name('stats');
         Route::get('/export', [SafeAreaStatsController::class, 'export'])->name('export');
         
-        // NEW: Routes สำหรับดึงข้อมูลตามปี
+        // Routes สำหรับดึงข้อมูลตามปี
         Route::get('/data-by-year/{year}', [DashboardController::class, 'getSafeAreaDataByYear'])->name('data-by-year');
         Route::get('/available-years', [DashboardController::class, 'getAvailableYears'])->name('available-years');
         Route::get('/monthly-data/{year?}', function($year = null) {
@@ -271,466 +296,4 @@ Route::prefix('api')->name('api.')->group(function () {
             ]);
         })->name('stats');
     });
-});
-
-// Debug Routes (Development Only)
-if (app()->environment('local')) {
-    Route::get('/check-view-structure', function() {
-        $viewPath = resource_path('views');
-        $expectedPath = $viewPath . '/assessment/cyberbullying/person_action/form';
-        
-        return response()->json([
-            'base_views_path' => $viewPath,
-            'expected_directory' => $expectedPath,
-            'directory_exists' => is_dir($expectedPath),
-            'directory_readable' => is_readable($expectedPath),
-            'expected_file' => $expectedPath . '/result.blade.php',
-            'file_exists' => file_exists($expectedPath . '/result.blade.php'),
-        ]);
-    });
-
-    Route::get('/check-view-files', function() {
-        $viewPath = resource_path('views');
-        $allFiles = [];
-        
-        $directory = new RecursiveDirectoryIterator($viewPath);
-        $iterator = new RecursiveIteratorIterator($directory);
-        
-        foreach ($iterator as $info) {
-            if ($info->isFile() && $info->getExtension() === 'php') {
-                $allFiles[] = str_replace($viewPath . '/', '', $info->getPathname());
-            }
-        }
-        
-        return response()->json([
-            'view_path' => $viewPath,
-            'all_blade_files' => $allFiles
-        ]);
-    });
-
-    // Test route for infographic structure
-    Route::get('/test-infographic-structure', function() {
-        $basePath = public_path('images/infographic');
-        $result = [];
-        
-        for ($topicId = 1; $topicId <= 6; $topicId++) {
-            $topicPath = $basePath . '/' . $topicId;
-            $images = [];
-            
-            if (File::exists($topicPath)) {
-                $files = File::files($topicPath);
-                
-                foreach ($files as $file) {
-                    if (in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif'])) {
-                        $images[] = $file->getFilename();
-                    }
-                }
-                
-                // Sort numerically
-                usort($images, function($a, $b) {
-                    $aNum = (int) pathinfo($a, PATHINFO_FILENAME);
-                    $bNum = (int) pathinfo($b, PATHINFO_FILENAME);
-                    return $aNum <=> $bNum;
-                });
-            }
-            
-            $result[$topicId] = [
-                'path_exists' => File::exists($topicPath),
-                'path' => $topicPath,
-                'images' => $images,
-                'count' => count($images)
-            ];
-        }
-        
-        return response()->json($result, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    })->name('test.infographic.structure');
-
-    // Dashboard Debug Routes
-    Route::prefix('debug/dashboard')->name('debug.dashboard.')->group(function () {
-        Route::get('/cyberbullying-stats', [DashboardController::class, 'getAssessmentStats'])->name('cyberbullying.stats');
-        Route::get('/mental-health-stats', [DashboardController::class, 'getMentalHealthStatsApi'])->name('mental-health.stats');
-        Route::get('/safe-area-stats', [DashboardController::class, 'getSafeAreaStatsApi'])->name('safe-area.stats');
-        Route::get('/cyberbullying-debug', [DashboardController::class, 'debugAssessmentData'])->name('cyberbullying.debug');
-        Route::get('/mental-health-debug', [DashboardController::class, 'debugMentalHealthData'])->name('mental-health.debug');
-        Route::get('/safe-area-debug', [DashboardController::class, 'debugSafeAreaData'])->name('safe-area.debug');
-        
-        // Safe Area specific debug routes
-        Route::get('/safe-area-by-year/{year}', [DashboardController::class, 'getSafeAreaDataByYear'])->name('safe-area.by-year');
-        Route::get('/safe-area-years', [DashboardController::class, 'getAvailableYears'])->name('safe-area.years');
-    });
-
-    // Test Safe Area Routes
-    Route::get('/test-safe-area', function() {
-        $stats = \App\Models\SafeArea::getStatistics();
-        $recentRecords = \App\Models\SafeArea::latest()->take(5)->get();
-        
-        return response()->json([
-            'statistics' => $stats,
-            'recent_records' => $recentRecords->map(function($record) {
-                return [
-                    'id' => $record->id,
-                    'type' => $record->type,
-                    'type_thai' => $record->type_thai,
-                    'voice_message' => $record->voice_message,
-                    'created_at' => $record->created_at->format('Y-m-d H:i:s'),
-                ];
-            }),
-            'model_methods' => [
-                'voice_count' => \App\Models\SafeArea::getVoiceCount(),
-                'message_count' => \App\Models\SafeArea::getMessageCount(),
-                'total_count' => \App\Models\SafeArea::getTotalCount(),
-            ]
-        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    })->name('test.safe.area');
-
-    Route::get('/test-safe-area-create', function() {
-        $voice = \App\Models\SafeArea::createVoice();
-        $message = \App\Models\SafeArea::createMessage();
-        
-        return response()->json([
-            'voice_record' => [
-                'id' => $voice->id,
-                'type' => $voice->type,
-                'voice_message' => $voice->voice_message,
-            ],
-            'message_record' => [
-                'id' => $message->id,
-                'type' => $message->type,
-                'voice_message' => $message->voice_message,
-            ],
-            'updated_stats' => \App\Models\SafeArea::getStatistics()
-        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    })->name('test.safe.area.create');
-
-    Route::get('/test-create-sample-data', function() {
-        $sampleMentalHealth = [
-            [
-                'stress' => [[3,3,3,3,3,3,2], 'verysevere'],
-                'anxiety' => [[0,0,0,0,0,0,0], 'normal'],
-                'depression' => [[3,3,3,0,0,0,0], 'moderate']
-            ],
-            [
-                'stress' => [[1,1,2,1,1,2,1], 'mild'],
-                'anxiety' => [[2,1,2,2,1,1,2], 'severe'],
-                'depression' => [[0,1,0,1,0,0,1], 'mild']
-            ],
-            [
-                'stress' => [[2,2,3,2,2,3,2], 'moderate'],
-                'anxiety' => [[1,1,1,1,2,1,1], 'mild'],
-                'depression' => [[3,3,3,3,3,3,3], 'verysevere']
-            ]
-        ];
-
-        foreach ($sampleMentalHealth as $data) {
-            \App\Models\MentalHealthAssessment::create($data);
-        }
-
-        for ($i = 0; $i < 10; $i++) {
-            \App\Models\SafeArea::createVoice();
-        }
-        
-        for ($i = 0; $i < 15; $i++) {
-            \App\Models\SafeArea::createMessage();
-        }
-
-        return response()->json([
-            'message' => 'Sample data created successfully',
-            'mental_health_count' => \App\Models\MentalHealthAssessment::count(),
-            'safe_area_count' => \App\Models\SafeArea::count(),
-            'safe_area_stats' => \App\Models\SafeArea::getStatistics()
-        ]);
-    })->name('test.create.sample.data');
-
-    // Test Safe Area Data Creation
-    Route::get('/test-create-safe-area-data', function() {
-        $years = [2024, 2025];
-        $created = [];
-        
-        foreach ($years as $year) {
-            for ($month = 1; $month <= 12; $month++) {
-                $voiceCount = rand(5, 25);
-                for ($i = 0; $i < $voiceCount; $i++) {
-                    $date = \Carbon\Carbon::create($year, $month, rand(1, 28), rand(0, 23), rand(0, 59));
-                    \App\Models\SafeArea::create([
-                        'voice_message' => [[1], [0]],
-                        'created_at' => $date,
-                        'updated_at' => $date
-                    ]);
-                }
-                
-                $messageCount = rand(10, 35);
-                for ($i = 0; $i < $messageCount; $i++) {
-                    $date = \Carbon\Carbon::create($year, $month, rand(1, 28), rand(0, 23), rand(0, 59));
-                    \App\Models\SafeArea::create([
-                        'voice_message' => [[0], [1]],
-                        'created_at' => $date,
-                        'updated_at' => $date
-                    ]);
-                }
-                
-                $created[] = [
-                    'year' => $year,
-                    'month' => $month,
-                    'voice' => $voiceCount,
-                    'message' => $messageCount
-                ];
-            }
-        }
-        
-        return response()->json([
-            'message' => 'Test Safe Area data created successfully',
-            'total_records' => \App\Models\SafeArea::count(),
-            'created_data' => $created,
-            'statistics' => \App\Models\SafeArea::getStatistics()
-        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    })->name('test.create.safe.area.data');
-
-    // Test Dashboard Data
-    Route::get('/test-dashboard-data', function() {
-        $controller = new \App\Http\Controllers\DashboardController();
-        
-        return response()->json([
-            'cyberbullying_stats' => $controller->getAssessmentStats()->getData(),
-            'mental_health_stats' => $controller->getMentalHealthStatsApi()->getData(),
-            'safe_area_stats' => $controller->getSafeAreaStatsApi()->getData()
-        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    })->name('test.dashboard.data');
-}
-
-
-
-Route::get('/behavioral_report', [BehavioralReportController::class, 'index'])->name('behavioral_report');
-Route::post('/behavioral_report', [BehavioralReportController::class, 'store'])->name('behavioral-report.store');
-
-// เพิ่ม test route เรียบง่าย
-Route::get('/test-basic', function() {
-    try {
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Basic test working',
-            'table_exists' => Schema::hasTable('behavioral_report'),
-            'model_test' => class_exists('App\Models\ReportConsultation\BehavioralReportReportConsultation')
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage()
-        ]);
-    }
-});
-
-
-// เพิ่มที่ท้ายไฟล์ routes/web.php
-
-// Test Routes สำหรับ Google Drive
-// แทนที่ route เก่าด้วยนี้
-Route::get('/test-google-drive', function() {
-    try {
-        $status = [
-            'step1_dependencies' => [
-                'google_client' => class_exists('Google_Client'),
-                'google_service_drive' => class_exists('Google_Service_Drive'),
-                'composer_autoload' => file_exists(base_path('vendor/autoload.php'))
-            ],
-            'step2_credentials' => [
-                'file_exists' => file_exists(storage_path('app/google-credentials.json')),
-                'file_path' => storage_path('app/google-credentials.json')
-            ],
-            'step3_env_config' => [
-                'folder_id' => env('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID') ? 'SET' : 'NOT SET',
-                'folder_id_value' => env('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID'),
-                'service_email' => env('GOOGLE_DRIVE_SERVICE_ACCOUNT_EMAIL')
-            ]
-        ];
-        
-        // ตรวจสอบ Google Client ก่อนสร้าง Service
-        if (!class_exists('Google_Client')) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Google_Client class not found',
-                'solution' => 'Run: composer require google/apiclient && composer dump-autoload',
-                'details' => $status
-            ], 200, [], JSON_PRETTY_PRINT);
-        }
-        
-        // ตรวจสอบ credentials ก่อนสร้าง Service
-        if (!file_exists(storage_path('app/google-credentials.json'))) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Google credentials file not found',
-                'solution' => 'Create storage/app/google-credentials.json with service account JSON',
-                'details' => $status
-            ], 200, [], JSON_PRETTY_PRINT);
-        }
-        
-        // ตรวจสอบ env config
-        if (!env('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID')) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID not set',
-                'solution' => 'Add GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID to .env file',
-                'details' => $status
-            ], 200, [], JSON_PRETTY_PRINT);
-        }
-        
-        // ทดสอบสร้าง GoogleDriveService
-        if (class_exists('App\Services\GoogleDriveService')) {
-            $service = new \App\Services\GoogleDriveService();
-            $connectionTest = $service->testConnection();
-            $status['step4_service_test'] = $connectionTest;
-        } else {
-            $status['step4_service_test'] = [
-                'success' => false,
-                'error' => 'GoogleDriveService class not found'
-            ];
-        }
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => 'All checks passed!',
-            'details' => $status,
-            'next_step' => 'Ready to test file upload/download'
-        ], 200, [], JSON_PRETTY_PRINT);
-        
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage(),
-            'line' => $e->getLine(),
-            'file' => basename($e->getFile()),
-            'solution' => 'Check the error details and fix accordingly'
-        ], 200, [], JSON_PRETTY_PRINT);
-    }
-});
-
-// เพิ่ม debug route ใหม่
-Route::get('/test-composer-debug', function() {
-    $info = [
-        'php_version' => PHP_VERSION,
-        'composer_autoload' => file_exists(base_path('vendor/autoload.php')),
-        'google_packages' => []
-    ];
-    
-    // ตรวจสอบ Google packages
-    $googlePackages = [
-        'vendor/google',
-        'vendor/google/apiclient',
-        'vendor/google/auth',
-        'vendor/google/apiclient-services'
-    ];
-    
-    foreach ($googlePackages as $package) {
-        $info['google_packages'][$package] = is_dir(base_path($package));
-    }
-    
-    // ทดสอบ autoload
-    try {
-        require_once base_path('vendor/autoload.php');
-        
-        $info['classes'] = [
-            'Google_Client' => class_exists('Google_Client'),
-            'Google_Service_Drive' => class_exists('Google_Service_Drive'),
-            'Google_Service_Drive_DriveFile' => class_exists('Google_Service_Drive_DriveFile')
-        ];
-        
-        // ทดสอบสร้าง Google_Client
-        if (class_exists('Google_Client')) {
-            $client = new Google_Client();
-            $info['google_client_creation'] = 'SUCCESS';
-            $info['google_client_methods'] = method_exists($client, 'setAuthConfig');
-        } else {
-            $info['google_client_creation'] = 'FAILED - Class not found';
-        }
-        
-    } catch (\Exception $e) {
-        $info['error'] = $e->getMessage();
-        $info['error_line'] = $e->getLine();
-    }
-    
-    return response()->json($info, 200, [], JSON_PRETTY_PRINT);
-});
-
-Route::get('/test-path-debug', function() {
-    $info = [
-        'current_working_directory' => getcwd(),
-        'document_root' => $_SERVER['DOCUMENT_ROOT'] ?? 'Not set',
-        'script_filename' => $_SERVER['SCRIPT_FILENAME'] ?? 'Not set',
-        'laravel_base_path' => base_path(),
-        'vendor_paths' => []
-    ];
-    
-    // ตรวจสอบ path ต่าง ๆ
-    $pathsToCheck = [
-        'base_path/vendor' => base_path('vendor'),
-        'base_path/vendor/autoload.php' => base_path('vendor/autoload.php'),
-        'base_path/vendor/google' => base_path('vendor/google'),
-        'document_root/../vendor' => ($_SERVER['DOCUMENT_ROOT'] ?? '') . '/../vendor',
-        'current_dir/vendor' => getcwd() . '/vendor',
-        'current_dir/../vendor' => getcwd() . '/../vendor'
-    ];
-    
-    foreach ($pathsToCheck as $name => $path) {
-        $info['vendor_paths'][$name] = [
-            'path' => $path,
-            'exists' => file_exists($path) || is_dir($path)
-        ];
-    }
-    
-    // ตรวจสอบ autoload files
-    $autoloadPaths = [
-        base_path('vendor/autoload.php'),
-        $_SERVER['DOCUMENT_ROOT'] . '/../vendor/autoload.php',
-        __DIR__ . '/../vendor/autoload.php'
-    ];
-    
-    foreach ($autoloadPaths as $autoloadPath) {
-        if (file_exists($autoloadPath)) {
-            $info['working_autoload'] = $autoloadPath;
-            break;
-        }
-    }
-    
-    return response()->json($info, 200, [], JSON_PRETTY_PRINT);
-});
-
-Route::get('/test-manual-google', function() {
-    $paths = [
-        base_path('vendor/autoload.php'),
-        $_SERVER['DOCUMENT_ROOT'] . '/../vendor/autoload.php',
-        __DIR__ . '/../vendor/autoload.php'
-    ];
-    
-    $autoloadFound = false;
-    foreach ($paths as $autoloadPath) {
-        if (file_exists($autoloadPath)) {
-            require_once $autoloadPath;
-            $autoloadFound = $autoloadPath;
-            break;
-        }
-    }
-    
-    if (!$autoloadFound) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Autoload not found',
-            'searched_paths' => $paths
-        ]);
-    }
-    
-    $result = [
-        'autoload_path' => $autoloadFound,
-        'google_client' => class_exists('Google_Client'),
-        'google_service_drive' => class_exists('Google_Service_Drive')
-    ];
-    
-    if (class_exists('Google_Client')) {
-        try {
-            $client = new Google_Client();
-            $result['google_client_creation'] = 'SUCCESS';
-        } catch (\Exception $e) {
-            $result['google_client_creation'] = 'ERROR: ' . $e->getMessage();
-        }
-    }
-    
-    return response()->json($result, 200, [], JSON_PRETTY_PRINT);
 });
