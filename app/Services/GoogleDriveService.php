@@ -1,18 +1,17 @@
 <?php
-// app/Services/GoogleDriveService.php - Fixed Version
+// app/Services/GoogleDriveService.php - Production Fixed Version
 
 namespace App\Services;
 
-use Google_Client;
-use Google_Service_Drive;
-use Google_Service_Drive_DriveFile;
-use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Exception;
 
 class GoogleDriveService
 {
     private $service;
     private $folderId;
+    private $useLocalFallback = false;
 
     public function __construct()
     {
@@ -22,32 +21,28 @@ class GoogleDriveService
     private function initializeService()
     {
         try {
-            // หาไฟล์ service account key ในหลายตำแหน่ง
-            $possiblePaths = [
-                storage_path('app/google/service-account-key.json'),
-                storage_path('app/google-credentials.json'),
-                base_path('google-credentials.json'),
-                base_path('storage/app/google-credentials.json')
-            ];
+            // ตรวจสอบว่า Google Client class มีอยู่หรือไม่
+            if (!class_exists('Google_Client')) {
+                throw new Exception('Google_Client class not found. Using local storage fallback.');
+            }
+
+            // ตรวจสอบไฟล์ service account key ก่อน
+            $keyPath = storage_path('app/google/service-account-key.json');
             
-            $keyPath = null;
-            foreach ($possiblePaths as $path) {
-                if (file_exists($path) && is_readable($path)) {
-                    $keyPath = $path;
-                    break;
-                }
+            Log::info('Initializing Google Drive service', ['key_path' => $keyPath]);
+            
+            if (!file_exists($keyPath)) {
+                throw new Exception("Service account key file not found at: {$keyPath}");
             }
             
-            if (!$keyPath) {
-                throw new Exception("Service account key file not found in any of these locations: " . implode(', ', $possiblePaths));
+            if (!is_readable($keyPath)) {
+                throw new Exception("Service account key file is not readable at: {$keyPath}");
             }
-            
-            Log::info('Google Drive service initializing', ['key_path' => $keyPath]);
             
             // ตรวจสอบขนาดไฟล์
             $fileSize = filesize($keyPath);
             if ($fileSize < 100) {
-                throw new Exception("Service account key file seems too small ({$fileSize} bytes). Please check file content.");
+                throw new Exception("Service account key file seems too small ({$fileSize} bytes).");
             }
             
             // ตรวจสอบว่าไฟล์เป็น JSON หรือไม่
@@ -73,31 +68,46 @@ class GoogleDriveService
             ]);
 
             // สร้าง Google Client
-            $client = new Google_Client();
+            $client = new \Google_Client();
             $client->setAuthConfig($keyPath);
-            $client->addScope(Google_Service_Drive::DRIVE_FILE);
-            $client->setApplicationName('Youth Cyber Safe - Behavioral Report System');
+            $client->addScope(\Google_Service_Drive::DRIVE_FILE);
+            $client->setApplicationName('Youth Cyber Safe');
 
             Log::info('Google Client configured successfully');
 
             // สร้าง Google Drive Service
-            $this->service = new Google_Service_Drive($client);
+            $this->service = new \Google_Service_Drive($client);
             
-            // ตั้งค่า folder ID จาก .env
-            $this->folderId = env('GOOGLE_DRIVE_BEHAVIORAL_REPORT_FOLDER_ID');
-            
-            Log::info('Google Drive service initialized successfully', [
-                'folder_id' => $this->folderId
-            ]);
+            Log::info('Google Drive service initialized successfully');
             
         } catch (Exception $e) {
             $errorMessage = 'Failed to initialize Google Drive service: ' . $e->getMessage();
-            Log::error($errorMessage, [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            throw new Exception($errorMessage);
+            Log::warning($errorMessage . ' - Using local storage fallback');
+            
+            $this->useLocalFallback = true;
+            $this->initializeLocalStorage();
+        }
+    }
+
+    /**
+     * Initialize local storage fallback
+     */
+    private function initializeLocalStorage()
+    {
+        try {
+            // สร้าง directories สำหรับ local storage
+            $directories = ['behavioral_report', 'behavioral_report/images', 'behavioral_report/voices'];
+            
+            foreach ($directories as $dir) {
+                if (!Storage::disk('public')->exists($dir)) {
+                    Storage::disk('public')->makeDirectory($dir);
+                }
+            }
+            
+            Log::info('Local storage fallback initialized successfully');
+            
+        } catch (Exception $e) {
+            Log::error('Failed to initialize local storage: ' . $e->getMessage());
         }
     }
 
@@ -106,12 +116,11 @@ class GoogleDriveService
      */
     public function createFolderIfNotExists($folderName, $parentId = null)
     {
-        try {
-            // ใช้ folder ID จาก .env ถ้าไม่มี parent ID
-            if (!$parentId && $this->folderId) {
-                $parentId = $this->folderId;
-            }
+        if ($this->useLocalFallback) {
+            return $this->createLocalFolder($folderName, $parentId);
+        }
 
+        try {
             // Search for existing folder
             $query = "name='{$folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false";
             if ($parentId) {
@@ -129,7 +138,7 @@ class GoogleDriveService
             }
 
             // Create new folder
-            $fileMetadata = new Google_Service_Drive_DriveFile([
+            $fileMetadata = new \Google_Service_Drive_DriveFile([
                 'name' => $folderName,
                 'mimeType' => 'application/vnd.google-apps.folder'
             ]);
@@ -147,8 +156,22 @@ class GoogleDriveService
 
         } catch (Exception $e) {
             Log::error("Failed to create folder {$folderName}: " . $e->getMessage());
-            throw new Exception("Failed to create folder: {$folderName}. Error: " . $e->getMessage());
+            return $this->createLocalFolder($folderName, $parentId);
         }
+    }
+
+    /**
+     * Create local folder (fallback)
+     */
+    private function createLocalFolder($folderName, $parentId = null)
+    {
+        $path = $parentId ? "{$parentId}/{$folderName}" : $folderName;
+        
+        if (!Storage::disk('public')->exists("behavioral_report/{$path}")) {
+            Storage::disk('public')->makeDirectory("behavioral_report/{$path}");
+        }
+        
+        return "local_{$path}";
     }
 
     /**
@@ -156,13 +179,12 @@ class GoogleDriveService
      */
     public function uploadFile($fileContent, $fileName, $mimeType, $folderId = null)
     {
-        try {
-            // ใช้ folder ID หลักถ้าไม่ระบุ
-            if (!$folderId && $this->folderId) {
-                $folderId = $this->folderId;
-            }
+        if ($this->useLocalFallback) {
+            return $this->uploadLocalFile($fileContent, $fileName, $mimeType, $folderId);
+        }
 
-            $fileMetadata = new Google_Service_Drive_DriveFile([
+        try {
+            $fileMetadata = new \Google_Service_Drive_DriveFile([
                 'name' => $fileName
             ]);
 
@@ -177,31 +199,60 @@ class GoogleDriveService
                 'fields' => 'id,name,webViewLink'
             ]);
 
-            Log::info("Uploaded file: {$fileName}", [
-                'id' => $file->id,
-                'folder_id' => $folderId
-            ]);
+            Log::info("Uploaded file: {$fileName}", ['id' => $file->id]);
             
             return [
                 'id' => $file->id,
                 'name' => $file->name,
-                'webViewLink' => $file->webViewLink
+                'webViewLink' => $file->webViewLink,
+                'storage_type' => 'google_drive'
             ];
 
         } catch (Exception $e) {
             Log::error("Failed to upload file {$fileName}: " . $e->getMessage());
-            throw new Exception("Failed to upload file: {$fileName}. Error: " . $e->getMessage());
+            return $this->uploadLocalFile($fileContent, $fileName, $mimeType, $folderId);
         }
     }
 
     /**
-     * Upload voice file to voices subfolder
+     * Upload file to local storage (fallback)
+     */
+    private function uploadLocalFile($fileContent, $fileName, $mimeType, $folderId = null)
+    {
+        try {
+            $path = $folderId ? "behavioral_report/{$folderId}/{$fileName}" : "behavioral_report/{$fileName}";
+            
+            Storage::disk('public')->put($path, $fileContent);
+            
+            $url = Storage::disk('public')->url($path);
+            
+            Log::info("Uploaded file to local storage: {$fileName}", ['path' => $path]);
+            
+            return [
+                'id' => "local_" . md5($fileName . time()),
+                'name' => $fileName,
+                'webViewLink' => $url,
+                'local_path' => $path,
+                'storage_type' => 'local_storage'
+            ];
+            
+        } catch (Exception $e) {
+            Log::error("Failed to upload file to local storage: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Upload voice file
      */
     public function uploadVoiceFile($audioData, $fileName)
     {
         try {
+            // Create main folder
+            $mainFolderId = $this->createFolderIfNotExists('behavioral_report');
+            
             // Create voices subfolder
-            $voicesFolderId = $this->createFolderIfNotExists('voices');
+            $voicesFolderId = $this->createFolderIfNotExists('voices', $mainFolderId);
 
             // Decode base64 audio data
             if (strpos($audioData, 'data:audio') === 0) {
@@ -218,13 +269,16 @@ class GoogleDriveService
     }
 
     /**
-     * Upload image file to images subfolder
+     * Upload image file
      */
     public function uploadImageFile($imageFile, $fileName)
     {
         try {
+            // Create main folder
+            $mainFolderId = $this->createFolderIfNotExists('behavioral_report');
+            
             // Create images subfolder
-            $imagesFolderId = $this->createFolderIfNotExists('images');
+            $imagesFolderId = $this->createFolderIfNotExists('images', $mainFolderId);
 
             // Get file content
             $fileContent = file_get_contents($imageFile->getPathname());
@@ -239,88 +293,26 @@ class GoogleDriveService
     }
 
     /**
-     * Delete file from Google Drive
+     * Generate filename with timestamp
      */
-    public function deleteFile($fileId)
+    public static function generateFileName($extension = 'png')
     {
-        try {
-            $this->service->files->delete($fileId);
-            Log::info("Deleted file with ID: {$fileId}");
-            return true;
-        } catch (Exception $e) {
-            Log::error("Failed to delete file {$fileId}: " . $e->getMessage());
-            return false;
-        }
+        return now()->format('Y-m-d_H-i-s') . '_' . rand(1000, 9999) . '.' . $extension;
     }
 
     /**
-     * Get file info
+     * Check if using local fallback
      */
-    public function getFileInfo($fileId)
+    public function isUsingLocalFallback()
     {
-        try {
-            $file = $this->service->files->get($fileId, [
-                'fields' => 'id,name,mimeType,size,createdTime,webViewLink'
-            ]);
-            
-            return [
-                'id' => $file->getId(),
-                'name' => $file->getName(),
-                'mimeType' => $file->getMimeType(),
-                'size' => $file->getSize(),
-                'createdTime' => $file->getCreatedTime(),
-                'webViewLink' => $file->getWebViewLink()
-            ];
-        } catch (Exception $e) {
-            Log::error("Failed to get file info {$fileId}: " . $e->getMessage());
-            return null;
-        }
+        return $this->useLocalFallback;
     }
 
     /**
-     * Test connection without initializing full service
+     * Get storage type
      */
-    public static function testBasicConnection()
+    public function getStorageType()
     {
-        $possiblePaths = [
-            storage_path('app/google/service-account-key.json'),
-            storage_path('app/google-credentials.json'),
-            base_path('google-credentials.json'),
-            base_path('storage/app/google-credentials.json')
-        ];
-        
-        $result = [
-            'key_file_exists' => false,
-            'key_file_readable' => false,
-            'key_file_size' => 0,
-            'key_path' => null,
-            'checked_paths' => $possiblePaths
-        ];
-        
-        foreach ($possiblePaths as $path) {
-            if (file_exists($path)) {
-                $result['key_file_exists'] = true;
-                $result['key_file_readable'] = is_readable($path);
-                $result['key_file_size'] = filesize($path);
-                $result['key_path'] = $path;
-                break;
-            }
-        }
-        
-        if ($result['key_file_exists'] && $result['key_file_readable']) {
-            $keyContent = file_get_contents($result['key_path']);
-            $keyData = json_decode($keyContent, true);
-            
-            $result['json_valid'] = json_last_error() === JSON_ERROR_NONE;
-            $result['json_error'] = json_last_error_msg();
-            
-            if ($result['json_valid']) {
-                $result['project_id'] = $keyData['project_id'] ?? 'missing';
-                $result['client_email'] = $keyData['client_email'] ?? 'missing';
-                $result['has_private_key'] = isset($keyData['private_key']) && !empty($keyData['private_key']);
-            }
-        }
-        
-        return $result;
+        return $this->useLocalFallback ? 'Local Storage' : 'Google Drive';
     }
 }
