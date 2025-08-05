@@ -450,3 +450,189 @@ Route::get('/debug-local-storage', function() {
         ], 500, [], JSON_PRETTY_PRINT);
     }
 });
+
+Route::get('/debug/google-client', function() {
+    $results = [];
+    
+    // Check if composer autoload works
+    try {
+        require_once base_path('vendor/autoload.php');
+        $results['autoload'] = 'OK';
+    } catch (Exception $e) {
+        $results['autoload'] = 'ERROR: ' . $e->getMessage();
+    }
+    
+    // Check if Google_Client class exists
+    $results['google_client_exists'] = class_exists('Google_Client') ? 'YES' : 'NO';
+    
+    // Check Google API Client package
+    $composerLock = json_decode(file_get_contents(base_path('composer.lock')), true);
+    $googlePackage = null;
+    
+    foreach ($composerLock['packages'] as $package) {
+        if ($package['name'] === 'google/apiclient') {
+            $googlePackage = $package;
+            break;
+        }
+    }
+    
+    $results['google_package'] = $googlePackage ? 
+        ['version' => $googlePackage['version'], 'installed' => true] : 
+        ['installed' => false];
+    
+    // Check PHP extensions
+    $requiredExtensions = ['curl', 'json', 'openssl', 'mbstring'];
+    $results['php_extensions'] = [];
+    
+    foreach ($requiredExtensions as $ext) {
+        $results['php_extensions'][$ext] = extension_loaded($ext) ? 'LOADED' : 'MISSING';
+    }
+    
+    // Check service account key
+    $keyPath = storage_path('app/google/service-account-key.json');
+    $results['service_account_key'] = [
+        'path' => $keyPath,
+        'exists' => file_exists($keyPath),
+        'readable' => file_exists($keyPath) && is_readable($keyPath),
+        'size' => file_exists($keyPath) ? filesize($keyPath) : 0
+    ];
+    
+    // Test Google Drive Service
+    try {
+        $service = new App\Services\GoogleDriveService();
+        $results['google_drive_service'] = [
+            'initialized' => true,
+            'storage_type' => $service->getStorageType(),
+            'using_fallback' => $service->isUsingLocalFallback()
+        ];
+    } catch (Exception $e) {
+        $results['google_drive_service'] = [
+            'initialized' => false,
+            'error' => $e->getMessage()
+        ];
+    }
+    
+    return response()->json($results, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+})->name('debug.google.client.production');
+
+// Test Behavioral Report System in Production
+Route::get('/debug/behavioral-report', function() {
+    try {
+        // Test database connection
+        $dbTest = DB::connection()->getPdo();
+        
+        // Test table existence
+        $tableExists = Schema::hasTable('behavioral_report');
+        
+        // Test model
+        $modelClass = '\App\Models\ReportConsultation\BehavioralReportReportConsultation';
+        $modelWorks = class_exists($modelClass);
+        
+        // Test record count
+        $recordCount = $modelWorks ? $modelClass::count() : 'N/A';
+        
+        // Test Google Drive Service
+        $googleService = new App\Services\GoogleDriveService();
+        
+        // Test file upload simulation
+        $testResult = null;
+        try {
+            $folderId = $googleService->createFolderIfNotExists('test_folder');
+            $testResult = [
+                'folder_created' => true,
+                'folder_id' => $folderId,
+                'storage_type' => $googleService->getStorageType()
+            ];
+        } catch (Exception $e) {
+            $testResult = [
+                'folder_created' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+        
+        return response()->json([
+            'success' => true,
+            'database' => [
+                'connection' => 'OK',
+                'driver' => $dbTest->getAttribute(PDO::ATTR_DRIVER_NAME)
+            ],
+            'table' => [
+                'exists' => $tableExists
+            ],
+            'model' => [
+                'class_exists' => $modelWorks,
+                'record_count' => $recordCount
+            ],
+            'google_service' => [
+                'storage_type' => $googleService->getStorageType(),
+                'using_fallback' => $googleService->isUsingLocalFallback(),
+                'test_result' => $testResult
+            ],
+            'environment' => [
+                'app_env' => config('app.env'),
+                'app_debug' => config('app.debug'),
+                'php_version' => PHP_VERSION
+            ]
+        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+})->name('debug.behavioral.report.production');
+
+// Fix Production Server Route
+Route::get('/fix/production-server', function() {
+    $results = [];
+    
+    try {
+        // Clear all caches
+        \Artisan::call('config:clear');
+        \Artisan::call('route:clear');
+        \Artisan::call('view:clear');
+        \Artisan::call('cache:clear');
+        
+        $results['cache_cleared'] = 'SUCCESS';
+        
+        // Regenerate autoload
+        exec('composer dump-autoload --optimize --no-dev 2>&1', $output, $return);
+        $results['autoload_regenerated'] = $return === 0 ? 'SUCCESS' : 'FAILED';
+        $results['composer_output'] = $output;
+        
+        // Test Google Drive Service after fixes
+        try {
+            $service = new App\Services\GoogleDriveService();
+            $results['google_service_after_fix'] = [
+                'working' => true,
+                'storage_type' => $service->getStorageType(),
+                'using_fallback' => $service->isUsingLocalFallback()
+            ];
+        } catch (Exception $e) {
+            $results['google_service_after_fix'] = [
+                'working' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Production server fixes applied',
+            'results' => $results,
+            'next_steps' => [
+                'Test main site functionality',
+                'Check behavioral report submission',
+                'Monitor logs for any remaining issues'
+            ]
+        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'partial_results' => $results
+        ], 500, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+})->name('fix.production.server');
