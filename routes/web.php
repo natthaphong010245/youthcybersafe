@@ -297,3 +297,156 @@ Route::prefix('api')->name('api.')->group(function () {
         })->name('stats');
     });
 });
+
+// เพิ่มใน routes/web.php
+
+// Test Google Drive Upload
+Route::get('/debug-google-drive', function() {
+    try {
+        Log::info('=== Debug Google Drive Upload ===');
+        
+        // ตรวจสอบว่ามี Google_Client หรือไม่
+        if (!class_exists('Google_Client')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Google_Client class not found',
+                'solution' => 'Run: composer require google/apiclient'
+            ], 500, [], JSON_PRETTY_PRINT);
+        }
+        
+        // ตรวจสอบ Service Account Key
+        $possiblePaths = [
+            storage_path('app/google/service-account-key.json'),
+            storage_path('app/google-credentials.json'),
+            base_path('google-credentials.json'),
+        ];
+        
+        $keyPath = null;
+        foreach ($possiblePaths as $path) {
+            if (file_exists($path)) {
+                $keyPath = $path;
+                break;
+            }
+        }
+        
+        if (!$keyPath) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Service account key file not found',
+                'checked_paths' => $possiblePaths,
+                'solution' => 'Copy google-credentials.json to storage/app/google/service-account-key.json'
+            ], 500, [], JSON_PRETTY_PRINT);
+        }
+        
+        // ทดสอบสร้าง GoogleDriveService
+        $service = new \App\Services\GoogleDriveService();
+        
+        // สร้างไฟล์ทดสอบ
+        $testContent = "Test file - " . now()->toDateTimeString();
+        $testFileName = 'debug_test_' . now()->format('YmdHis') . '.txt';
+        
+        // อัปโหลดไฟล์ทดสอบ
+        $result = $service->uploadFile($testContent, $testFileName, 'text/plain');
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Google Drive upload test successful!',
+            'file_uploaded' => $result,
+            'key_file_used' => $keyPath,
+            'timestamp' => now()->toDateTimeString()
+        ], 200, [], JSON_PRETTY_PRINT);
+        
+    } catch (Exception $e) {
+        Log::error('Debug Google Drive failed: ' . $e->getMessage());
+        
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Google Drive test failed',
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ], 500, [], JSON_PRETTY_PRINT);
+    }
+});
+
+// ตรวจสอบไฟล์ในระบบ
+Route::get('/debug-files', function() {
+    $results = [];
+    
+    // ตรวจสอบ Google credentials
+    $googlePaths = [
+        base_path('google-credentials.json'),
+        storage_path('app/google/service-account-key.json'),
+        storage_path('app/google-credentials.json')
+    ];
+    
+    foreach ($googlePaths as $path) {
+        $results['google_files'][] = [
+            'path' => $path,
+            'exists' => file_exists($path),
+            'readable' => file_exists($path) ? is_readable($path) : false,
+            'size' => file_exists($path) ? filesize($path) : 0
+        ];
+    }
+    
+    // ตรวจสอบไฟล์ behavioral reports
+    $reportPaths = [
+        storage_path('app/behavioral_reports/voices'),
+        storage_path('app/behavioral_reports/images')
+    ];
+    
+    foreach ($reportPaths as $path) {
+        $files = [];
+        if (is_dir($path)) {
+            $files = array_diff(scandir($path), ['.', '..']);
+        }
+        
+        $results['behavioral_files'][] = [
+            'path' => $path,
+            'exists' => is_dir($path),
+            'files' => $files,
+            'count' => count($files)
+        ];
+    }
+    
+    // ตรวจสอบ Composer packages
+    $composerFile = base_path('vendor/composer/installed.json');
+    if (file_exists($composerFile)) {
+        $installed = json_decode(file_get_contents($composerFile), true);
+        $googlePackages = array_filter($installed['packages'] ?? [], function($package) {
+            return strpos($package['name'], 'google') !== false;
+        });
+        $results['composer_google_packages'] = array_column($googlePackages, 'name');
+    }
+    
+    return response()->json($results, 200, [], JSON_PRETTY_PRINT);
+});
+
+// ทดสอบสร้างไฟล์ local
+Route::get('/debug-local-storage', function() {
+    try {
+        Storage::makeDirectory('behavioral_reports/test');
+        
+        $testContent = "Local storage test - " . now()->toDateTimeString();
+        $testFileName = 'local_test_' . now()->format('YmdHis') . '.txt';
+        
+        Storage::put('behavioral_reports/test/' . $testFileName, $testContent);
+        
+        $filePath = storage_path('app/behavioral_reports/test/' . $testFileName);
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Local storage test successful',
+            'file_path' => $filePath,
+            'file_exists' => file_exists($filePath),
+            'file_content' => Storage::get('behavioral_reports/test/' . $testFileName)
+        ], 200, [], JSON_PRETTY_PRINT);
+        
+    } catch (Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Local storage test failed',
+            'error' => $e->getMessage()
+        ], 500, [], JSON_PRETTY_PRINT);
+    }
+});
