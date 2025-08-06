@@ -111,11 +111,15 @@ class LocalFileService
             $filePath = $directory . '/' . $filename;
             File::put($filePath, $decodedAudio);
 
+            // สร้าง URL เต็ม
+            $fullUrl = asset("uploads/behavioral_report/voice/{$reportId}/{$filename}");
+
             return [
                 'success' => true,
                 'public_id' => "behavioral_report/voice/{$reportId}/{$filename}",
-                'secure_url' => asset("uploads/behavioral_report/voice/{$reportId}/{$filename}"),
-                'filename' => $filename
+                'secure_url' => $fullUrl,
+                'filename' => $filename,
+                'full_url' => $fullUrl  // เพิ่ม full_url
             ];
         } catch (\Exception $e) {
             return [

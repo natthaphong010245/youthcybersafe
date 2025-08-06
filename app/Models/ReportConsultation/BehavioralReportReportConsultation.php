@@ -4,7 +4,7 @@ namespace App\Models\ReportConsultation;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Services\LocalFileService; // เปลี่ยนจาก CloudinaryService
+use App\Services\CloudinaryService;
 
 class BehavioralReportReportConsultation extends Model
 {
@@ -61,7 +61,7 @@ class BehavioralReportReportConsultation extends Model
      */
     public function saveVoiceRecording($audioData): array
     {
-        $fileService = new LocalFileService(); // เปลี่ยนจาก CloudinaryService
+        $fileService = new CloudinaryService();
         $result = $fileService->uploadVoice($audioData, $this->id);
         
         if ($result['success']) {
@@ -86,7 +86,7 @@ class BehavioralReportReportConsultation extends Model
      */
     public function saveImages($photos): array
     {
-        $fileService = new LocalFileService(); // เปลี่ยนจาก CloudinaryService
+        $fileService = new CloudinaryService();
         $result = $fileService->uploadMultipleImages($photos, $this->id);
         
         if ($result['success_count'] > 0) {
@@ -132,12 +132,12 @@ class BehavioralReportReportConsultation extends Model
             return null;
         }
         
-        // ถ้าเป็น URL เต็มแล้ว ให้ return ตรงๆ
+        // ถ้าเป็น URL เต็มแล้ว (Cloudinary URL) ให้ return ตรงๆ
         if (filter_var($this->voice, FILTER_VALIDATE_URL)) {
             return $this->voice;
         }
         
-        // สร้าง URL สำหรับไฟล์ที่เก็บใน uploads
+        // สำหรับไฟล์เก่าที่อาจเก็บเป็นชื่อไฟล์ (backward compatibility)
         return asset("uploads/behavioral_report/voice/{$this->id}/{$this->voice}");
     }
 
