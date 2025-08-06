@@ -180,6 +180,27 @@ CREATE TABLE `mental_health_assessment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
+
+### Table: behavioral_report
+เก็บข้อมูลการรายงานพฤติกรรม
+
+```sql
+CREATE TABLE `behavioral_report` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `who` varchar(255) NOT NULL,
+  `school` varchar(255) DEFAULT NULL,
+  `message` text NOT NULL,
+  `voice` varchar(255) DEFAULT NULL,
+  `image` longtext DEFAULT NULL,
+  `latitude` decimal(10,8) DEFAULT NULL,
+  `longitude` decimal(11,8) DEFAULT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
 ## API Endpoints
 
 ### Authentication
