@@ -69,7 +69,8 @@ class BehavioralReportReportConsultation extends Model
             Log::info('Voice upload result:', $result);
             
             if ($result['success']) {
-                $this->voice = $result['filename'];
+                // บันทึก URL เต็มแทนที่จะเป็นแค่ filename
+                $this->voice = $result['secure_url']; // Changed from filename to secure_url
                 $this->save();
                 
                 return [
@@ -155,12 +156,12 @@ class BehavioralReportReportConsultation extends Model
             return null;
         }
         
-        // ถ้าเป็น URL เต็มแล้ว ให้ return ตรงๆ
+        // ถ้าเป็น URL เต็มแล้ว ให้ return ตรงๆ (ข้อมูลใหม่)
         if (filter_var($this->voice, FILTER_VALIDATE_URL)) {
             return $this->voice;
         }
         
-        // สำหรับไฟล์ local ใช้ asset helper
+        // สำหรับข้อมูลเก่าที่เป็นแค่ filename (backward compatibility)
         return asset("uploads/behavioral_report/voice/{$this->id}/{$this->voice}");
     }
 
