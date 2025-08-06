@@ -353,3 +353,21 @@ Route::prefix('api')->name('api.')->group(function () {
     });
 });
 }
+
+
+
+Route::get('/test-file-service', function () {
+    $fileService = new \App\Services\LocalFileService();
+    $result = $fileService->testConnection();
+    
+    return response()->json([
+        'service_test' => $result,
+        'upload_path_exists' => file_exists(public_path('uploads')),
+        'upload_path_writable' => is_writable(public_path('uploads')),
+        'behavioral_report_path_exists' => file_exists(public_path('uploads/behavioral_report')),
+        'voice_path_exists' => file_exists(public_path('uploads/behavioral_report/voice')),
+        'images_path_exists' => file_exists(public_path('uploads/behavioral_report/images')),
+        'public_path' => public_path('uploads'),
+        'permissions' => substr(sprintf('%o', fileperms(public_path('uploads'))), -4),
+    ]);
+});

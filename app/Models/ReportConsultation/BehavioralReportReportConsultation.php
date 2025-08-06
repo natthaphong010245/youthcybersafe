@@ -4,7 +4,8 @@ namespace App\Models\ReportConsultation;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Services\CloudinaryService;
+use App\Services\LocalFileService; // Changed from CloudinaryService to LocalFileService
+use Illuminate\Support\Facades\Log;
 
 class BehavioralReportReportConsultation extends Model
 {
@@ -61,24 +62,35 @@ class BehavioralReportReportConsultation extends Model
      */
     public function saveVoiceRecording($audioData): array
     {
-        $fileService = new CloudinaryService();
-        $result = $fileService->uploadVoice($audioData, $this->id);
-        
-        if ($result['success']) {
-            $this->voice = $result['filename'];
-            $this->save();
+        try {
+            $fileService = new LocalFileService(); // Changed to LocalFileService
+            $result = $fileService->uploadVoice($audioData, $this->id);
+            
+            Log::info('Voice upload result:', $result);
+            
+            if ($result['success']) {
+                $this->voice = $result['filename'];
+                $this->save();
+                
+                return [
+                    'success' => true,
+                    'filename' => $result['filename'],
+                    'url' => $result['secure_url']
+                ];
+            }
             
             return [
-                'success' => true,
-                'filename' => $result['filename'],
-                'url' => $result['secure_url']
+                'success' => false,
+                'error' => $result['error'] ?? 'Failed to upload voice recording'
+            ];
+        } catch (\Exception $e) {
+            Log::error('Voice recording save failed: ' . $e->getMessage());
+            
+            return [
+                'success' => false,
+                'error' => 'Failed to save voice recording: ' . $e->getMessage()
             ];
         }
-        
-        return [
-            'success' => false,
-            'error' => $result['error'] ?? 'Failed to upload voice recording'
-        ];
     }
 
     /**
@@ -86,28 +98,39 @@ class BehavioralReportReportConsultation extends Model
      */
     public function saveImages($photos): array
     {
-        $fileService = new CloudinaryService();
-        $result = $fileService->uploadMultipleImages($photos, $this->id);
-        
-        if ($result['success_count'] > 0) {
-            // เก็บ URLs ใน database
-            $this->image = json_encode($result['urls'], JSON_UNESCAPED_SLASHES);
-            $this->save();
+        try {
+            $fileService = new LocalFileService(); // Changed to LocalFileService
+            $result = $fileService->uploadMultipleImages($photos, $this->id);
+            
+            Log::info('Images upload result:', $result);
+            
+            if ($result['success_count'] > 0) {
+                // เก็บ URLs ใน database
+                $this->image = json_encode($result['urls'], JSON_UNESCAPED_SLASHES);
+                $this->save();
+                
+                return [
+                    'success' => true,
+                    'uploaded_count' => $result['success_count'],
+                    'total_count' => $result['total_count'],
+                    'urls' => $result['urls'],
+                    'filenames' => $result['filenames']
+                ];
+            }
             
             return [
-                'success' => true,
-                'uploaded_count' => $result['success_count'],
-                'total_count' => $result['total_count'],
-                'urls' => $result['urls'],
-                'filenames' => $result['filenames']
+                'success' => false,
+                'error' => 'Failed to upload images',
+                'results' => $result['results']
+            ];
+        } catch (\Exception $e) {
+            Log::error('Images save failed: ' . $e->getMessage());
+            
+            return [
+                'success' => false,
+                'error' => 'Failed to save images: ' . $e->getMessage()
             ];
         }
-        
-        return [
-            'success' => false,
-            'error' => 'Failed to upload images',
-            'results' => $result['results']
-        ];
     }
 
     /**
@@ -132,12 +155,12 @@ class BehavioralReportReportConsultation extends Model
             return null;
         }
         
-        // ถ้าเป็น URL เต็มแล้ว (Cloudinary URL) ให้ return ตรงๆ
+        // ถ้าเป็น URL เต็มแล้ว ให้ return ตรงๆ
         if (filter_var($this->voice, FILTER_VALIDATE_URL)) {
             return $this->voice;
         }
         
-        // สำหรับไฟล์เก่าที่อาจเก็บเป็นชื่อไฟล์ (backward compatibility)
+        // สำหรับไฟล์ local ใช้ asset helper
         return asset("uploads/behavioral_report/voice/{$this->id}/{$this->voice}");
     }
 
