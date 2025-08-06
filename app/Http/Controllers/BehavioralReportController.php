@@ -1,17 +1,25 @@
 <?php
-
+// app/Http/Controllers/BehavioralReportController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Models\ReportConsultation\BehavioralReportReportConsultation;
+use App\Services\LocalFileService; // เปลี่ยนจาก CloudinaryService
 
 class BehavioralReportController extends Controller
 {
+    protected $fileService;
+
+    public function __construct(LocalFileService $fileService) // เปลี่ยนเป็น LocalFileService
+    {
+        $this->fileService = $fileService;
+    
+    }
+
     /**
      * Display the behavioral report form.
-     *
-     * @return \Illuminate\Http\Response
      */
     public function index()
     {
@@ -20,9 +28,6 @@ class BehavioralReportController extends Controller
     
     /**
      * Store a newly created behavioral report in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
@@ -36,74 +41,118 @@ class BehavioralReportController extends Controller
             'longitude' => 'nullable|numeric',
         ]);
         
-        // Create and save the report to get the ID using DB directly
-        $reportId = DB::table('behavioral_report')->insertGetId([
-            'who' => $request->report_to,
-            'school' => $request->report_to === 'researcher' ? null : $request->school,
-            'message' => $request->message,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        DB::beginTransaction();
         
-        // Handle voice recording
-        if ($request->filled('audio_recording')) {
-            $audioData = $request->audio_recording;
+        try {
+            // Create and save the report to get the ID
+            $report = BehavioralReportReportConsultation::create([
+                'who' => $request->report_to,
+                'school' => $request->report_to === 'researcher' ? null : $request->school,
+                'message' => $request->message,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'status' => false, // ค่าเริ่มต้น
+            ]);
             
-            // Check if it's a base64 data URL
-            if (strpos($audioData, 'data:audio') === 0) {
-                // Extract base64 data
-                $audioData = substr($audioData, strpos($audioData, ',') + 1);
-                $audioData = base64_decode($audioData);
+            $uploadResults = [];
+            
+            // Handle voice recording upload
+            if ($request->filled('audio_recording')) {
+                Log::info('Processing voice recording for report ID: ' . $report->id);
                 
-                // Create directory if it doesn't exist
-                $directory = public_path('voice/behavioral_report');
-                if (!File::isDirectory($directory)) {
-                    File::makeDirectory($directory, 0755, true);
+                $voiceResult = $report->saveVoiceRecording($request->audio_recording);
+                
+                if ($voiceResult['success']) {
+                    Log::info('Voice recording uploaded successfully', [
+                        'report_id' => $report->id,
+                        'filename' => $voiceResult['filename']
+                    ]);
+                    $uploadResults['voice'] = $voiceResult;
+                } else {
+                    Log::error('Failed to upload voice recording', [
+                        'report_id' => $report->id,
+                        'error' => $voiceResult['error']
+                    ]);
+                    $uploadResults['voice'] = $voiceResult;
                 }
-                
-                // Save the file
-                $audioFilename = $reportId . '.mp3';
-                File::put($directory . '/' . $audioFilename, $audioData);
-                
-                // Update the report
-                DB::table('behavioral_report')
-                    ->where('id', $reportId)
-                    ->update(['voice' => $audioFilename]);
             }
+            
+            // Handle image uploads
+            if ($request->hasFile('photos')) {
+                Log::info('Processing images for report ID: ' . $report->id, [
+                    'image_count' => count($request->file('photos'))
+                ]);
+                
+                $imageResult = $report->saveImages($request->file('photos'));
+                
+                if ($imageResult['success']) {
+                    Log::info('Images uploaded successfully', [
+                        'report_id' => $report->id,
+                        'uploaded_count' => $imageResult['uploaded_count'],
+                        'total_count' => $imageResult['total_count']
+                    ]);
+                    $uploadResults['images'] = $imageResult;
+                } else {
+                    Log::error('Failed to upload images', [
+                        'report_id' => $report->id,
+                        'error' => $imageResult['error']
+                    ]);
+                    $uploadResults['images'] = $imageResult;
+                }
+            }
+            
+            DB::commit();
+            
+            // Log successful report creation
+            Log::info('Behavioral report created successfully', [
+                'report_id' => $report->id,
+                'who' => $report->who,
+                'school' => $report->school,
+                'has_voice' => !empty($report->voice),
+                'has_images' => !empty($report->image),
+                'upload_results' => $uploadResults
+            ]);
+            
+            // สร้างข้อความ success
+            $successMessage = 'รายงานพฤติกรรมของคุณถูกส่งเรียบร้อยแล้ว';
+            
+            if (isset($uploadResults['voice']) && !$uploadResults['voice']['success']) {
+                $successMessage .= ' (หมายเหตุ: ไม่สามารถอัปโหลดไฟล์เสียงได้)';
+            }
+            
+            if (isset($uploadResults['images']) && !$uploadResults['images']['success']) {
+                $successMessage .= ' (หมายเหตุ: ไม่สามารถอัปโหลดรูปภาพบางรูปได้)';
+            }
+            
+            return redirect()->route('behavioral_report')->with('success', $successMessage);
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            Log::error('Failed to create behavioral report', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->except(['photos', 'audio_recording'])
+            ]);
+            
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'เกิดข้อผิดพลาดในการส่งรายงาน กรุณาลองใหม่อีกครั้ง']);
         }
-        
-        // Handle image uploads
-        if ($request->hasFile('photos')) {
-            $images = [];
-            
-            // Create directory if it doesn't exist
-            $directory = public_path("images/behavioral_report/{$reportId}");
-            if (!File::isDirectory($directory)) {
-                File::makeDirectory($directory, 0755, true);
-            }
-            
-            // Process each image
-            foreach ($request->file('photos') as $index => $photo) {
-                $index++; // Start from 1
-                $extension = $photo->getClientOriginalExtension();
-                $filename = "{$index}.{$extension}";
-                
-                // Move the file
-                $photo->move($directory, $filename);
-                
-                // Add to images array
-                $images[] = "images/behavioral_report/{$reportId}/{$filename}";
-            }
-            
-            // Update the report - ใช้ JSON_UNESCAPED_SLASHES เพื่อไม่ให้เกิด backslash
-            DB::table('behavioral_report')
-                ->where('id', $reportId)
-                ->update(['image' => json_encode($images, JSON_UNESCAPED_SLASHES)]);
-        }
-        
-        // ส่ง session success เพื่อแสดงป๊อปอัพและ redirect ไปยังหน้า behavioral_report
-        return redirect()->route('behavioral_report')->with('success', 'รายงานพฤติกรรมของคุณถูกส่งเรียบร้อยแล้ว');
+    }
+
+    /**
+     * Get statistics for dashboard
+     */
+    public function getStatistics()
+    {
+        return [
+            'total' => BehavioralReportReportConsultation::count(),
+            'approved' => BehavioralReportReportConsultation::approved()->count(),
+            'pending' => BehavioralReportReportConsultation::pending()->count(),
+            'teacher_reports' => BehavioralReportReportConsultation::forTeacher()->count(),
+            'researcher_reports' => BehavioralReportReportConsultation::forResearcher()->count(),
+            'recent_reports' => BehavioralReportReportConsultation::latest()->take(5)->get()
+        ];
     }
 }

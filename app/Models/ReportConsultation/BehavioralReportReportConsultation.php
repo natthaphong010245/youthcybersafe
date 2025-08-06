@@ -1,0 +1,201 @@
+<?php
+// app/Models/ReportConsultation/BehavioralReportReportConsultation.php
+namespace App\Models\ReportConsultation;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use App\Services\LocalFileService; // เปลี่ยนจาก CloudinaryService
+
+class BehavioralReportReportConsultation extends Model
+{
+    use HasFactory;
+    
+    /**
+     * The table associated with the model.
+     */
+    protected $table = 'behavioral_report';
+    
+    /**
+     * The attributes that are mass assignable.
+     */
+    protected $fillable = [
+        'who',
+        'school',
+        'message',
+        'voice',
+        'image',
+        'latitude',
+        'longitude',
+        'status',
+    ];
+    
+    /**
+     * The attributes that should be cast.
+     */
+    protected $casts = [
+        'image' => 'array',
+        'latitude' => 'decimal:8',
+        'longitude' => 'decimal:8',
+        'status' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    /**
+     * Bootstrap the model and its traits.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // ตั้งค่าเริ่มต้นให้ status = false
+        static::creating(function ($model) {
+            if (is_null($model->status)) {
+                $model->status = false;
+            }
+        });
+    }
+
+    /**
+     * บันทึกไฟล์เสียงและอัปเดตค่าในฐานข้อมูล
+     */
+    public function saveVoiceRecording($audioData): array
+    {
+        $fileService = new LocalFileService(); // เปลี่ยนจาก CloudinaryService
+        $result = $fileService->uploadVoice($audioData, $this->id);
+        
+        if ($result['success']) {
+            $this->voice = $result['filename'];
+            $this->save();
+            
+            return [
+                'success' => true,
+                'filename' => $result['filename'],
+                'url' => $result['secure_url']
+            ];
+        }
+        
+        return [
+            'success' => false,
+            'error' => $result['error'] ?? 'Failed to upload voice recording'
+        ];
+    }
+
+    /**
+     * บันทึกรูปภาพและอัปเดตค่าในฐานข้อมูล
+     */
+    public function saveImages($photos): array
+    {
+        $fileService = new LocalFileService(); // เปลี่ยนจาก CloudinaryService
+        $result = $fileService->uploadMultipleImages($photos, $this->id);
+        
+        if ($result['success_count'] > 0) {
+            // เก็บ URLs ใน database
+            $this->image = json_encode($result['urls'], JSON_UNESCAPED_SLASHES);
+            $this->save();
+            
+            return [
+                'success' => true,
+                'uploaded_count' => $result['success_count'],
+                'total_count' => $result['total_count'],
+                'urls' => $result['urls'],
+                'filenames' => $result['filenames']
+            ];
+        }
+        
+        return [
+            'success' => false,
+            'error' => 'Failed to upload images',
+            'results' => $result['results']
+        ];
+    }
+
+    /**
+     * รับ URL ของรูปภาพ
+     */
+    public function getImageUrls(): array
+    {
+        if (empty($this->image)) {
+            return [];
+        }
+        
+        $images = is_string($this->image) ? json_decode($this->image, true) : $this->image;
+        return $images ?? [];
+    }
+
+    /**
+     * รับ URL ของไฟล์เสียง
+     */
+    public function getVoiceUrl(): ?string
+    {
+        if (empty($this->voice)) {
+            return null;
+        }
+        
+        // ถ้าเป็น URL เต็มแล้ว ให้ return ตรงๆ
+        if (filter_var($this->voice, FILTER_VALIDATE_URL)) {
+            return $this->voice;
+        }
+        
+        // สร้าง URL สำหรับไฟล์ที่เก็บใน uploads
+        return asset("uploads/behavioral_report/voice/{$this->id}/{$this->voice}");
+    }
+
+    /**
+     * ตรวจสอบว่า report นี้ได้รับการอนุมัติแล้วหรือไม่
+     */
+    public function isApproved(): bool
+    {
+        return $this->status === true;
+    }
+
+    /**
+     * อนุมัติ report
+     */
+    public function approve(): bool
+    {
+        $this->status = true;
+        return $this->save();
+    }
+
+    /**
+     * ยกเลิกการอนุมัติ report
+     */
+    public function disapprove(): bool
+    {
+        $this->status = false;
+        return $this->save();
+    }
+
+    // Scopes
+    public function scopeApproved($query)
+    {
+        return $query->where('status', true);
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('status', false);
+    }
+
+    public function scopeForTeacher($query)
+    {
+        return $query->where('who', 'teacher');
+    }
+
+    public function scopeForResearcher($query)
+    {
+        return $query->where('who', 'researcher');
+    }
+
+    // Accessors
+    public function getStatusTextAttribute(): string
+    {
+        return $this->status ? 'อนุมัติแล้ว' : 'รออนุมัติ';
+    }
+
+    public function getWhoTextAttribute(): string
+    {
+        return $this->who === 'teacher' ? 'ครู' : 'นักวิจัย';
+    }
+}

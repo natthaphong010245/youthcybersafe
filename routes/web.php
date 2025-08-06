@@ -146,6 +146,7 @@ Route::get('report_consultation/safe_area/message', [SafeAreaMessageController::
 Route::get('/report&consultation/behavioral_report', [BehavioralReportController::class, 'index'])->name('behavioral-report.index');
 Route::get('/report_consultation/behavioral_report', [BehavioralReportController::class, 'index'])->name('behavioral_report');
 Route::post('/report&consultation/behavioral_report', [BehavioralReportController::class, 'store'])->name('behavioral-report.store');
+Route::post('/report_consultation/behavioral_report', [BehavioralReportController::class, 'store'])->name('behavioral-report.store.alt');
 
 // Game Routes
 Route::get('/main/game', fn() => view('game'))->name('main_game');
@@ -308,42 +309,7 @@ if (app()->environment('local')) {
         ]);
     });
 
-    // Test route for infographic structure
-    Route::get('/test-infographic-structure', function() {
-        $basePath = public_path('images/infographic');
-        $result = [];
-        
-        for ($topicId = 1; $topicId <= 6; $topicId++) {
-            $topicPath = $basePath . '/' . $topicId;
-            $images = [];
-            
-            if (File::exists($topicPath)) {
-                $files = File::files($topicPath);
-                
-                foreach ($files as $file) {
-                    if (in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif'])) {
-                        $images[] = $file->getFilename();
-                    }
-                }
-                
-                // Sort numerically
-                usort($images, function($a, $b) {
-                    $aNum = (int) pathinfo($a, PATHINFO_FILENAME);
-                    $bNum = (int) pathinfo($b, PATHINFO_FILENAME);
-                    return $aNum <=> $bNum;
-                });
-            }
-            
-            $result[$topicId] = [
-                'path_exists' => File::exists($topicPath),
-                'path' => $topicPath,
-                'images' => $images,
-                'count' => count($images)
-            ];
-        }
-        
-        return response()->json($result, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    })->name('test.infographic.structure');
+    
 
     // Dashboard Debug Routes
     Route::prefix('debug/dashboard')->name('debug.dashboard.')->group(function () {
@@ -359,140 +325,31 @@ if (app()->environment('local')) {
         Route::get('/safe-area-years', [DashboardController::class, 'getAvailableYears'])->name('safe-area.years');
     });
 
-    // Test Safe Area Routes
-    Route::get('/test-safe-area', function() {
-        $stats = \App\Models\SafeArea::getStatistics();
-        $recentRecords = \App\Models\SafeArea::latest()->take(5)->get();
+
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::prefix('behavioral-reports')->name('behavioral-reports.')->group(function () {
+        Route::get('/', [BehavioralReportController::class, 'adminIndex'])->name('index');
+        Route::get('/{id}', [BehavioralReportController::class, 'show'])->name('show');
+        Route::patch('/{id}/status', [BehavioralReportController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{id}', [BehavioralReportController::class, 'destroy'])->name('destroy');
+        Route::get('/statistics/data', [BehavioralReportController::class, 'getStatistics'])->name('statistics');
+    });
+});
+
+// API Routes for Behavioral Reports
+Route::prefix('api')->name('api.')->group(function () {
+    Route::prefix('behavioral-reports')->name('behavioral-reports.')->group(function () {
+        Route::get('/statistics', [BehavioralReportController::class, 'getStatistics'])->name('statistics');
+        Route::post('/', [BehavioralReportController::class, 'store'])->name('store');
         
-        return response()->json([
-            'statistics' => $stats,
-            'recent_records' => $recentRecords->map(function($record) {
-                return [
-                    'id' => $record->id,
-                    'type' => $record->type,
-                    'type_thai' => $record->type_thai,
-                    'voice_message' => $record->voice_message,
-                    'created_at' => $record->created_at->format('Y-m-d H:i:s'),
-                ];
-            }),
-            'model_methods' => [
-                'voice_count' => \App\Models\SafeArea::getVoiceCount(),
-                'message_count' => \App\Models\SafeArea::getMessageCount(),
-                'total_count' => \App\Models\SafeArea::getTotalCount(),
-            ]
-        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    })->name('test.safe.area');
-
-    Route::get('/test-safe-area-create', function() {
-        $voice = \App\Models\SafeArea::createVoice();
-        $message = \App\Models\SafeArea::createMessage();
-        
-        return response()->json([
-            'voice_record' => [
-                'id' => $voice->id,
-                'type' => $voice->type,
-                'voice_message' => $voice->voice_message,
-            ],
-            'message_record' => [
-                'id' => $message->id,
-                'type' => $message->type,
-                'voice_message' => $message->voice_message,
-            ],
-            'updated_stats' => \App\Models\SafeArea::getStatistics()
-        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    })->name('test.safe.area.create');
-
-    Route::get('/test-create-sample-data', function() {
-        $sampleMentalHealth = [
-            [
-                'stress' => [[3,3,3,3,3,3,2], 'verysevere'],
-                'anxiety' => [[0,0,0,0,0,0,0], 'normal'],
-                'depression' => [[3,3,3,0,0,0,0], 'moderate']
-            ],
-            [
-                'stress' => [[1,1,2,1,1,2,1], 'mild'],
-                'anxiety' => [[2,1,2,2,1,1,2], 'severe'],
-                'depression' => [[0,1,0,1,0,0,1], 'mild']
-            ],
-            [
-                'stress' => [[2,2,3,2,2,3,2], 'moderate'],
-                'anxiety' => [[1,1,1,1,2,1,1], 'mild'],
-                'depression' => [[3,3,3,3,3,3,3], 'verysevere']
-            ]
-        ];
-
-        foreach ($sampleMentalHealth as $data) {
-            \App\Models\MentalHealthAssessment::create($data);
-        }
-
-        for ($i = 0; $i < 10; $i++) {
-            \App\Models\SafeArea::createVoice();
-        }
-        
-        for ($i = 0; $i < 15; $i++) {
-            \App\Models\SafeArea::createMessage();
-        }
-
-        return response()->json([
-            'message' => 'Sample data created successfully',
-            'mental_health_count' => \App\Models\MentalHealthAssessment::count(),
-            'safe_area_count' => \App\Models\SafeArea::count(),
-            'safe_area_stats' => \App\Models\SafeArea::getStatistics()
-        ]);
-    })->name('test.create.sample.data');
-
-    // Test Safe Area Data Creation
-    Route::get('/test-create-safe-area-data', function() {
-        $years = [2024, 2025];
-        $created = [];
-        
-        foreach ($years as $year) {
-            for ($month = 1; $month <= 12; $month++) {
-                $voiceCount = rand(5, 25);
-                for ($i = 0; $i < $voiceCount; $i++) {
-                    $date = \Carbon\Carbon::create($year, $month, rand(1, 28), rand(0, 23), rand(0, 59));
-                    \App\Models\SafeArea::create([
-                        'voice_message' => [[1], [0]],
-                        'created_at' => $date,
-                        'updated_at' => $date
-                    ]);
-                }
-                
-                $messageCount = rand(10, 35);
-                for ($i = 0; $i < $messageCount; $i++) {
-                    $date = \Carbon\Carbon::create($year, $month, rand(1, 28), rand(0, 23), rand(0, 59));
-                    \App\Models\SafeArea::create([
-                        'voice_message' => [[0], [1]],
-                        'created_at' => $date,
-                        'updated_at' => $date
-                    ]);
-                }
-                
-                $created[] = [
-                    'year' => $year,
-                    'month' => $month,
-                    'voice' => $voiceCount,
-                    'message' => $messageCount
-                ];
-            }
-        }
-        
-        return response()->json([
-            'message' => 'Test Safe Area data created successfully',
-            'total_records' => \App\Models\SafeArea::count(),
-            'created_data' => $created,
-            'statistics' => \App\Models\SafeArea::getStatistics()
-        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    })->name('test.create.safe.area.data');
-
-    // Test Dashboard Data
-    Route::get('/test-dashboard-data', function() {
-        $controller = new \App\Http\Controllers\DashboardController();
-        
-        return response()->json([
-            'cyberbullying_stats' => $controller->getAssessmentStats()->getData(),
-            'mental_health_stats' => $controller->getMentalHealthStatsApi()->getData(),
-            'safe_area_stats' => $controller->getSafeAreaStatsApi()->getData()
-        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    })->name('test.dashboard.data');
+        // Protected API routes (require authentication)
+        Route::middleware(['auth'])->group(function () {
+            Route::get('/', [BehavioralReportController::class, 'adminIndex'])->name('index');
+            Route::get('/{id}', [BehavioralReportController::class, 'show'])->name('show');
+            Route::patch('/{id}/status', [BehavioralReportController::class, 'updateStatus'])->name('update-status');
+            Route::delete('/{id}', [BehavioralReportController::class, 'destroy'])->name('destroy');
+        });
+    });
+});
 }
