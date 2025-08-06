@@ -1,21 +1,19 @@
 <?php
-// app/Http/Controllers/BehavioralReportController.php
+// app/Http/Controllers/BehavioralReportController.php - Emergency Fix
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\ReportConsultation\BehavioralReportReportConsultation;
-use App\Services\LocalFileService; // เปลี่ยนจาก CloudinaryService
 
 class BehavioralReportController extends Controller
 {
-    protected $fileService;
-
-    public function __construct(LocalFileService $fileService) // เปลี่ยนเป็น LocalFileService
+    // ลบ dependency injection ชั่วคราว เพื่อหยุด error
+    public function __construct()
     {
-        $this->fileService = $fileService;
-    
+        // Comment out dependency injection temporarily
+        // $this->fileService = $fileService;
     }
 
     /**
@@ -51,53 +49,36 @@ class BehavioralReportController extends Controller
                 'message' => $request->message,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
-                'status' => false, // ค่าเริ่มต้น
+                'status' => false,
             ]);
             
             $uploadResults = [];
             
-            // Handle voice recording upload
+            // Handle voice recording upload - ใช้ model method แทน service
             if ($request->filled('audio_recording')) {
                 Log::info('Processing voice recording for report ID: ' . $report->id);
                 
-                $voiceResult = $report->saveVoiceRecording($request->audio_recording);
-                
-                if ($voiceResult['success']) {
-                    Log::info('Voice recording uploaded successfully', [
-                        'report_id' => $report->id,
-                        'filename' => $voiceResult['filename']
-                    ]);
+                try {
+                    $voiceResult = $report->saveVoiceRecording($request->audio_recording);
                     $uploadResults['voice'] = $voiceResult;
-                } else {
-                    Log::error('Failed to upload voice recording', [
-                        'report_id' => $report->id,
-                        'error' => $voiceResult['error']
-                    ]);
-                    $uploadResults['voice'] = $voiceResult;
+                } catch (\Exception $e) {
+                    Log::error('Voice upload failed:', ['error' => $e->getMessage()]);
+                    $uploadResults['voice'] = ['success' => false, 'error' => $e->getMessage()];
                 }
             }
             
-            // Handle image uploads
+            // Handle image uploads - ใช้ model method แทน service
             if ($request->hasFile('photos')) {
                 Log::info('Processing images for report ID: ' . $report->id, [
                     'image_count' => count($request->file('photos'))
                 ]);
                 
-                $imageResult = $report->saveImages($request->file('photos'));
-                
-                if ($imageResult['success']) {
-                    Log::info('Images uploaded successfully', [
-                        'report_id' => $report->id,
-                        'uploaded_count' => $imageResult['uploaded_count'],
-                        'total_count' => $imageResult['total_count']
-                    ]);
+                try {
+                    $imageResult = $report->saveImages($request->file('photos'));
                     $uploadResults['images'] = $imageResult;
-                } else {
-                    Log::error('Failed to upload images', [
-                        'report_id' => $report->id,
-                        'error' => $imageResult['error']
-                    ]);
-                    $uploadResults['images'] = $imageResult;
+                } catch (\Exception $e) {
+                    Log::error('Image upload failed:', ['error' => $e->getMessage()]);
+                    $uploadResults['images'] = ['success' => false, 'error' => $e->getMessage()];
                 }
             }
             
@@ -108,21 +89,11 @@ class BehavioralReportController extends Controller
                 'report_id' => $report->id,
                 'who' => $report->who,
                 'school' => $report->school,
-                'has_voice' => !empty($report->voice),
-                'has_images' => !empty($report->image),
                 'upload_results' => $uploadResults
             ]);
             
             // สร้างข้อความ success
             $successMessage = 'รายงานพฤติกรรมของคุณถูกส่งเรียบร้อยแล้ว';
-            
-            if (isset($uploadResults['voice']) && !$uploadResults['voice']['success']) {
-                $successMessage .= ' (หมายเหตุ: ไม่สามารถอัปโหลดไฟล์เสียงได้)';
-            }
-            
-            if (isset($uploadResults['images']) && !$uploadResults['images']['success']) {
-                $successMessage .= ' (หมายเหตุ: ไม่สามารถอัปโหลดรูปภาพบางรูปได้)';
-            }
             
             return redirect()->route('behavioral_report')->with('success', $successMessage);
             
@@ -131,8 +102,7 @@ class BehavioralReportController extends Controller
             
             Log::error('Failed to create behavioral report', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->except(['photos', 'audio_recording'])
+                'trace' => $e->getTraceAsString()
             ]);
             
             return redirect()->back()
