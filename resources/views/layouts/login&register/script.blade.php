@@ -1,3 +1,4 @@
+{{-- resources/views/layouts/login&register/script.blade.php --}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const roleSelect = document.getElementById('role');

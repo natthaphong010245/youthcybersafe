@@ -1,11 +1,11 @@
-{{-- resources/views/layouts/dashboard.blade.php --}}
+{{-- resources/views/layouts/teacher-dashboard.blade.php --}}
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Youth Cybersafe Dashboard')</title>
+    <title>@yield('title', 'Youth Cybersafe Teacher Dashboard')</title>
     <link rel="icon" href="{{ asset('images/logo.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -51,6 +51,33 @@
         margin-right: 25px !important;
         margin-top: 2px !important;
     }
+    
+    /* Student List Report Table Styles */
+    .student-reports-table {
+        border-collapse: collapse;
+        border: 2px solid #ddd;
+    }
+    .student-reports-table th {
+        font-weight: 600;
+        color: #2d3748;
+        border: 1px solid #ddd;
+        padding: 12px;
+        background-color: #f8f9fa;
+        text-align: center;
+    }
+    .student-reports-table td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        vertical-align: middle;
+        text-align: center;
+    }
+    .student-reports-table tbody tr:nth-child(odd) {
+        background-color: #f9f9f9;
+    }
+    .student-reports-table tbody tr:nth-child(even) {
+        background-color: white;
+    }
+    
     @media (max-width: 768px) {
         .sidebar {
             width: 100% !important;
@@ -81,17 +108,11 @@
                     </div>
                     
                     <nav class="nav flex-column">
-                        <a class="nav-link @if(request()->routeIs('dashboard') || request()->routeIs('main.dashboard')) active @endif" href="{{ route('dashboard') }}">
+                        <a class="nav-link @if(request()->routeIs('teacher.dashboard')) active @endif" href="{{ route('teacher.dashboard') }}">
                             <i class="fas fa-th-large me-2"></i> Dashboard
                         </a>
-                        <a class="nav-link @if(request()->routeIs('assessment-dashboard')) active @endif" href="{{ route('assessment-dashboard') }}">
-                            <i class="fas fa-clipboard-list me-2"></i> Assessment
-                        </a>
-                        <a class="nav-link @if(request()->routeIs('behavioral-report-dashboard')) active @endif" href="{{ route('behavioral-report-dashboard') }}">
+                        <a class="nav-link @if(request()->routeIs('teacher.behavioral-report')) active @endif" href="{{ route('teacher.behavioral-report') }}">
                             <i class="fas fa-chart-bar me-2"></i> Behavioral Report
-                        </a>
-                        <a class="nav-link @if(request()->routeIs('safe-area-dashboard')) active @endif" href="{{ route('safe-area-dashboard') }}">
-                            <i class="fas fa-shield-alt me-2"></i> Safe Area
                         </a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -103,8 +124,8 @@
                     
                     <div class="sidebar-profile mt-auto">
                         <div class="profile-card">
-                            <div><strong>{{ Auth::user()->name ?? 'ผู้ใช้' }} {{ Auth::user()->lastname ?? '' }}</strong></div>
-                            <div><small>{{ Auth::user()->role === 'researcher' ? 'นักวิจัย' : 'คุณครู' }}</small></div>
+                            <div><strong>{{ Auth::user()->full_name ?? (Auth::user()->name . ' ' . Auth::user()->lastname) }}</strong></div>
+                            <div><small>{{ Auth::user()->role_thai ?? 'คุณครู' }}</small></div>
                         </div>
                     </div>
                 </div>

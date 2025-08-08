@@ -1,5 +1,5 @@
 <?php
-
+// app/Http/Middleware/CheckResearcher.php
 namespace App\Http\Middleware;
 
 use Closure;

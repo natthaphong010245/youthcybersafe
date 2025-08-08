@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/report&consultation/behavioral_report/record.blade.php --}}
 <script>
 function initVoiceRecording() {
     const recordButton = document.getElementById('recordButton');

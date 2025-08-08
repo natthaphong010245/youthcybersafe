@@ -82,7 +82,7 @@
             <h3 class="text-xl font-bold text-[#3E36AE] mb-4">ประเมินพฤติกรรมสุขภาพจิต</h3>
         </div>
 
-        <img src="{{ asset('images/material/school_girl.png') }}" alt="School Girl Character" class="w-32 h-auto rounded-full mx-auto mb-6 object-cover">
+        <img src="{{ asset('images/material/school_man.png') }}" alt="School Girl Character" class="w-32 h-auto mx-auto mb-6 object-cover">
 
         <div class="mb-2">
             

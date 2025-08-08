@@ -1,3 +1,4 @@
+{{-- resources/views/dashboard/index.blade.php --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Dashboard - Youth Cybersafe')
@@ -475,14 +476,22 @@ new Chart(mentalCtx, {
     }
 });
 
+// Updated Behavioral Chart with real data from database
 const behavioralCtx = document.getElementById('behavioralChart').getContext('2d');
+const behavioralData = {!! json_encode($data['behavioral_schools']) !!};
+const behavioralLabels = Object.keys(behavioralData);
+const behavioralValues = Object.values(behavioralData);
+
+// Updated colors to include blue for researchers
+const behavioralBackgroundColors = ['#4252B8', '#FA5A7E', '#FF957A', '#3CD956', '#BF83FF'];
+
 new Chart(behavioralCtx, {
     type: 'bar',
     data: {
-        labels: {!! json_encode(array_keys($data['behavioral_schools'])) !!},
+        labels: behavioralLabels,
         datasets: [{
-            data: {!! json_encode(array_values($data['behavioral_schools'])) !!},
-            backgroundColor: ['#FA5A7E', '#FF957A', '#3CD956', '#BF83FF'],
+            data: behavioralValues,
+            backgroundColor: behavioralBackgroundColors,
             borderRadius: 8,
             borderSkipped: false
         }]
@@ -490,13 +499,32 @@ new Chart(behavioralCtx, {
     options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+            padding: {
+                left: 10,
+                right: 10,
+                top: 10,
+                bottom: 10
+            }
+        },
         scales: {
             y: { 
                 beginAtZero: true,
-                max: 30,
+                max: Math.max(...behavioralValues) > 0 ? Math.ceil(Math.max(...behavioralValues) * 1.3) : 10,
                 grid: {
                     display: true,
                     color: '#f0f0f0'
+                },
+                ticks: {
+                    font: {
+                        size: 10,
+                        weight: '500'
+                    },
+                    color: '#666666',
+                    stepSize: Math.max(1, Math.ceil(Math.max(...behavioralValues) / 5))
+                },
+                border: {
+                    display: false
                 }
             },
             x: {
@@ -505,20 +533,69 @@ new Chart(behavioralCtx, {
                 },
                 ticks: {
                     font: {
-                        size: 11
+                        size: 9,
+                        weight: '500'
+                    },
+                    color: '#666666',
+                    maxRotation: 45, // Allow rotation for better fit
+                    minRotation: 0,
+                    callback: function(value, index) {
+                        // Ensure all labels are shown
+                        return this.getLabelForValue(value);
                     }
+                },
+                border: {
+                    display: false
                 }
             }
         },
         plugins: {
-            legend: { display: false }
+            legend: { display: false },
+            tooltip: {
+                enabled: true,
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: 'white',
+                bodyColor: 'white',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1,
+                cornerRadius: 8,
+                displayColors: false,
+                padding: 8,
+                titleFont: {
+                    size: 11,
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    size: 10
+                },
+                callbacks: {
+                    title: function(context) {
+                        return context[0].label;
+                    },
+                    label: function(context) {
+                        const value = context.parsed.y;
+                        return `จำนวน: ${value}`;
+                    }
+                }
+            }
         },
         elements: {
             bar: {
                 borderRadius: 8
             }
+        },
+        animation: {
+            duration: 1500,
+            easing: 'easeInOutQuart'
         }
     }
+});
+
+// Log data for debugging
+console.log('Behavioral Chart Data:', {
+    labels: behavioralLabels,
+    values: behavioralValues,
+    colors: behavioralBackgroundColors
 });
 </script>
 @endsection

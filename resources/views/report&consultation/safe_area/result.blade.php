@@ -5,7 +5,7 @@
             <p class="text-xl text-[#3E36AE]">ขอบคุณที่แชร์ประสบการณ์</p>
         </div>
 
-        <img src="{{ asset('images/material/school_girl.png') }}" alt="School Girl Character" class="w-32 h-auto rounded-full mx-auto mb-6 object-cover">
+        <img src="{{ asset('images/material/school_man.png') }}" alt="School Girl Character" class="w-32 h-auto mx-auto mb-6 object-cover">
 
         <div class="mb-6 space-y-1">
             <p class="text-xl text-[#3E36AE] leading-relaxed">เราพร้อมที่จะอยู่เคียงข้างคุณเสมอ</p>

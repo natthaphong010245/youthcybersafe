@@ -1,12 +1,11 @@
-{{-- resources/views/report&consultation/behavioral_report/notification.blade.php --}}
 <div id="success-notification" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-[9999]">
     <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4 text-center transform scale-50 transition-transform duration-300">
         <div class="mb-6">
-            <h3 class="text-2xl font-bold text-[#3E36AE] mb-2">พื้นที่ปลอดภัย</h3>
+            <h3 class="text-2xl font-bold text-[#3E36AE] mb-2">การรายงานพฤติกรรมการรังแก</h3>
             <p class="text-xl text-[#3E36AE]">ขอบคุณที่แชร์ประสบการณ์</p>
         </div>
 
-        <img src="{{ asset('images/material/school_girl.png') }}" alt="School Girl Character" class="w-32 h-auto rounded-full mx-auto mb-6 object-cover">
+        <img src="{{ asset('images/material/school_man.png') }}" alt="School Girl Character" class="w-32 h-auto mx-auto mb-6 object-cover">
 
         <div class="mb-6 space-y-1">
             <p class="text-xl text-[#3E36AE] leading-relaxed">เราพร้อมที่จะอยู่เคียงข้างคุณเสมอ</p>

@@ -6,16 +6,15 @@
 
 @section('content')
     <div class="card-container space-y-10 px-10 md:px-0">
-        <div class="text-center mb-10 relative">
+        <div class="text-center mb-8 relative">
             <div class="flex items-center justify-center">
-                <div class="relative">
-                    <h1 class="text-3xl font-bold text-[#3E36AE] inline-block">แชร์ประสบการณ์</h1>
-                    <p class="text-base text-[#3E36AE] absolute -bottom-6 right-0">การถูกรังแก</p>
+                <div class="relative mt-2">
+                    <h1 class="text-3xl font-bold text-[#3E36AE] inline-block">พื้นที่ปลอดภัย</h1>
                 </div>
             </div>
         </div>
 
-        <div class="space-y-20 px-2 mt-10">
+        <div class="space-y-20 px-2">
             @php
                 $shareOptions = [
                     [

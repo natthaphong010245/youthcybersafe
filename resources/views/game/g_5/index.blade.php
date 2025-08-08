@@ -61,7 +61,7 @@
 
     <div id="success-modal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-30">
         <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 text-center">
-            <img src="{{ asset('images/material/school_girl.png') }}" alt="Happy Student" class="w-32 h-auto mx-auto mb-4">
+            <img src="{{ asset('images/material/school_man.png') }}" alt="Happy Student" class="w-32 h-auto mx-auto mb-4">
             <h3 class="text-xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
             <p class="text-lg text-indigo-800 mb-4">คำตอบของคุณถูกต้อง</p>
             <p class="text-indigo-800 text-lg mb-1">เริ่มความท้าทายในเกมถัดไปกันเลย</p>

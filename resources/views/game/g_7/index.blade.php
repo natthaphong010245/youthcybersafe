@@ -65,7 +65,7 @@
 
     <div id="success-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-30 opacity-0">
         <div class="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 text-center">
-            <img src="{{ asset('images/material/school_girl.png') }}" alt="School Girl Character"
+            <img src="{{ asset('images/material/school_man.png') }}" alt="School Girl Character"
                 class="w-32 h-auto mx-auto mb-4 object-cover">
             
             <h3 class="text-xl font-bold text-indigo-800">เยี่ยมมาก!</h3>

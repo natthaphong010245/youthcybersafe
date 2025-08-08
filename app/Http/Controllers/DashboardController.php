@@ -1,11 +1,12 @@
 <?php
-
+//app/Http/Controllers/DashboardController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\CyberbullyingAssessment;
 use App\Models\MentalHealthAssessment;
 use App\Models\SafeArea;
+use App\Models\ReportConsultation\BehavioralReportReportConsultation;
 
 class DashboardController extends Controller
 {
@@ -14,23 +15,19 @@ class DashboardController extends Controller
         $assessmentStats = $this->getCyberbullyingStats();
         $mentalHealthData = $this->getMentalHealthStats();
         $safeAreaStats = $this->getSafeAreaStats();
+        $behavioralSchoolsData = $this->getBehavioralSchoolsData();
         
         $data = [
             'stats' => [
                 'assessment' => $assessmentStats['total_assessments'],
                 'mental_health' => MentalHealthAssessment::count(),
-                'behavioral_report' => 100, 
+                'behavioral_report' => BehavioralReportReportConsultation::count(), 
                 'safe_area' => SafeArea::count() 
             ],
             'action_experiences' => $assessmentStats['action_experiences'],
             'victim_experiences' => $assessmentStats['victim_experiences'],
             'mental_health_data' => $mentalHealthData,
-            'behavioral_schools' => [
-                'โรงเรียนวาวีวิทยาคม' => 10,
-                'โรงเรียนสหศาสตร์ศึกษา' => 8,
-                'โรงเรียนราชประชานุเคราะห์ 62' => 4,
-                'โรงเรียนห้วยไร่สามัคคี' => 15,
-            ],
+            'behavioral_schools' => $behavioralSchoolsData,
             'safe_area' => [
                 'voice_reports' => $safeAreaStats['voice'],
                 'message_reports' => $safeAreaStats['message']
@@ -54,24 +51,164 @@ class DashboardController extends Controller
         return view('dashboard.assessment', compact('data'));
     }
 
-    public function behavioralReport()
+    public function behavioralReport(Request $request)
     {
+        $statusFilter = $request->get('status');
+        $page = (int) $request->get('page', 1);
+        $perPage = 7;
+        
+        // Get behavioral schools data
+        $behavioralSchoolsData = $this->getBehavioralSchoolsData();
+        
+        // Get behavioral overview data
+        $behavioralOverviewData = $this->getBehavioralOverviewData();
+        
+        // Get reports with filtering and pagination - ONLY RESEARCHER REPORTS
+        $query = BehavioralReportReportConsultation::where('who', 'researcher')
+                    ->orderBy('created_at', 'desc');
+        
+        // Apply status filter
+        if ($statusFilter && $statusFilter !== '') {
+            if ($statusFilter === 'pending') {
+                $query->where('status', false);
+            } elseif ($statusFilter === 'reviewed') {
+                $query->where('status', true);
+            }
+        }
+        
+        $totalCount = $query->count();
+        $reports = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
+        
+        // Transform reports for view
+        $transformedReports = $reports->map(function($report) {
+            return [
+                'id' => $report->id,
+                'date' => $report->created_at->format('d/m/Y'),
+                'message' => $report->message,
+                'status' => $report->status ? 'reviewed' : 'pending'
+            ];
+        });
+        
+        $totalPages = $totalCount > 0 ? ceil($totalCount / $perPage) : 1;
+        if ($page > $totalPages) {
+            $page = 1;
+        }
+        
         $data = [
-            'overview' => [
-                'โรงเรียนวาวีวิทยาคม' => 10,
-                'โรงเรียนสหศาสตร์ศึกษา' => 8,
-                'โรงเรียนราชประชานุเคราะห์ 62' => 4,
-                'โรงเรียนห้วยไร่สามัคคี' => 15
+            'overview' => $behavioralOverviewData,
+            'schools_data' => $behavioralSchoolsData,
+            'reports' => $transformedReports,
+            'pagination' => [
+                'current_page' => $page,
+                'total_pages' => $totalPages,
+                'total' => $totalCount,
+                'per_page' => $perPage,
+                'has_more_pages' => $page < $totalPages,
+                'from' => $totalCount > 0 ? (($page - 1) * $perPage) + 1 : 0,
+                'to' => min($page * $perPage, $totalCount)
             ],
-            'schools_data' => [
-                'โรงเรียนวาวีวิทยาคม' => 25,
-                'โรงเรียนสหศาสตร์ศึกษา' => 32,
-                'โรงเรียนราชประชานุเคราะห์ 62' => 4,
-                'โรงเรียนห้วยไร่สามัคคี' => 16
-            ]
+            'current_filter' => $statusFilter,
+            'total_before_filter' => BehavioralReportReportConsultation::where('who', 'researcher')->count()
         ];
 
+        if ($request->ajax()) {
+            return response()->json($data);
+        }
+
         return view('dashboard.behavioral-report', compact('data'));
+    }
+
+    public function updateReportStatus(Request $request, $id)
+    {
+        try {
+            $report = BehavioralReportReportConsultation::findOrFail($id);
+            $report->status = true; // Mark as reviewed
+            $report->save();
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'สถานะได้รับการอัปเดตแล้ว'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'เกิดข้อผิดพลาดในการอัปเดตสถานะ'
+            ], 500);
+        }
+    }
+
+    public function getReportDetail($id)
+    {
+        try {
+            $report = BehavioralReportReportConsultation::findOrFail($id);
+            
+            // Decode images if they exist
+            $images = [];
+            if ($report->image && !empty($report->image)) {
+                $decodedImages = json_decode($report->image, true);
+                if (is_array($decodedImages) && count($decodedImages) > 0) {
+                    // Filter out empty values
+                    $images = array_filter($decodedImages, function($img) {
+                        return !empty($img) && $img !== null;
+                    });
+                    $images = array_values($images); // Reset array indices
+                }
+            }
+            
+            return response()->json([
+                'id' => $report->id,
+                'date' => $report->created_at->format('m/d/Y'),
+                'message' => $report->message,
+                'images' => $images, // Will be empty array if no images
+                'audio' => $report->voice,
+                'latitude' => $report->latitude,
+                'longitude' => $report->longitude,
+                'location' => $this->getLocationFromCoordinates($report->latitude, $report->longitude),
+                'status' => $report->status ? 'reviewed' : 'pending'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'ไม่พบข้อมูลรายงาน'
+            ], 404);
+        }
+    }
+
+    private function getLocationFromCoordinates($latitude, $longitude)
+    {
+        if (!$latitude || !$longitude) {
+            return 'Thailand';
+        }
+        
+        // You can implement reverse geocoding here if needed
+        // For now, return Thailand as default
+        return 'Thailand';
+    }
+
+    private function getBehavioralSchoolsData()
+    {
+        // Get researcher count
+        $researcherCount = BehavioralReportReportConsultation::where('who', 'researcher')->count();
+        
+        // Get school counts
+        $schoolCounts = [
+            'โรงเรียนวาวีวิทยาคม' => BehavioralReportReportConsultation::where('school', 'โรงเรียนวาวีวิทยาคม')->count(),
+            'โรงเรียนสหศาสตร์ศึกษา' => BehavioralReportReportConsultation::where('school', 'โรงเรียนสหศาสตร์ศึกษา')->count(),
+            'โรงเรียนราชประชานุเคราะห์ 62' => BehavioralReportReportConsultation::where('school', 'โรงเรียนราชประชานุเคราะห์ 62')->count(),
+            'โรงเรียนห้วยไร่สามัคคี' => BehavioralReportReportConsultation::where('school', 'โรงเรียนห้วยไร่สามัคคี')->count(),
+        ];
+        
+        return [
+            'นักวิจัย' => $researcherCount,
+            'โรงเรียนวาวีวิทยาคม' => $schoolCounts['โรงเรียนวาวีวิทยาคม'],
+            'โรงเรียนสหศาสตร์ศึกษา' => $schoolCounts['โรงเรียนสหศาสตร์ศึกษา'],
+            'โรงเรียนราชประชานุเคราะห์ 62' => $schoolCounts['โรงเรียนราชประชานุเคราะห์ 62'],
+            'โรงเรียนห้วยไร่สามัคคี' => $schoolCounts['โรงเรียนห้วยไร่สามัคคี']
+        ];
+    }
+
+    private function getBehavioralOverviewData()
+    {
+        return $this->getBehavioralSchoolsData(); // Same data for overview
     }
 
     public function safeArea()
@@ -92,7 +229,6 @@ class DashboardController extends Controller
 
         return view('dashboard.safe-area', compact('data'));
     }
-
 
     private function getMentalHealthStats()
     {

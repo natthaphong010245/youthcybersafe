@@ -1,5 +1,5 @@
 @extends('layouts.category_game')
-{{-- resources/views/report&consultation/behavioral_report/behavioral_report.blade.php --}}
+
 @php
     $mainUrl = '/main';
 @endphp
@@ -51,10 +51,10 @@
                     </svg>
                 </div>
                 <div id="schoolList" class="dropdown-list">
-                    <div class="dropdown-item" data-value="โรงเรียน1">โรงเรียน1</div>
-                    <div class="dropdown-item" data-value="โรงเรียน2">โรงเรียน2</div>
-                    <div class="dropdown-item" data-value="โรงเรียน3">โรงเรียน3</div>
-                    <div class="dropdown-item" data-value="โรงเรียน4">โรงเรียน4</div>
+                    <div class="dropdown-item" data-value="โรงเรียนวาวีวิทยาคม">โรงเรียนวาวีวิทยาคม</div>
+                    <div class="dropdown-item" data-value="โรงเรียนสหศาสตร์ศึกษา">โรงเรียนสหศาสตร์ศึกษา</div>
+                    <div class="dropdown-item" data-value="โรงเรียนราชประชานุเคราะห์ 62">โรงเรียนราชประชานุเคราะห์ 62</div>
+                    <div class="dropdown-item" data-value="โรงเรียนห้วยไร่สามัคคี">โรงเรียนห้วยไร่สามัคคี</div>
                 </div>
                 <input type="hidden" name="school" id="school">
             </div>

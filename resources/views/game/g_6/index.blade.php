@@ -14,7 +14,7 @@
     ])
 
     <div class="bg-white min-h-0" id="game-content">
-        <div class="card-container space-y-2 px-4 py-2 pb-4">
+        <div class="card-container space-y-2 px-2 py-2 pb-4">
             <div class="text-center mb-6">
                 <h2 class="text-xl sm:text-xl font-bold text-indigo-800 leading-tight px-4 pr-2 pl-2">
                     พบปัญหา สิ่งที่เขาได้ยินได้ทุกข์ทรมาน หรือกลั่นแกล้งบนโลกออนไลน์ที่ผ่านมาได้เลย
@@ -37,7 +37,7 @@
                 <div class="w-full max-w-lg mr-4 ml-4 mt-8">
                     <div class="relative flex items-center border-2 border-gray-300 rounded-2xl p-2 mb-3">
                         <input type="text" id="message-input" placeholder="CYBERBULLYING"
-                            class="flex-1 px-6 py-2 bg-transparent outline-none focus:outline-none text-gray-700 placeholder-gray-400 text-lg"
+                            class="flex-1 px-3 py-2 bg-transparent outline-none focus:outline-none text-gray-700 placeholder-gray-400 text-lg"
                             maxlength="20">
                         <button id="add-message-btn" class="bg-[#5F58C9] text-white p-3 rounded-full transition-colors  ">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"

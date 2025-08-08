@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/report&consultation/behavioral_report/position.blade.php --}}
 <style>
     .leaflet-tile-container img { filter: hue-rotate(25deg) saturate(0.8) brightness(1.05); }
     .leaflet-control-zoom { border: none !important; box-shadow: 0 1px 5px rgba(0,0,0,0.2) !important; }

@@ -1,3 +1,4 @@
+{{-- resources/views/layouts/login&register/register.blade.php --}}
 @extends('layouts.login&register.index')
 
 @section('content')

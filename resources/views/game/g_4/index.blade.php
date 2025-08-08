@@ -122,7 +122,7 @@
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-30 opacity-0">
         <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4 text-center">
             <div class="mb-2">
-                <img src="{{ asset('images/material/school_girl.png') }}" alt="Character" class="w-32 h-auto mx-auto mb-4">
+                <img src="{{ asset('images/material/school_man.png') }}" alt="Character" class="w-32 h-auto mx-auto mb-4">
                <h3 class="text-xl font-bold text-indigo-800">เยี่ยมมาก!</h3>
             <p class="text-lg text-indigo-800 mb-4">คำตอบของคุณถูกต้อง</p>
             <p class="text-indigo-800 text-lg mb-1">เริ่มความท้าทายในเกมถัดไปกันเลย</p>

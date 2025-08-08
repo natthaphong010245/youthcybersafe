@@ -1,4 +1,5 @@
 <?php
+// routes/web.php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -18,10 +19,12 @@ use App\Http\Controllers\SafeAreaMessageController;
 use App\Http\Controllers\SafeAreaStatsController;
 use Illuminate\Support\Facades\File;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TeacherDashboardController;
+use App\Http\Middleware\CheckTeacher; 
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Web Routes  
 |--------------------------------------------------------------------------
 */
 
@@ -210,12 +213,32 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'create'])->name('register');
 Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
 
-// Protected Routes (General User)
+// =============================================
+// PROTECTED ROUTES - ใช้ middleware ที่มีอยู่แล้ว
+// =============================================
+
+// General User Routes (คุณครูและนักวิจัยที่ได้รับอนุมัติ)
 Route::middleware(['auth', CheckRoleUser::class])->group(function () {
     Route::get('/test_login', [MainController::class, 'testLogin'])->name('test_login');
 });
 
-// Dashboard Routes (เฉพาะ Researcher ที่ได้รับอนุมัติ)
+// =============================================
+// TEACHER DASHBOARD ROUTES (เฉพาะคุณครู)
+// =============================================
+Route::middleware(['auth', CheckTeacher::class])->group(function () {
+    Route::get('/teacher/dashboard', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
+    Route::get('/teacher/behavioral-report', [TeacherDashboardController::class, 'behavioralReport'])->name('teacher.behavioral-report');
+    
+    // API routes สำหรับ teacher
+    Route::prefix('api/teacher')->name('api.teacher.')->group(function () {
+        Route::post('/behavioral-report/update-status/{id}', [TeacherDashboardController::class, 'updateReportStatus'])->name('behavioral-report.update-status');
+        Route::get('/behavioral-report/detail/{id}', [TeacherDashboardController::class, 'getReportDetail'])->name('behavioral-report.detail');
+    });
+});
+
+// =============================================
+// RESEARCHER DASHBOARD ROUTES (เฉพาะนักวิจัย)
+// =============================================
 Route::middleware(['auth', CheckResearcher::class])->group(function () {
     Route::get('/main_dashboard', [DashboardController::class, 'index'])->name('main.dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -242,6 +265,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
             ->get());
         })->name('chart-data');
     });
+
+    // Behavioral Report Admin Routes
+    Route::prefix('behavioral-reports')->name('behavioral-reports.')->group(function () {
+        Route::get('/', [BehavioralReportController::class, 'adminIndex'])->name('index');
+        Route::get('/{id}', [BehavioralReportController::class, 'show'])->name('show');
+        Route::patch('/{id}/status', [BehavioralReportController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{id}', [BehavioralReportController::class, 'destroy'])->name('destroy');
+        Route::get('/statistics/data', [BehavioralReportController::class, 'getStatistics'])->name('statistics');
+    });
 });
 
 // API Routes (for AJAX and mobile apps)
@@ -253,7 +285,7 @@ Route::prefix('api')->name('api.')->group(function () {
         Route::get('/stats', [SafeAreaStatsController::class, 'getStats'])->name('stats');
         Route::get('/export', [SafeAreaStatsController::class, 'export'])->name('export');
         
-        // NEW: Routes สำหรับดึงข้อมูลตามปี
+        // Routes สำหรับดึงข้อมูลตามปี
         Route::get('/data-by-year/{year}', [DashboardController::class, 'getSafeAreaDataByYear'])->name('data-by-year');
         Route::get('/available-years', [DashboardController::class, 'getAvailableYears'])->name('available-years');
         Route::get('/monthly-data/{year?}', function($year = null) {
@@ -271,6 +303,42 @@ Route::prefix('api')->name('api.')->group(function () {
                 'high_risk' => \App\Models\MentalHealthAssessment::highRisk()->count(),
             ]);
         })->name('stats');
+    });
+
+    // Dashboard API Routes
+    Route::prefix('dashboard')->name('dashboard.')->group(function () {
+        Route::get('/cyberbullying-stats', [DashboardController::class, 'getAssessmentStats'])->name('cyberbullying.stats');
+        Route::get('/mental-health-stats', [DashboardController::class, 'getMentalHealthStatsApi'])->name('mental-health.stats');
+        Route::get('/safe-area-stats', [DashboardController::class, 'getSafeAreaStatsApi'])->name('safe-area.stats');
+        Route::get('/behavioral-schools-stats', [DashboardController::class, 'getBehavioralSchoolsStatsApi'])->name('behavioral-schools.stats');
+    });
+
+    // Behavioral Report API Routes - UPDATED AND EXPANDED
+    Route::prefix('behavioral-report')->name('behavioral-report.')->group(function () {
+        // Public API routes (no authentication required)
+        Route::get('/statistics', [BehavioralReportController::class, 'getStatistics'])->name('statistics');
+        Route::post('/', [BehavioralReportController::class, 'store'])->name('store');
+        
+        // Protected API routes (require authentication) - FOR DASHBOARD
+        Route::middleware(['auth'])->group(function () {
+            Route::get('/detail/{id}', [DashboardController::class, 'getReportDetail'])->name('detail');
+            Route::post('/update-status/{id}', [DashboardController::class, 'updateReportStatus'])->name('update-status');
+            Route::get('/', [BehavioralReportController::class, 'adminIndex'])->name('index');
+            Route::get('/{id}', [BehavioralReportController::class, 'show'])->name('show');
+            Route::patch('/{id}/status', [BehavioralReportController::class, 'updateStatus'])->name('update-status.auth');
+            Route::delete('/{id}', [BehavioralReportController::class, 'destroy'])->name('destroy');
+            
+            // Dashboard specific routes
+            Route::get('/schools-data', function() {
+                $controller = new DashboardController();
+                return response()->json($controller->getBehavioralSchoolsData());
+            })->name('schools-data');
+            
+            Route::get('/overview-data', function() {
+                $controller = new DashboardController();
+                return response()->json($controller->getBehavioralOverviewData());
+            })->name('overview-data');
+        });
     });
 });
 
@@ -309,8 +377,6 @@ if (app()->environment('local')) {
         ]);
     });
 
-    
-
     // Dashboard Debug Routes
     Route::prefix('debug/dashboard')->name('debug.dashboard.')->group(function () {
         Route::get('/cyberbullying-stats', [DashboardController::class, 'getAssessmentStats'])->name('cyberbullying.stats');
@@ -323,51 +389,24 @@ if (app()->environment('local')) {
         // Safe Area specific debug routes
         Route::get('/safe-area-by-year/{year}', [DashboardController::class, 'getSafeAreaDataByYear'])->name('safe-area.by-year');
         Route::get('/safe-area-years', [DashboardController::class, 'getAvailableYears'])->name('safe-area.years');
-    });
-
-
-
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::prefix('behavioral-reports')->name('behavioral-reports.')->group(function () {
-        Route::get('/', [BehavioralReportController::class, 'adminIndex'])->name('index');
-        Route::get('/{id}', [BehavioralReportController::class, 'show'])->name('show');
-        Route::patch('/{id}/status', [BehavioralReportController::class, 'updateStatus'])->name('update-status');
-        Route::delete('/{id}', [BehavioralReportController::class, 'destroy'])->name('destroy');
-        Route::get('/statistics/data', [BehavioralReportController::class, 'getStatistics'])->name('statistics');
-    });
-});
-
-// API Routes for Behavioral Reports
-Route::prefix('api')->name('api.')->group(function () {
-    Route::prefix('behavioral-reports')->name('behavioral-reports.')->group(function () {
-        Route::get('/statistics', [BehavioralReportController::class, 'getStatistics'])->name('statistics');
-        Route::post('/', [BehavioralReportController::class, 'store'])->name('store');
         
-        // Protected API routes (require authentication)
-        Route::middleware(['auth'])->group(function () {
-            Route::get('/', [BehavioralReportController::class, 'adminIndex'])->name('index');
-            Route::get('/{id}', [BehavioralReportController::class, 'show'])->name('show');
-            Route::patch('/{id}/status', [BehavioralReportController::class, 'updateStatus'])->name('update-status');
-            Route::delete('/{id}', [BehavioralReportController::class, 'destroy'])->name('destroy');
-        });
+        // Behavioral Report debug routes
+        Route::get('/behavioral-report-debug', function() {
+            $reports = \App\Models\ReportConsultation\BehavioralReportReportConsultation::latest()->take(10)->get();
+            return response()->json([
+                'total_reports' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::count(),
+                'researcher_count' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('who', 'researcher')->count(),
+                'teacher_count' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('who', 'teacher')->count(),
+                'pending_count' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('status', false)->count(),
+                'reviewed_count' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('status', true)->count(),
+                'school_breakdown' => [
+                    'วาวีวิทยาคม' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('school', 'โรงเรียนวาวีวิทยาคม')->count(),
+                    'สหศาสตร์ศึกษา' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('school', 'โรงเรียนสหศาสตร์ศึกษา')->count(),
+                    'ราชประชานุเคราะห์ 62' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('school', 'โรงเรียนราชประชานุเคราะห์ 62')->count(),
+                    'ห้วยไร่สามัคคี' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('school', 'โรงเรียนห้วยไร่สามัคคี')->count(),
+                ],
+                'recent_reports' => $reports
+            ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        })->name('behavioral-report.debug');
     });
-});
 }
-
-
-
-Route::get('/test-file-service', function () {
-    $fileService = new \App\Services\LocalFileService();
-    $result = $fileService->testConnection();
-    
-    return response()->json([
-        'service_test' => $result,
-        'upload_path_exists' => file_exists(public_path('uploads')),
-        'upload_path_writable' => is_writable(public_path('uploads')),
-        'behavioral_report_path_exists' => file_exists(public_path('uploads/behavioral_report')),
-        'voice_path_exists' => file_exists(public_path('uploads/behavioral_report/voice')),
-        'images_path_exists' => file_exists(public_path('uploads/behavioral_report/images')),
-        'public_path' => public_path('uploads'),
-        'permissions' => substr(sprintf('%o', fileperms(public_path('uploads'))), -4),
-    ]);
-});

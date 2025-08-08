@@ -273,7 +273,7 @@
             <div class="modal-content bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 text-center">
                 <h3 class="text-xl font-bold text-indigo-800">{{ $scenario['title'] }}</h3>
                 <p class="text-indigo-800 text-lg mb-4 font-medium">{{ $scenario['subtitle'] }}</p>
-                <img src="{{ asset('images/material/school_girl.png') }}" alt="School Girl Character"
+                <img src="{{ asset('images/material/school_man.png') }}" alt="School Girl Character"
                      class="w-32 h-auto mx-auto mb-6 object-contain">
                 
                 <p class="text-indigo-800 text-lg mb-2 font-medium">เริ่มความท้าทายกันเลย</p>

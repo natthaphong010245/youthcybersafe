@@ -1,3 +1,4 @@
+{{-- resources/views/layouts/dashboard/style.blade.php --}}
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
 
@@ -29,7 +30,6 @@ body {
     justify-content: center;
 }
 
-
 .sidebar .nav-link {
     color: #878AA2;
     border-radius: 12px;
@@ -58,7 +58,7 @@ body {
 .profile-card {
     background: white;
     border-radius: 12px;
-    padding: 15px;
+    padding: 15px 5px 15px 5px;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     border: 1px solid rgba(0,0,0,0.05);
@@ -108,10 +108,6 @@ body {
     align-items: center;
 }
 
-.stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-}
 
 .title-head{
     color: #252525;
@@ -451,8 +447,155 @@ body {
     border: none !important;
 }
 
-.bottom-row-container canvas {
-    max-height: 300px !important;
+/* New styles for behavioral report */
+.col-md-2_4 {
+    flex: 0 0 20%;
+    max-width: 20%;
+    padding: 0 10px;
+}
+
+.report-row {
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.report-row:hover {
+    background-color: #f8f9fa !important;
+}
+
+.indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.indicator.active {
+    background-color: white;
+    transform: scale(1.2);
+}
+
+.image-container img {
+    transition: transform 0.3s ease;
+}
+
+.image-nav-left:hover,
+.image-nav-right:hover {
+    background: linear-gradient(to right, rgba(0,0,0,0.1), transparent);
+}
+
+.image-nav-right:hover {
+    background: linear-gradient(to left, rgba(0,0,0,0.1), transparent);
+}
+
+.btn-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.message-content {
+    font-size: 24px;
+    line-height: 1.6;
+    color: #333;
+}
+
+.message-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.message-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.message-content::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.message-content::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.table th {
+    font-weight: 600;
+    color: #2d3748;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.table td {
+    vertical-align: middle;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.pagination .page-link {
+    color: #626DF7;
+    border-color: #e2e8f0;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #626DF7;
+    border-color: #626DF7;
+}
+
+.pagination .page-link:hover {
+    color: #4c5eef;
+    background-color: #f8f9ff;
+    border-color: #e2e8f0;
+}
+
+.form-select:focus {
+    border-color: #626DF7;
+    box-shadow: 0 0 0 0.2rem rgba(98, 109, 247, 0.25);
+}
+
+.year-selector select {
+    border: 2px solid #e3e6f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #5a5c69;
+    background-color: white;
+    transition: all 0.3s ease;
+}
+
+.year-selector select:focus {
+    border-color: #4C6FFF;
+    box-shadow: 0 0 0 0.2rem rgba(76, 111, 255, 0.25);
+    outline: none;
+}
+
+.year-selector select:hover {
+    border-color: #4C6FFF;
+}
+
+.chart-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    border-radius: 8px;
+}
+
+.loading-spinner {
+    text-align: center;
+}
+
+.loading-spinner p {
+    color: #6c757d;
+    margin: 0;
+    font-size: 14px;
 }
 
 @media (max-width: 768px) {
@@ -482,6 +625,12 @@ body {
     .bottom-row-container {
         height: auto;
         min-height: 350px;
+    }
+    
+    .col-md-2_4 {
+        flex: 0 0 50%;
+        max-width: 50%;
+        margin-bottom: 15px;
     }
 }
 
@@ -587,7 +736,7 @@ body {
     margin: 0 -10px;
 }
 
-.behavioral-overview .col-md-2 {
+.behavioral-overview .col-md-2_4 {
     padding: 0 10px;
     margin-bottom: 20px;
 }
@@ -603,10 +752,201 @@ body {
     text-align: center;
 }
 
-@media (min-width: 768px) {
-    .behavioral-overview .col-md-2 {
-        flex: 0 0 20%;
-        max-width: 20%;
+.stat-icon-blue-custom { 
+    background: #0999FF !important;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-icon-pink-custom { 
+    background: #FB5959 !important;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    color: white;
+    font-size: 1.5rem;
+}
+
+/* Badge styles */
+.badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Modal improvements */
+.modal-xl {
+    max-width: 1200px;
+}
+
+.modal-header {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.modal-header h5 {
+    color: #2d3748;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.modal-header h6 {
+    color: #6c757d;
+    font-weight: 400;
+    margin-bottom: 0;
+}
+
+.modal-body {
+    padding: 20px 30px 30px;
+}
+
+/* Image gallery styles */
+.image-gallery {
+    margin-bottom: 20px;
+}
+
+.image-container {
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.controls-section {
+
+    padding-top: 15px;
+}
+
+.audio-control {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.content-section h6 {
+    color: #2d3748;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .modal-xl {
+        max-width: 95%;
+        margin: 20px auto;
     }
+    
+    .modal-body {
+        padding: 15px 20px 20px;
+    }
+    
+    .row .col-md-6 {
+        margin-bottom: 20px;
+    }
+}
+
+/* Additional utility classes */
+.text-truncate-custom {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* Focus states */
+.btn:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(98, 109, 247, 0.25);
+}
+
+/* Custom scrollbar for modal content */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Hover effects for interactable elements */
+.table-hover tbody tr:hover {
+    background-color: rgba(98, 109, 247, 0.05);
+}
+
+/* Status badge hover effects */
+.badge {
+    transition: all 0.2s ease;
+}
+
+/* Image indicator improvements */
+.image-indicators {
+    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 5px 10px;
+    border-radius: 15px;
+}
+
+/* Button improvements */
+.btn {
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Modal backdrop improvements */
+.modal-backdrop {
+    backdrop-filter: blur(2px);
+}
+
+/* Enhanced focus indicators */
+.btn:focus-visible,
+.form-select:focus-visible,
+.page-link:focus-visible {
+    outline: 2px solid #626DF7;
+    outline-offset: 2px;
+}
+
+/* Loading states */
+.btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.btn.loading::after {
+    content: "";
+    width: 16px;
+    height: 16px;
+    margin-left: 8px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 1s linear infinite;
 }
 </style>

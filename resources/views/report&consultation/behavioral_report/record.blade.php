@@ -1,4 +1,3 @@
-{{-- resources/views/report&consultation/behavioral_report/record.blade.php --}}
 <div class="mb-6">
     <label class="block text-lg font-medium text-[#3E36AE] mb-2">บันทึกเสียง</label>
     <div class="flex items-center space-x-3">

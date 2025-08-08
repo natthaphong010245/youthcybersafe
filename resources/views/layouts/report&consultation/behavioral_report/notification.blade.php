@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/report&consultation/behavioral_report/notification.blade.php --}}
 <script>
 function initSuccessAlert() {
     @if (session('success'))

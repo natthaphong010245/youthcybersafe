@@ -46,7 +46,7 @@
             },
             'n1': {
                 title: 'Netiquette',
-                description: 'ใช้อย่างมีสุภาพ',
+                description: 'ใช้อย่างมีสติ',
                 image: '{{ asset("images/game/14/n.png") }}'
             },
             'n2': {
@@ -56,17 +56,17 @@
             },
             'e': {
                 title: 'Exploration',
-                description: 'สำรวจเพื่อแนะนำ',
+                description: 'สำรวจเพื่อนและโลก',
                 image: '{{ asset("images/game/14/e.png") }}'
             },
             'c2': {
                 title: 'Collect & Connect',
-                description: 'แกน-แกร์ ผ่อมบกร้',
+                description: 'แคป-แชร์ พ่อแม่ครู',
                 image: '{{ asset("images/game/14/c.png") }}'
             },
             't': {
                 title: 'Two-Step Verification',
-                description: 'เปิดโครี่ทำกิดให้ช่วย',
+                description: 'เปิดโทรศัพท์ดูให้ชัวร์',
                 image: '{{ asset("images/game/14/t.png") }}'
             }
         };

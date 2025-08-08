@@ -1,5 +1,5 @@
 <?php
-
+// app/Http/Middleware/CheckRoleUser.php
 namespace App\Http\Middleware;
 
 use Closure;

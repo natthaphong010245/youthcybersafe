@@ -1,84 +1,16 @@
-{{-- resources/views/dashboard/behavioral-report.blade.php --}}
-@extends('layouts.dashboard')
+{{-- resources/views/teacher/dashboard/behavioral-report.blade.php --}}
+@extends('layouts.teacher-dashboard')
 
-@section('title', 'Behavioral Report - Youth Cybersafe')
+@section('title', 'Behavioral Report - Youth Cybersafe Teacher')
 @section('page-title', 'Behavioral Report')
 
 @section('content')
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="chart-container">
-            <h6><strong>Behavioral Report</strong></h6>
-            <p class="text-muted small">Overview Summary</p>
-            <div class="row">
-                <div class="col-md-2_4">
-                    <div class="stat-card stat-card-blue">
-                        <div class="stat-icon stat-icon-blue">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
-                        <div class="stat-number">{{ $data['overview']['นักวิจัย'] }}</div>
-                        <div class="stat-label">นักวิจัย</div>
-                    </div>
-                </div>
-                <div class="col-md-2_4">
-                    <div class="stat-card stat-card-pink">
-                        <div class="stat-icon stat-icon-pink">
-                            <i class="fas fa-school"></i>
-                        </div>
-                        <div class="stat-number">{{ $data['overview']['โรงเรียนวาวีวิทยาคม'] }}</div>
-                        <div class="stat-label">วารีวิทยาคม</div>
-                    </div>
-                </div>
-                <div class="col-md-2_4">
-                    <div class="stat-card stat-card-orange">
-                        <div class="stat-icon stat-icon-orange">
-                            <i class="fas fa-school"></i>
-                        </div>
-                        <div class="stat-number">{{ $data['overview']['โรงเรียนสหศาสตร์ศึกษา'] }}</div>
-                        <div class="stat-label">สหศาสตร์ศึกษา</div>
-                    </div>
-                </div>
-                <div class="col-md-2_4">
-                    <div class="stat-card stat-card-green">
-                        <div class="stat-icon stat-icon-green">
-                            <i class="fas fa-school"></i>
-                        </div>
-                        <div class="stat-number">{{ $data['overview']['โรงเรียนราชประชานุเคราะห์ 62'] }}</div>
-                        <div class="stat-label">ราชประชานุเคราะห์ 62</div>
-                    </div>
-                </div>
-                <div class="col-md-2_4">
-                    <div class="stat-card stat-card-purple">
-                        <div class="stat-icon stat-icon-purple">
-                            <i class="fas fa-school"></i>
-                        </div>
-                        <div class="stat-number">{{ $data['overview']['โรงเรียนห้วยไร่สามัคคี'] }}</div>
-                        <div class="stat-label">ห้วยไร่สามัคคี</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="chart-container">
-            <h6><strong>Schools in Chiang Rai Province</strong></h6>
-            <p class="text-muted small">Report</p>
-            <div style="height: 450px; position: relative;">
-                <canvas id="schoolsChart"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="row">
     <div class="col-12">
         <div class="chart-container">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <h6><strong>Report to Researchers</strong></h6>
+                    <h6><strong>{{ $data['school_name'] }}</strong></h6>
                     <p class="text-muted small">Behavioral</p>
                 </div>
                 <div class="d-flex align-items-center" style="position: relative;">
@@ -242,7 +174,7 @@
                             </div>
                         </div>
                         
-                        <!-- Audio and Location Controls - จัดแบบเหมือน Teacher -->
+                        <!-- Audio and Location Controls - Vertical Layout with More Spacing -->
                         <div class="controls-section mt-3 d-flex justify-content-center align-items-center" style="padding: 0 20px; gap: 100px;">
                             <!-- Audio Control -->
                             <div class="audio-control d-flex flex-column align-items-center" style="cursor: pointer;" onclick="toggleAudio()">
@@ -265,7 +197,7 @@
                     <!-- Right side - Content -->
                     <div class="col-md-6" style="position: relative;">
                         <div class="content-section" style="height: 500px; display: flex; flex-direction: column; justify-content: space-between; margin-right: 30px;">
-                            <!-- Message content with header เหมือน Teacher -->
+                            <!-- Message text - Full area like in image 4 -->
                             <div class="message-content" style="flex-grow: 1; overflow-y: auto; padding: 0; line-height: 1.6;">
                                 <h6 style="color: #343A81; font-size: 18px; font-weight: 600; margin-bottom: 15px;">ข้อความ</h6>
                                 <p id="reportMessage" style="color: #343A81; font-size: 16px; margin: 0; padding: 0; line-height: 1.8; word-wrap: break-word;"></p>
@@ -283,8 +215,8 @@
     </div>
 </div>
 
-<!-- Confirmation Modal -->
-<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true" data-bs-backdrop="static">
+<!-- Confirmation Modal with Dark Transparent Background -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
             <div class="modal-body text-center p-4">
@@ -304,29 +236,6 @@
 
 @section('styles')
 <style>
-.col-md-2_4 {
-    flex: 0 0 20%;
-    max-width: 20%;
-}
-
-@media (max-width: 768px) {
-    .col-md-2_4 {
-        flex: 0 0 50%;
-        max-width: 50%;
-        margin-bottom: 15px;
-    }
-}
-
-/* Confirmation Modal Styles */
-#confirmationModal {
-    z-index: 1060;
-}
-
-#confirmationModal .modal-backdrop {
-    z-index: 1055;
-}
-
-/* Table Styles */
 .behavioral-table th,
 .behavioral-table td {
     text-align: center !important;
@@ -364,7 +273,7 @@
     background-color: #f0f0f0 !important;
 }
 
-/* Google-style Pagination */
+/* Pagination styles */
 .pagination-wrapper {
     display: inline-flex;
     align-items: center;
@@ -435,147 +344,7 @@
     padding: 6px 4px !important;
 }
 
-/* Modal Improvements */
-.modal-dialog-centered {
-    display: flex;
-    align-items: center;
-    min-height: calc(100% - 60px);
-}
-
-.modal-lg {
-    max-width: 900px;
-}
-
-.modal-content {
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-}
-
-/* Image Container */
-.image-container {
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.image-container:hover {
-    transform: translateY(-2px);
-}
-
-.image-indicators {
-    backdrop-filter: blur(8px);
-}
-
-.indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.5);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.indicator.active {
-    background-color: white;
-    transform: scale(1.3);
-}
-
-/* Audio and Location Controls - Updated เหมือน Teacher */
-.controls-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    gap: 100px;
-}
-
-.audio-control,
-.location-control {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 10px;
-    border-radius: 10px;
-}
-
-.audio-control:hover,
-.location-control:hover {
-    background-color: rgba(98, 109, 247, 0.1);
-    transform: translateY(-2px);
-}
-
-.audio-icon,
-.location-icon {
-    width: 48px;
-    height: 48px;
-    background: rgba(98, 109, 247, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.audio-control:hover .audio-icon,
-.location-control:hover .location-icon {
-    background: rgba(98, 109, 247, 0.2);
-    transform: scale(1.05);
-}
-
-.audio-icon.playing {
-    background: rgba(98, 109, 247, 0.2);
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(98, 109, 247, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(98, 109, 247, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(98, 109, 247, 0); }
-}
-
-/* Content Section - Updated เหมือน Teacher */
-.content-section {
-    position: relative;
-}
-
-.message-content {
-    font-size: 16px;
-    line-height: 1.8;
-}
-
-.message-content h6 {
-    color: #343A81;
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #e9ecef;
-    padding-bottom: 10px;
-}
-
-#reviewBtn {
-    transition: all 0.3s ease;
-    box-shadow: 0 3px 10px rgba(98, 109, 247, 0.3);
-}
-
-#reviewBtn:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 5px 15px rgba(98, 109, 247, 0.4);
-}
-
-/* Close Button */
-.btn-close-custom {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-close-custom:hover {
-    transform: scale(1.1);
-}
-
-/* Filter Toggle Button */
+/* Filter dropdown styles */
 #filterToggle {
     background: white;
     border: 2px solid #ddd;
@@ -652,57 +421,83 @@
     color: white;
 }
 
-/* Message Content Scrollbar */
-.message-content::-webkit-scrollbar {
-    width: 4px;
+/* Modal styles */
+.image-container img {
+    transition: transform 0.3s ease;
 }
 
-.message-content::-webkit-scrollbar-track {
-    background: #e9ecef;
-    border-radius: 2px;
+.indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.message-content::-webkit-scrollbar-thumb {
-    background: #626DF7;
-    border-radius: 2px;
+.indicator.active {
+    background-color: white;
+    transform: scale(1.3);
 }
 
-.message-content::-webkit-scrollbar-thumb:hover {
-    background: #4A5FE7;
+.audio-control,
+.location-control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 10px;
+    border-radius: 10px;
 }
 
-/* Responsive Improvements */
-@media (max-width: 768px) {
-    .modal-lg {
-        max-width: 95%;
-        margin: 10px auto;
-    }
-    
-    .image-container {
-        height: 250px !important;
-    }
-    
-    .modal-body .row {
-        flex-direction: column;
-    }
-    
-    .modal-body .col-md-6 {
-        max-width: 100%;
-        margin-bottom: 20px;
-    }
-    
-    .controls-section {
-        justify-content: center !important;
-        gap: 60px !important;
-    }
+.audio-control:hover,
+.location-control:hover {
+    background-color: rgba(98, 109, 247, 0.1);
+    transform: translateY(-2px);
 }
 
-/* Focus States */
-.btn:focus-visible,
-.form-select:focus-visible,
-.page-link:focus-visible {
-    outline: 2px solid #626DF7;
-    outline-offset: 2px;
+.audio-icon,
+.location-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(98, 109, 247, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.audio-control:hover .audio-icon,
+.location-control:hover .location-icon {
+    background: rgba(98, 109, 247, 0.2);
+    transform: scale(1.05);
+}
+
+.audio-icon.playing {
+    background: rgba(98, 109, 247, 0.2);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(98, 109, 247, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(98, 109, 247, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(98, 109, 247, 0); }
+}
+
+.message-content {
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+.message-content h6 {
+    color: #343A81;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 10px;
 }
 
 /* Custom modal backdrop for dark transparent effect - Higher Specificity */
@@ -771,18 +566,52 @@ body .modal-backdrop {
     z-index: 1060 !important;
     position: relative !important;
 }
+
+.message-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.message-content::-webkit-scrollbar-track {
+    background: #e9ecef;
+    border-radius: 2px;
+}
+
+.message-content::-webkit-scrollbar-thumb {
+    background: #626DF7;
+    border-radius: 2px;
+}
+
+.btn-close-custom {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-close-custom:hover {
+    transform: scale(1.1);
+}
+
+#reviewBtn {
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(98, 109, 247, 0.3);
+}
+
+#reviewBtn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(98, 109, 247, 0.4);
+}
+
+#reviewBtn:disabled {
+    box-shadow: none;
+    transform: none;
+}
 </style>
 @endsection
 
 @section('scripts')
 <script>
-// Constants
-const AUDIO_LABELS = {
-    THAI: 'รายงานเสียง', // เปลี่ยนจาก 'เสียงรายงาน' เป็น 'รายงานเสียง'
-    ENGLISH: 'Voice Report'
-};
-
-// Global Variables
 let currentImageIndex = 0;
 let currentImages = [];
 let currentReportId = null;
@@ -793,133 +622,30 @@ let currentAudioUrl = null;
 let currentFilter = '{{ $data["current_filter"] ?? "" }}';
 let isFilterOpen = false;
 
-// Audio Variables
-let audioTimer = null;
-let currentAudioTime = 0;
-let totalAudioTime = 300;
-let isAudioPlaying = false;
-let audioElement = null;
+// Filter functionality
+document.getElementById('filterToggle').addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleFilterDropdown();
+});
 
-// Schools Chart
-const schoolsCtx = document.getElementById('schoolsChart').getContext('2d');
-const schoolsData = {!! json_encode($data['schools_data']) !!};
-const labels = Object.keys(schoolsData);
-const values = Object.values(schoolsData);
-const backgroundColors = ['#4252B8', '#FA5A7E', '#FF957A', '#3CD956', '#BF83FF'];
-
-new Chart(schoolsCtx, {
-    type: 'bar',
-    data: {
-        labels: labels,
-        datasets: [{
-            data: values,
-            backgroundColor: backgroundColors,
-            borderRadius: 8,
-            borderSkipped: false,
-            barThickness: 60
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: {
-            padding: {
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: 20
-            }
-        },
-        interaction: {
-            intersect: false,
-            mode: 'index'
-        },
-        scales: {
-            y: { 
-                beginAtZero: true,
-                max: Math.max(...values) > 0 ? Math.ceil(Math.max(...values) * 1.2) : 10,
-                grid: {
-                    display: true,
-                    color: '#f0f0f0',
-                    lineWidth: 1
-                },
-                ticks: {
-                    font: {
-                        size: 12,
-                        weight: '500'
-                    },
-                    color: '#666666',
-                    stepSize: Math.max(1, Math.ceil(Math.max(...values) / 5))
-                },
-                border: {
-                    display: false
-                }
-            },
-            x: {
-                grid: {
-                    display: false,
-                    drawBorder: false
-                },
-                ticks: {
-                    font: {
-                        size: 12,
-                        weight: '500'
-                    },
-                    color: '#666666',
-                    maxRotation: 0
-                },
-                border: {
-                    display: false
-                }
-            }
-        },
-        plugins: {
-            legend: { 
-                display: false 
-            },
-            tooltip: {
-                enabled: true,
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleColor: 'white',
-                bodyColor: 'white',
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 1,
-                cornerRadius: 8,
-                displayColors: false,
-                padding: 12,
-                titleFont: {
-                    size: 14,
-                    weight: 'bold'
-                },
-                bodyFont: {
-                    size: 12
-                },
-                callbacks: {
-                    title: function(context) {
-                        return context[0].label;
-                    },
-                    label: function(context) {
-                        const value = context.parsed.y;
-                        return `จำนวน: ${value}`;
-                    }
-                },
-                position: 'average',
-                caretPadding: 10
-            }
-        },
-        animation: {
-            duration: 2000,
-            easing: 'easeInOutQuart'
-        },
-        elements: {
-            bar: {
-                borderRadius: 8
-            }
-        }
+document.addEventListener('click', function(e) {
+    if (isFilterOpen && !e.target.closest('.filter-dropdown') && !e.target.closest('#filterToggle')) {
+        closeFilterDropdown();
     }
 });
 
-// Filter Functions
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.filter-option')) {
+        const option = e.target.closest('.filter-option');
+        const value = option.getAttribute('data-value');
+        const text = option.querySelector('span').textContent;
+        
+        selectFilterOption(value, text);
+        closeFilterDropdown();
+        loadReports(value, 1);
+    }
+});
+
 function toggleFilterDropdown() {
     const dropdown = document.getElementById('filterDropdown');
     const button = document.getElementById('filterToggle');
@@ -948,9 +674,7 @@ function selectFilterOption(value, text) {
     currentFilter = value;
     
     const label = document.getElementById('filterLabel');
-    if (label) {
-        label.textContent = text;
-    }
+    label.textContent = text;
     
     updateFilterOptions();
 }
@@ -962,11 +686,164 @@ function updateFilterOptions() {
     });
 }
 
-// Report Functions
+// Pagination
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('page-link') || e.target.closest('.page-link')) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const pageLink = e.target.classList.contains('page-link') ? e.target : e.target.closest('.page-link');
+        const pageItem = pageLink.closest('.page-item');
+        
+        if (pageItem.classList.contains('disabled')) {
+            return;
+        }
+        
+        const page = pageLink.getAttribute('data-page');
+        if (page && parseInt(page) > 0) {
+            const currentScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+            loadReports(currentFilter, parseInt(page));
+            setTimeout(() => {
+                window.scrollTo(0, currentScrollPosition);
+            }, 100);
+        }
+    }
+});
+
+// Report row clicks
+document.addEventListener('click', function(e) {
+    const reportRow = e.target.closest('.report-row');
+    if (reportRow) {
+        const reportId = reportRow.getAttribute('data-id');
+        showReportDetail(reportId);
+    }
+});
+
+// Modal functionality
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('image-nav-left')) {
+        navigateImage(-1);
+    } else if (e.target.classList.contains('image-nav-right')) {
+        navigateImage(1);
+    } else if (e.target.classList.contains('indicator')) {
+        const index = parseInt(e.target.getAttribute('data-index'));
+        showImage(index);
+    }
+});
+
+document.getElementById('reviewBtn').addEventListener('click', function() {
+    if (this.disabled || currentReportStatus === 'reviewed') {
+        return;
+    }
+    
+    if (currentReportStatus === 'pending') {
+        showConfirmationModal();
+    }
+});
+
+document.getElementById('confirmReviewBtn').addEventListener('click', function() {
+    confirmReview();
+});
+
+// Audio and Location functionality
+let audioTimer = null;
+let currentAudioTime = 0;
+let totalAudioTime = 300;
+let isAudioPlaying = false;
+let audioElement = null;
+
+function toggleAudio() {
+    const audioIcon = document.getElementById('audioIcon');
+    const audioTimeEl = document.getElementById('audioTime');
+    const audioIconContainer = audioIcon.parentElement;
+    const audioControl = audioIconContainer.parentElement;
+    
+    if (!currentAudioUrl) {
+        console.log('No audio URL available - audio control disabled');
+        audioControl.style.cursor = 'not-allowed';
+        audioControl.style.opacity = '0.5';
+        return;
+    }
+    
+    if (!isAudioPlaying) {
+        if (!audioElement) {
+            audioElement = new Audio(currentAudioUrl);
+            
+            audioElement.addEventListener('loadedmetadata', function() {
+                totalAudioTime = Math.floor(audioElement.duration) || 300;
+                console.log('Audio loaded, duration:', totalAudioTime, 'seconds');
+            });
+            
+            audioElement.addEventListener('timeupdate', function() {
+                if (isAudioPlaying) {
+                    currentAudioTime = Math.floor(audioElement.currentTime);
+                }
+            });
+            
+            audioElement.addEventListener('ended', function() {
+                console.log('Audio playback ended');
+                stopAudio();
+                currentAudioTime = 0;
+            });
+            
+            audioElement.addEventListener('error', function(e) {
+                console.error('Audio error:', e);
+                stopAudio();
+                currentAudioTime = 0;
+                totalAudioTime = 0;
+            });
+        }
+        
+        audioElement.play().then(() => {
+            isAudioPlaying = true;
+            audioIcon.className = 'fas fa-pause';
+            audioIconContainer.classList.add('playing');
+            console.log('Audio started playing');
+        }).catch(error => {
+            console.error('Audio play failed:', error);
+            stopAudio();
+        });
+    } else {
+        if (audioElement) {
+            audioElement.pause();
+        }
+        isAudioPlaying = false;
+        audioIcon.className = 'fas fa-play';
+        audioIconContainer.classList.remove('playing');
+        console.log('Audio paused');
+    }
+}
+
+function stopAudio() {
+    const audioIcon = document.getElementById('audioIcon');
+    const audioIconContainer = audioIcon.parentElement;
+    
+    isAudioPlaying = false;
+    audioIcon.className = 'fas fa-play';
+    audioIconContainer.classList.remove('playing');
+    
+    if (audioElement) {
+        audioElement.pause();
+        audioElement.currentTime = 0;
+    }
+    
+    console.log('Audio stopped');
+}
+
+function openLocation() {
+    if (currentReportLatitude && currentReportLongitude) {
+        const googleMapsUrl = `https://www.google.com/maps?q=${currentReportLatitude},${currentReportLongitude}&z=15`;
+        window.open(googleMapsUrl, '_blank');
+        console.log('Opening Google Maps with coordinates:', currentReportLatitude, currentReportLongitude);
+    } else {
+        const googleMapsUrl = 'https://www.google.com/maps/search/Thailand';
+        window.open(googleMapsUrl, '_blank');
+        console.log('Opening Google Maps with default location');
+    }
+}
+
 function loadReports(status = '', page = 1) {
     const tbody = document.getElementById('reportsTableBody');
-    if (!tbody) return;
-    
     tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> กำลังโหลด...</td></tr>';
     
     const url = new URL(window.location.href.split('?')[0]);
@@ -978,6 +855,8 @@ function loadReports(status = '', page = 1) {
     if (status && status !== '') {
         url.searchParams.set('status', status);
     }
+    
+    console.log('Loading reports with URL:', url.toString());
     
     fetch(url.toString(), {
         method: 'GET',
@@ -994,6 +873,7 @@ function loadReports(status = '', page = 1) {
         return response.json();
     })
     .then(data => {
+        console.log('Received data:', data);
         updateReportsTable(data.reports);
         updatePagination(data.pagination);
         currentFilter = data.current_filter || '';
@@ -1007,9 +887,10 @@ function loadReports(status = '', page = 1) {
 
 function updateReportsTable(reports) {
     const tbody = document.getElementById('reportsTableBody');
-    if (!tbody) return;
-    
     tbody.innerHTML = '';
+    
+    console.log('Updating table with reports:', reports);
+    console.log('Number of reports:', reports.length);
     
     if (reports.length === 0) {
         tbody.innerHTML = `
@@ -1023,7 +904,7 @@ function updateReportsTable(reports) {
         return;
     }
     
-    reports.forEach(report => {
+    reports.forEach((report, index) => {
         const statusText = report.status === 'reviewed' 
             ? '<span style="color: #006E0B; font-weight: 500;">ตรวจสอบแล้ว</span>'
             : '<span style="color: #D36300; font-weight: 500;">รอตรวจสอบ</span>';
@@ -1036,6 +917,8 @@ function updateReportsTable(reports) {
             </tr>
         `;
         tbody.innerHTML += row;
+        
+        console.log(`Report ${index + 1}:`, report.id, report.status, report.date);
     });
 }
 
@@ -1056,6 +939,8 @@ function updatePagination(pagination) {
     
     const current = parseInt(pagination.current_page);
     const total = parseInt(pagination.total_pages);
+    
+    console.log('Updating pagination - Current:', current, 'Total:', total);
     
     // Previous arrow
     const prevDisabled = current === 1;
@@ -1081,7 +966,6 @@ function updatePagination(pagination) {
         start = Math.max(1, total - 9);
     }
     
-    // First page + ellipsis
     if (start > 1) {
         paginationEl.innerHTML += `
             <li class="page-item">
@@ -1097,7 +981,6 @@ function updatePagination(pagination) {
         }
     }
     
-    // Page numbers
     for (let i = start; i <= end; i++) {
         const activeClass = i == current ? 'active' : '';
         paginationEl.innerHTML += `
@@ -1107,7 +990,6 @@ function updatePagination(pagination) {
         `;
     }
     
-    // Ellipsis + last page
     if (end < total) {
         if (end < total - 1) {
             paginationEl.innerHTML += `
@@ -1138,9 +1020,8 @@ function updatePagination(pagination) {
     `;
 }
 
-// Modal Functions
 function showReportDetail(reportId) {
-    fetch(`/api/behavioral-report/detail/${reportId}`)
+    fetch(`/api/teacher/behavioral-report/detail/${reportId}`)
         .then(response => response.json())
         .then(data => {
             if (data.error) {
@@ -1155,10 +1036,18 @@ function showReportDetail(reportId) {
             currentImages = data.images || [];
             currentImageIndex = 0;
             
+            console.log('Report detail loaded:', {
+                id: reportId,
+                imagesCount: currentImages.length,
+                hasAudio: !!currentAudioUrl,
+                images: currentImages
+            });
+            
             document.getElementById('reportMessage').textContent = data.message;
             showImage(0);
             updateReviewButton();
             initializeAudio();
+            updateAudioControls();
             
             const modal = new bootstrap.Modal(document.getElementById('reportDetailModal'));
             
@@ -1181,12 +1070,40 @@ function showReportDetail(reportId) {
         });
 }
 
+function initializeAudio() {
+    stopAudio();
+    currentAudioTime = 0;
+    totalAudioTime = 0;
+    audioElement = null;
+    updateAudioControls();
+    
+    console.log('Audio initialized');
+}
+
+function updateAudioControls() {
+    const audioIcon = document.getElementById('audioIcon');
+    const audioIconContainer = audioIcon.parentElement;
+    const audioControl = audioIconContainer.parentElement;
+    
+    if (!currentAudioUrl) {
+        audioControl.style.cursor = 'not-allowed';
+        audioControl.style.opacity = '0.5';
+        audioIcon.className = 'fas fa-play';
+        audioIconContainer.classList.remove('playing');
+        console.log('Audio control disabled - no audio file');
+    } else {
+        audioControl.style.cursor = 'pointer';
+        audioControl.style.opacity = '1';
+        audioIcon.className = 'fas fa-play';
+        audioIconContainer.classList.remove('playing');
+        console.log('Audio control enabled - audio file available');
+    }
+}
+
 function showImage(index) {
     const imageEl = document.getElementById('currentImage');
     const noImageEl = document.getElementById('noImageMessage');
     const indicatorsEl = document.getElementById('imageIndicators');
-    
-    if (!imageEl || !noImageEl || !indicatorsEl) return;
     
     if (currentImages.length === 0) {
         imageEl.style.display = 'none';
@@ -1221,133 +1138,8 @@ function navigateImage(direction) {
     }
 }
 
-// Audio Functions
-function initializeAudio() {
-    stopAudio();
-    currentAudioTime = 0;
-    totalAudioTime = 0;
-    audioElement = null;
-    
-    // Keep the text "รายงานเสียง" - Updated
-    const audioTimeEl = document.getElementById('audioTime');
-    if (audioTimeEl && audioTimeEl.textContent !== AUDIO_LABELS.THAI) {
-        audioTimeEl.textContent = AUDIO_LABELS.THAI;
-    }
-    
-    updateAudioControls();
-}
-
-function updateAudioControls() {
-    const audioIcon = document.getElementById('audioIcon');
-    const audioIconContainer = audioIcon?.parentElement;
-    const audioControl = audioIconContainer?.parentElement;
-    
-    if (!audioIcon || !audioIconContainer || !audioControl) return;
-    
-    if (!currentAudioUrl) {
-        audioControl.style.cursor = 'not-allowed';
-        audioControl.style.opacity = '0.5';
-        audioIcon.className = 'fas fa-play';
-        audioIconContainer.classList.remove('playing');
-    } else {
-        audioControl.style.cursor = 'pointer';
-        audioControl.style.opacity = '1';
-        audioIcon.className = 'fas fa-play';
-        audioIconContainer.classList.remove('playing');
-    }
-}
-
-function toggleAudio() {
-    const audioIcon = document.getElementById('audioIcon');
-    const audioIconContainer = audioIcon?.parentElement;
-    const audioControl = audioIconContainer?.parentElement;
-    
-    if (!audioIcon || !audioIconContainer || !audioControl) return;
-    
-    if (!currentAudioUrl) {
-        console.log('No audio URL available - audio control disabled');
-        audioControl.style.cursor = 'not-allowed';
-        audioControl.style.opacity = '0.5';
-        return;
-    }
-    
-    if (!isAudioPlaying) {
-        // Start playing
-        if (!audioElement) {
-            audioElement = new Audio(currentAudioUrl);
-            
-            audioElement.addEventListener('loadedmetadata', function() {
-                totalAudioTime = Math.floor(audioElement.duration) || 300;
-            });
-            
-            audioElement.addEventListener('timeupdate', function() {
-                if (isAudioPlaying) {
-                    currentAudioTime = Math.floor(audioElement.currentTime);
-                }
-            });
-            
-            audioElement.addEventListener('ended', function() {
-                stopAudio();
-                currentAudioTime = 0;
-            });
-            
-            audioElement.addEventListener('error', function(e) {
-                console.error('Audio error:', e);
-                stopAudio();
-                currentAudioTime = 0;
-                totalAudioTime = 0;
-            });
-        }
-        
-        audioElement.play().then(() => {
-            isAudioPlaying = true;
-            audioIcon.className = 'fas fa-pause';
-            audioIconContainer.classList.add('playing');
-        }).catch(error => {
-            console.error('Audio play failed:', error);
-            stopAudio();
-        });
-    } else {
-        // Pause playing
-        if (audioElement) {
-            audioElement.pause();
-        }
-        isAudioPlaying = false;
-        audioIcon.className = 'fas fa-play';
-        audioIconContainer.classList.remove('playing');
-    }
-}
-
-function stopAudio() {
-    const audioIcon = document.getElementById('audioIcon');
-    const audioIconContainer = audioIcon?.parentElement;
-    
-    if (!audioIcon || !audioIconContainer) return;
-    
-    isAudioPlaying = false;
-    audioIcon.className = 'fas fa-play';
-    audioIconContainer.classList.remove('playing');
-    
-    if (audioElement) {
-        audioElement.pause();
-        audioElement.currentTime = 0;
-    }
-}
-
-function openLocation() {
-    if (currentReportLatitude && currentReportLongitude) {
-        const googleMapsUrl = `https://www.google.com/maps?q=${currentReportLatitude},${currentReportLongitude}&z=15`;
-        window.open(googleMapsUrl, '_blank');
-    } else {
-        const googleMapsUrl = 'https://www.google.com/maps/search/Thailand';
-        window.open(googleMapsUrl, '_blank');
-    }
-}
-
-// Review Functions
 function updateReviewButton() {
     const reviewBtn = document.getElementById('reviewBtn');
-    if (!reviewBtn) return;
     
     if (currentReportStatus === 'reviewed') {
         reviewBtn.style.backgroundColor = '#B8B8B8';
@@ -1409,7 +1201,7 @@ function showConfirmationModal() {
 }
 
 function confirmReview() {
-    fetch(`/api/behavioral-report/update-status/${currentReportId}`, {
+    fetch(`/api/teacher/behavioral-report/update-status/${currentReportId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1444,106 +1236,18 @@ function confirmReview() {
     });
 }
 
-// Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
-    // Filter toggle
-    const filterToggle = document.getElementById('filterToggle');
-    if (filterToggle) {
-        filterToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            toggleFilterDropdown();
-        });
+    if (currentFilter) {
+        const activeOption = document.querySelector(`[data-value="${currentFilter}"]`);
+        if (activeOption) {
+            const text = activeOption.querySelector('span').textContent;
+            selectFilterOption(currentFilter, text);
+        }
+    } else {
+        document.getElementById('filterLabel').textContent = 'ทั้งหมด';
     }
+    updateFilterOptions();
     
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (isFilterOpen && !e.target.closest('.filter-dropdown') && !e.target.closest('#filterToggle')) {
-            closeFilterDropdown();
-        }
-    });
-    
-    // Filter option selection
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.filter-option')) {
-            const option = e.target.closest('.filter-option');
-            const value = option.getAttribute('data-value');
-            const text = option.querySelector('span').textContent;
-            
-            selectFilterOption(value, text);
-            closeFilterDropdown();
-            loadReports(value, 1);
-        }
-    });
-    
-    // Pagination clicks
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('page-link') || e.target.closest('.page-link')) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const pageLink = e.target.classList.contains('page-link') ? e.target : e.target.closest('.page-link');
-            const pageItem = pageLink.closest('.page-item');
-            
-            if (pageItem.classList.contains('disabled')) {
-                return;
-            }
-            
-            const page = pageLink.getAttribute('data-page');
-            if (page && parseInt(page) > 0) {
-                const currentScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-                loadReports(currentFilter, parseInt(page));
-                
-                setTimeout(() => {
-                    window.scrollTo(0, currentScrollPosition);
-                }, 100);
-            }
-        }
-    });
-    
-    // Report row clicks
-    document.addEventListener('click', function(e) {
-        const reportRow = e.target.closest('.report-row');
-        if (reportRow) {
-            const reportId = reportRow.getAttribute('data-id');
-            showReportDetail(reportId);
-        }
-    });
-    
-    // Image navigation
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('image-nav-left')) {
-            navigateImage(-1);
-        } else if (e.target.classList.contains('image-nav-right')) {
-            navigateImage(1);
-        } else if (e.target.classList.contains('indicator')) {
-            const index = parseInt(e.target.getAttribute('data-index'));
-            showImage(index);
-        }
-    });
-    
-    // Review button
-    const reviewBtn = document.getElementById('reviewBtn');
-    if (reviewBtn) {
-        reviewBtn.addEventListener('click', function() {
-            if (this.disabled || currentReportStatus === 'reviewed') {
-                return;
-            }
-            
-            if (currentReportStatus === 'pending') {
-                showConfirmationModal();
-            }
-        });
-    }
-    
-    // Confirm review
-    const confirmReviewBtn = document.getElementById('confirmReviewBtn');
-    if (confirmReviewBtn) {
-        confirmReviewBtn.addEventListener('click', function() {
-            confirmReview();
-        });
-    }
-    
-    // Modal close event listener to stop audio
     const reportModal = document.getElementById('reportDetailModal');
     if (reportModal) {
         reportModal.addEventListener('hidden.bs.modal', function() {
@@ -1573,22 +1277,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Initialize filter state
-    if (currentFilter) {
-        const activeOption = document.querySelector(`[data-value="${currentFilter}"]`);
-        if (activeOption) {
-            const text = activeOption.querySelector('span').textContent;
-            selectFilterOption(currentFilter, text);
-        }
-    } else {
-        const filterLabel = document.getElementById('filterLabel');
-        if (filterLabel) {
-            filterLabel.textContent = 'ทั้งหมด';
-        }
-    }
-    updateFilterOptions();
-    
-    console.log('Behavioral report page initialized');
+    console.log('Teacher behavioral report page initialized');
+    console.log('School:', '{{ $data["school_name"] }}');
+    console.log('Current filter:', currentFilter);
 });
 </script>
 @endsection
