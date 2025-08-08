@@ -1,5 +1,4 @@
 <?php
-// routes/web.php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -223,16 +222,19 @@ Route::middleware(['auth', CheckRoleUser::class])->group(function () {
 });
 
 // =============================================
-// TEACHER DASHBOARD ROUTES (เฉพาะคุณครู)
+// TEACHER DASHBOARD ROUTES (เฉพาะคุณครู) - ✅ แก้ไขแล้ว
 // =============================================
 Route::middleware(['auth', CheckTeacher::class])->group(function () {
     Route::get('/teacher/dashboard', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
     Route::get('/teacher/behavioral-report', [TeacherDashboardController::class, 'behavioralReport'])->name('teacher.behavioral-report');
     
-    // API routes สำหรับ teacher
+    // API routes สำหรับ teacher - ✅ เพิ่ม route ที่ขาดหายไป
     Route::prefix('api/teacher')->name('api.teacher.')->group(function () {
         Route::post('/behavioral-report/update-status/{id}', [TeacherDashboardController::class, 'updateReportStatus'])->name('behavioral-report.update-status');
         Route::get('/behavioral-report/detail/{id}', [TeacherDashboardController::class, 'getReportDetail'])->name('behavioral-report.detail');
+        
+        // ✅ เพิ่ม route สำหรับการเปลี่ยนปี - เหมือน Safe Area
+        Route::get('/school-data-by-year/{year?}', [TeacherDashboardController::class, 'getSchoolDataByYear'])->name('school-data-by-year');
     });
 });
 

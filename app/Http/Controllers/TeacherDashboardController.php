@@ -1,9 +1,9 @@
 <?php
-//app/Http/Controllers/TeacherDashboardController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\ReportConsultation\BehavioralReportReportConsultation;
 
 class TeacherDashboardController extends Controller
@@ -124,11 +124,15 @@ class TeacherDashboardController extends Controller
             $report->status = true; // Mark as reviewed
             $report->save();
             
+            Log::info("Teacher {$teacher->name} updated report {$id} status to reviewed");
+            
             return response()->json([
                 'success' => true, 
                 'message' => 'สถานะได้รับการอัปเดตแล้ว'
             ]);
         } catch (\Exception $e) {
+            Log::error("Failed to update report status: " . $e->getMessage());
+            
             return response()->json([
                 'success' => false, 
                 'message' => 'เกิดข้อผิดพลาดในการอัปเดตสถานะ'
@@ -171,61 +175,109 @@ class TeacherDashboardController extends Controller
                 'status' => $report->status ? 'reviewed' : 'pending'
             ]);
         } catch (\Exception $e) {
+            Log::error("Failed to get report detail: " . $e->getMessage());
+            
             return response()->json([
                 'error' => 'ไม่พบข้อมูลรายงาน'
             ], 404);
         }
     }
 
+    /**
+     * ✅ รับข้อมูลรายงานของโรงเรียนตามปี - สำหรับ Year Selector (แก้ไขแล้ว)
+     */
     public function getSchoolDataByYear(Request $request, $year = null)
     {
-        $teacher = Auth::user();
-        $teacherSchool = $teacher->school;
-        
-        if ($year === null) {
-            $year = $request->get('year', date('Y'));
-        }
-        
-        if ($year < 2025 || $year > 2035) {
+        try {
+            $teacher = Auth::user();
+            $teacherSchool = $teacher->school;
+            
+            if ($year === null) {
+                $year = $request->get('year', date('Y'));
+            }
+            
+            // Validate year range
+            $year = (int) $year;
+            if ($year < 2025 || $year > 2035) {
+                return response()->json([
+                    'error' => 'ปีต้องอยู่ระหว่าง 2025-2035'
+                ], 400);
+            }
+            
+            $monthlyData = $this->getSchoolMonthlyData($teacherSchool, $year);
+            
+            Log::info("Teacher {$teacher->name} requested data for year {$year}, school: {$teacherSchool}", [
+                'teacher_id' => $teacher->id,
+                'school' => $teacherSchool,
+                'year' => $year,
+                'monthly_data' => $monthlyData
+            ]);
+            
             return response()->json([
-                'error' => 'ปีต้องอยู่ระหว่าง 2025-2035'
-            ], 400);
+                'monthly_data' => $monthlyData,
+                'school_name' => $teacherSchool,
+                'year' => $year,
+                'available_years' => range(2025, 2035),
+                'success' => true
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error("Failed to get school data by year: " . $e->getMessage(), [
+                'teacher_id' => Auth::id(),
+                'requested_year' => $year,
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'error' => 'เกิดข้อผิดพลาดในการโหลดข้อมูล',
+                'details' => app()->environment('local') ? $e->getMessage() : null
+            ], 500);
         }
-        
-        $monthlyData = $this->getSchoolMonthlyData($teacherSchool, $year);
-        
-        return response()->json([
-            'monthly_data' => $monthlyData,
-            'school_name' => $teacherSchool,
-            'year' => $year,
-            'available_years' => range(2025, 2035)
-        ]);
     }
 
+    /**
+     * ✅ รับข้อมูลรายงานของโรงเรียนแยกตามเดือน (ปรับปรุงแล้ว)
+     */
     private function getSchoolMonthlyData($school, $year = null)
     {
         if ($year === null) {
             $year = date('Y');
         }
         
-        $monthlyStats = BehavioralReportReportConsultation::selectRaw('
-                MONTH(created_at) as month,
-                COUNT(*) as report_count
-            ')
-            ->where('school', $school)
-            ->whereYear('created_at', $year)
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get()
-            ->keyBy('month');
+        try {
+            $monthlyStats = BehavioralReportReportConsultation::selectRaw('
+                    MONTH(created_at) as month,
+                    COUNT(*) as report_count
+                ')
+                ->where('school', $school)
+                ->whereYear('created_at', $year)
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get()
+                ->keyBy('month');
 
-        $monthlyData = [];
-        
-        for ($month = 1; $month <= 12; $month++) {
-            $monthlyData[] = $monthlyStats->get($month)->report_count ?? 0;
+            $monthlyData = [];
+            
+            for ($month = 1; $month <= 12; $month++) {
+                $monthlyData[] = $monthlyStats->get($month)->report_count ?? 0;
+            }
+            
+            Log::info("Monthly data generated for school: {$school}, year: {$year}", [
+                'data' => $monthlyData,
+                'total_reports' => array_sum($monthlyData)
+            ]);
+            
+            return $monthlyData;
+            
+        } catch (\Exception $e) {
+            Log::error("Failed to get monthly data: " . $e->getMessage(), [
+                'school' => $school,
+                'year' => $year
+            ]);
+            
+            // Return empty data if query fails
+            return array_fill(0, 12, 0);
         }
-        
-        return $monthlyData;
     }
 
     private function getLocationFromCoordinates($latitude, $longitude)
