@@ -1,5 +1,5 @@
 <?php
-// app/Http/Controllers/DashboardController.php
+//app/Http/Controllers/DashboardController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -16,10 +16,6 @@ class DashboardController extends Controller
         $mentalHealthData = $this->getMentalHealthStats();
         $safeAreaStats = $this->getSafeAreaStats();
         $behavioralSchoolsData = $this->getBehavioralSchoolsData();
-        $behavioralOverviewData = $this->getBehavioralOverviewData();
-        
-        $studentReports = $this->getRecentReports();
-        $currentYear = date('Y');
         
         $data = [
             'stats' => [
@@ -32,17 +28,10 @@ class DashboardController extends Controller
             'victim_experiences' => $assessmentStats['victim_experiences'],
             'mental_health_data' => $mentalHealthData,
             'behavioral_schools' => $behavioralSchoolsData,
-            'overview' => $behavioralOverviewData,
             'safe_area' => [
                 'voice_reports' => $safeAreaStats['voice'],
                 'message_reports' => $safeAreaStats['message']
-            ],
-            'student_reports' => $studentReports,
-            'current_page' => 1,
-            'current_year' => $currentYear,
-            'available_years' => range(2025, 2035),
-            'school_name' => 'ข้อมูลรวมทุกโรงเรียน',
-            'school_report_data' => $this->getAllSchoolsMonthlyData($currentYear)
+            ]
         ];
 
         return view('dashboard.index', compact('data'));
@@ -219,52 +208,7 @@ class DashboardController extends Controller
 
     private function getBehavioralOverviewData()
     {
-        return $this->getBehavioralSchoolsData(); 
-    }
-
-
-    private function getRecentReports()
-    {
-        $reports = BehavioralReportReportConsultation::where('status', false)
-                    ->orderBy('created_at', 'desc')
-                    ->take(10)
-                    ->get();
-        
-        return $reports->map(function($report) {
-            return [
-                'id' => $report->id,
-                'date' => $report->created_at->format('d/m/Y'),
-                'message' => $report->message,
-                'school' => $report->school ?? 'นักวิจัย',
-                'who' => $report->who
-            ];
-        })->toArray();
-    }
-
-   
-    private function getAllSchoolsMonthlyData($year = null)
-    {
-        if ($year === null) {
-            $year = date('Y');
-        }
-        
-        $monthlyStats = BehavioralReportReportConsultation::selectRaw('
-                MONTH(created_at) as month,
-                COUNT(*) as report_count
-            ')
-            ->whereYear('created_at', $year)
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get()
-            ->keyBy('month');
-
-        $monthlyData = [];
-        
-        for ($month = 1; $month <= 12; $month++) {
-            $monthlyData[] = $monthlyStats->get($month)->report_count ?? 0;
-        }
-        
-        return $monthlyData;
+        return $this->getBehavioralSchoolsData(); // Same data for overview
     }
 
     public function safeArea()
