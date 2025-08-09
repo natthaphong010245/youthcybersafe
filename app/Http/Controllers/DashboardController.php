@@ -1,5 +1,4 @@
 <?php
-//app/Http/Controllers/DashboardController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -16,6 +15,7 @@ class DashboardController extends Controller
         $mentalHealthData = $this->getMentalHealthStats();
         $safeAreaStats = $this->getSafeAreaStats();
         $behavioralSchoolsData = $this->getBehavioralSchoolsData();
+        $behavioralOverviewData = $this->getBehavioralOverviewData(); // ✅ เพิ่มบรรทัดนี้
         
         $data = [
             'stats' => [
@@ -28,6 +28,7 @@ class DashboardController extends Controller
             'victim_experiences' => $assessmentStats['victim_experiences'],
             'mental_health_data' => $mentalHealthData,
             'behavioral_schools' => $behavioralSchoolsData,
+            'overview' => $behavioralOverviewData, // ✅ เพิ่มบรรทัดนี้
             'safe_area' => [
                 'voice_reports' => $safeAreaStats['voice'],
                 'message_reports' => $safeAreaStats['message']
