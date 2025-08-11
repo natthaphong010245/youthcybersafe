@@ -309,6 +309,23 @@ class VideoController extends Controller
                     'duration' => '01:00',
                     'category' => 'การรังแกทางไซเบอร์'
                 ],
+
+                [
+                    'id' => 6,
+                    'title' => 'วิธีการรับมือ Cyberbullying | 5 ขั้นตอน STOP BLOCK TELL REMOVE BE STRONG',
+                    'youtube_id' => '4ZApu1t3I6s',
+                    'thumbnail' => $this->getYouTubeThumbnail('4ZApu1t3I6s'),
+                    'duration' => '03:30',
+                    'category' => 'การรังแกทางไซเบอร์'
+                ],
+                [
+                    'id' => 7,
+                    'title' => 'การใช้คอมพิวเตอร์อย่างปลอดภัย ด้วยหลัก C.O.N.N.E.C.T | 7 ขั้นตอนสู่โลกดิจิทัลที่ปลอดภัย',
+                    'youtube_id' => 'iNlD5qJzsY4',
+                    'thumbnail' => $this->getYouTubeThumbnail('iNlD5qJzsY4'),
+                    'duration' => '06:27',
+                    'category' => 'การรังแกทางไซเบอร์'
+                ],
             ],
 
             6 => [ // กระเหรี่ยง

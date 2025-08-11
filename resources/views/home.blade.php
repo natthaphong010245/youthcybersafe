@@ -21,13 +21,13 @@
         </div>
 
         <div class="space-y-3 mb-8">
-            <a href="https://www.facebook.com/profile.php?id=61577920375564" target="_blank"
+            <a href="https://lin.ee/ZLnJCpu" target="_blank"
                 class="flex items-center justify-center space-x-6 w-full border border-gray-300 rounded-2xl py-2 px-2 transition duration-300 text-[20px] active:border-white">
                 <img src="/images/line.png" alt="Line" class="h-8 w-8">
                 <span class="text-gray-700 font-bold">พื้นที่พูดคุย</span>
             </a>
 
-            <a href="https://lin.ee/ZLnJCpu" target="_blank"
+            <a href="https://www.facebook.com/profile.php?id=61577920375564" target="_blank"
                 class="flex items-center justify-center space-x-5 w-full border border-gray-300 rounded-2xl py-2 px-2 transition duration-300 text-[20px] active:border-white">
                 <img src="/images/facebook.png" alt="Facebook" class="h-8 w-8">
                 <span class="text-gray-700 font-bold">ข้อมูลข่าวสาร</span>
