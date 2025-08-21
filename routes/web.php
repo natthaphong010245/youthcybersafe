@@ -379,36 +379,5 @@ if (app()->environment('local')) {
         ]);
     });
 
-    // Dashboard Debug Routes
-    Route::prefix('debug/dashboard')->name('debug.dashboard.')->group(function () {
-        Route::get('/cyberbullying-stats', [DashboardController::class, 'getAssessmentStats'])->name('cyberbullying.stats');
-        Route::get('/mental-health-stats', [DashboardController::class, 'getMentalHealthStatsApi'])->name('mental-health.stats');
-        Route::get('/safe-area-stats', [DashboardController::class, 'getSafeAreaStatsApi'])->name('safe-area.stats');
-        Route::get('/cyberbullying-debug', [DashboardController::class, 'debugAssessmentData'])->name('cyberbullying.debug');
-        Route::get('/mental-health-debug', [DashboardController::class, 'debugMentalHealthData'])->name('mental-health.debug');
-        Route::get('/safe-area-debug', [DashboardController::class, 'debugSafeAreaData'])->name('safe-area.debug');
-        
-        // Safe Area specific debug routes
-        Route::get('/safe-area-by-year/{year}', [DashboardController::class, 'getSafeAreaDataByYear'])->name('safe-area.by-year');
-        Route::get('/safe-area-years', [DashboardController::class, 'getAvailableYears'])->name('safe-area.years');
-        
-        // Behavioral Report debug routes
-        Route::get('/behavioral-report-debug', function() {
-            $reports = \App\Models\ReportConsultation\BehavioralReportReportConsultation::latest()->take(10)->get();
-            return response()->json([
-                'total_reports' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::count(),
-                'researcher_count' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('who', 'researcher')->count(),
-                'teacher_count' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('who', 'teacher')->count(),
-                'pending_count' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('status', false)->count(),
-                'reviewed_count' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('status', true)->count(),
-                'school_breakdown' => [
-                    'วาวีวิทยาคม' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('school', 'โรงเรียนวาวีวิทยาคม')->count(),
-                    'สหศาสตร์ศึกษา' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('school', 'โรงเรียนสหศาสตร์ศึกษา')->count(),
-                    'ราชประชานุเคราะห์ 62' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('school', 'โรงเรียนราชประชานุเคราะห์ 62')->count(),
-                    'ห้วยไร่สามัคคี' => \App\Models\ReportConsultation\BehavioralReportReportConsultation::where('school', 'โรงเรียนห้วยไร่สามัคคี')->count(),
-                ],
-                'recent_reports' => $reports
-            ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        })->name('behavioral-report.debug');
-    });
+    
 }
