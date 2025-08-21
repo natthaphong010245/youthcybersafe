@@ -13,25 +13,22 @@ class TeacherDashboardController extends Controller
         $teacher = Auth::user();
         $teacherSchool = $teacher->school;
         
-        // Data for Behavioral Report Overview Summary - จำนวนรายงานของโรงเรียนของครู
         $schoolReportCount = BehavioralReportReportConsultation::where('school', $teacherSchool)->count();
         $overview = [
             $teacherSchool => $schoolReportCount
         ];
 
-        // List Report Student - เฉพาะรายงานที่ status = false และเป็นของโรงเรียนของครู
         $studentReports = BehavioralReportReportConsultation::where('school', $teacherSchool)
-            ->where('status', false) // เฉพาะรายงานที่รอตรวจสอบ
+            ->where('status', false) 
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function($report) {
                 return [
-                    'date' => $report->created_at->format('d/m/Y'), // วัน/เดือน/ปี
+                    'date' => $report->created_at->format('d/m/Y'),
                     'message' => $report->message
                 ];
             });
 
-        // School report data for chart - ข้อมูลรายเดือนของโรงเรียน
         $currentYear = date('Y');
         $schoolReportData = $this->getSchoolMonthlyData($teacherSchool, $currentYear);
 
@@ -57,11 +54,9 @@ class TeacherDashboardController extends Controller
         $page = (int) $request->get('page', 1);
         $perPage = 15;
         
-        // Get reports for teacher's school only
         $query = BehavioralReportReportConsultation::where('school', $teacherSchool)
                     ->orderBy('created_at', 'desc');
         
-        // Apply status filter
         if ($statusFilter && $statusFilter !== '') {
             if ($statusFilter === 'pending') {
                 $query->where('status', false);
@@ -73,11 +68,10 @@ class TeacherDashboardController extends Controller
         $totalCount = $query->count();
         $reports = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
         
-        // Transform reports for view
         $transformedReports = $reports->map(function($report) {
             return [
                 'id' => $report->id,
-                'date' => $report->created_at->format('d/m/Y'), // วัน/เดือน/ปี
+                'date' => $report->created_at->format('d/m/Y'), 
                 'message' => $report->message,
                 'status' => $report->status ? 'reviewed' : 'pending'
             ];
@@ -116,12 +110,11 @@ class TeacherDashboardController extends Controller
         try {
             $teacher = Auth::user();
             
-            // ตรวจสอบว่ารายงานนี้เป็นของโรงเรียนของครูหรือไม่
             $report = BehavioralReportReportConsultation::where('id', $id)
                 ->where('school', $teacher->school)
                 ->firstOrFail();
                 
-            $report->status = true; // Mark as reviewed
+            $report->status = true;
             $report->save();
             
             Log::info("Teacher {$teacher->name} updated report {$id} status to reviewed");
@@ -145,27 +138,24 @@ class TeacherDashboardController extends Controller
         try {
             $teacher = Auth::user();
             
-            // ตรวจสอบว่ารายงานนี้เป็นของโรงเรียนของครูหรือไม่
             $report = BehavioralReportReportConsultation::where('id', $id)
                 ->where('school', $teacher->school)
                 ->firstOrFail();
             
-            // Decode images if they exist
             $images = [];
             if ($report->image && !empty($report->image)) {
                 $decodedImages = json_decode($report->image, true);
                 if (is_array($decodedImages) && count($decodedImages) > 0) {
-                    // Filter out empty values
                     $images = array_filter($decodedImages, function($img) {
                         return !empty($img) && $img !== null;
                     });
-                    $images = array_values($images); // Reset array indices
+                    $images = array_values($images);
                 }
             }
             
             return response()->json([
                 'id' => $report->id,
-                'date' => $report->created_at->format('d/m/Y'), // วัน/เดือน/ปี
+                'date' => $report->created_at->format('d/m/Y'),
                 'message' => $report->message,
                 'images' => $images,
                 'audio' => $report->voice,
@@ -183,9 +173,6 @@ class TeacherDashboardController extends Controller
         }
     }
 
-    /**
-     * ✅ รับข้อมูลรายงานของโรงเรียนตามปี - สำหรับ Year Selector (แก้ไขแล้ว)
-     */
     public function getSchoolDataByYear(Request $request, $year = null)
     {
         try {
@@ -196,7 +183,6 @@ class TeacherDashboardController extends Controller
                 $year = $request->get('year', date('Y'));
             }
             
-            // Validate year range
             $year = (int) $year;
             if ($year < 2025 || $year > 2035) {
                 return response()->json([
@@ -235,9 +221,7 @@ class TeacherDashboardController extends Controller
         }
     }
 
-    /**
-     * ✅ รับข้อมูลรายงานของโรงเรียนแยกตามเดือน (ปรับปรุงแล้ว)
-     */
+
     private function getSchoolMonthlyData($school, $year = null)
     {
         if ($year === null) {
@@ -275,7 +259,6 @@ class TeacherDashboardController extends Controller
                 'year' => $year
             ]);
             
-            // Return empty data if query fails
             return array_fill(0, 12, 0);
         }
     }
@@ -286,8 +269,7 @@ class TeacherDashboardController extends Controller
             return 'Thailand';
         }
         
-        // You can implement reverse geocoding here if needed
-        // For now, return Thailand as default
+
         return 'Thailand';
     }
 }

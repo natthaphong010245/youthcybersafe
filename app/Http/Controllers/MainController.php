@@ -1,5 +1,4 @@
 <?php
-//app/Http/Controllers/MainController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -7,15 +6,11 @@ use Illuminate\Support\Facades\Auth;
 
 class MainController extends Controller
 {
-    /**
-     * Handle test login for approved users who are not researchers
-     * This method is called after successful login to redirect users to appropriate dashboard
-     */
+
     public function testLogin()
     {
         $user = Auth::user();
         
-        // ตรวจสอบว่าผู้ใช้ได้รับอนุมัติแล้ว
         if (!$user || !$user->isApproved()) {
             Auth::logout();
             return redirect()->route('login')->withErrors([
@@ -23,17 +18,14 @@ class MainController extends Controller
             ]);
         }
         
-        // ถ้าเป็น researcher ที่ได้รับอนุมัติ ให้ไปที่ researcher dashboard
         if ($user->canAccessDashboard()) {
             return redirect()->route('dashboard');
         }
         
-        // ถ้าเป็น teacher ที่ได้รับอนุมัติ ให้ไปที่ teacher dashboard  
         if ($user->isTeacher() && $user->isApproved()) {
             return redirect()->route('teacher.dashboard');
         }
         
-        // สำหรับผู้ใช้ทั่วไปอื่นๆ ที่ได้รับอนุมัติ
         return view('test_login', [
             'user' => $user
         ]);

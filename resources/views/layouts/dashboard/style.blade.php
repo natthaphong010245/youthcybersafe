@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/dashboard/style.blade.php --}}
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
 
@@ -778,7 +777,6 @@ body {
     font-size: 1.5rem;
 }
 
-/* Badge styles */
 .badge {
     padding: 6px 12px;
     border-radius: 6px;
@@ -786,7 +784,6 @@ body {
     font-weight: 500;
 }
 
-/* Modal improvements */
 .modal-xl {
     max-width: 1200px;
 }
@@ -812,7 +809,6 @@ body {
     padding: 20px 30px 30px;
 }
 
-/* Image gallery styles */
 .image-gallery {
     margin-bottom: 20px;
 }
@@ -838,7 +834,6 @@ body {
     margin-bottom: 15px;
 }
 
-/* Responsive adjustments */
 @media (max-width: 992px) {
     .modal-xl {
         max-width: 95%;
@@ -854,7 +849,6 @@ body {
     }
 }
 
-/* Additional utility classes */
 .text-truncate-custom {
     white-space: nowrap;
     overflow: hidden;
@@ -862,13 +856,11 @@ body {
     max-width: 200px;
 }
 
-/* Focus states */
 .btn:focus,
 .form-select:focus {
     box-shadow: 0 0 0 0.2rem rgba(98, 109, 247, 0.25);
 }
 
-/* Custom scrollbar for modal content */
 .modal-body::-webkit-scrollbar {
     width: 6px;
 }
@@ -887,17 +879,14 @@ body {
     background: #a8a8a8;
 }
 
-/* Hover effects for interactable elements */
 .table-hover tbody tr:hover {
     background-color: rgba(98, 109, 247, 0.05);
 }
 
-/* Status badge hover effects */
 .badge {
     transition: all 0.2s ease;
 }
 
-/* Image indicator improvements */
 .image-indicators {
     backdrop-filter: blur(4px);
     background: rgba(0, 0, 0, 0.2);
@@ -905,7 +894,6 @@ body {
     border-radius: 15px;
 }
 
-/* Button improvements */
 .btn {
     transition: all 0.2s ease;
     font-weight: 500;
@@ -919,12 +907,10 @@ body {
     transform: translateY(0);
 }
 
-/* Modal backdrop improvements */
 .modal-backdrop {
     backdrop-filter: blur(2px);
 }
 
-/* Enhanced focus indicators */
 .btn:focus-visible,
 .form-select:focus-visible,
 .page-link:focus-visible {
@@ -932,7 +918,6 @@ body {
     outline-offset: 2px;
 }
 
-/* Loading states */
 .btn.loading {
     pointer-events: none;
     opacity: 0.7;

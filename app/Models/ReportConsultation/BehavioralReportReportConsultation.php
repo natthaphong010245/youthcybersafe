@@ -1,10 +1,9 @@
 <?php
-// app/Models/ReportConsultation/BehavioralReportReportConsultation.php
 namespace App\Models\ReportConsultation;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Services\LocalFileService; // Changed from CloudinaryService to LocalFileService
+use App\Services\LocalFileService;
 use Illuminate\Support\Facades\Log;
 
 class BehavioralReportReportConsultation extends Model
@@ -63,14 +62,13 @@ class BehavioralReportReportConsultation extends Model
     public function saveVoiceRecording($audioData): array
     {
         try {
-            $fileService = new LocalFileService(); // Changed to LocalFileService
+            $fileService = new LocalFileService();
             $result = $fileService->uploadVoice($audioData, $this->id);
             
             Log::info('Voice upload result:', $result);
             
             if ($result['success']) {
-                // บันทึก URL เต็มแทนที่จะเป็นแค่ filename
-                $this->voice = $result['secure_url']; // Changed from filename to secure_url
+                $this->voice = $result['secure_url']; 
                 $this->save();
                 
                 return [
@@ -100,13 +98,12 @@ class BehavioralReportReportConsultation extends Model
     public function saveImages($photos): array
     {
         try {
-            $fileService = new LocalFileService(); // Changed to LocalFileService
+            $fileService = new LocalFileService();
             $result = $fileService->uploadMultipleImages($photos, $this->id);
             
             Log::info('Images upload result:', $result);
             
             if ($result['success_count'] > 0) {
-                // เก็บ URLs ใน database
                 $this->image = json_encode($result['urls'], JSON_UNESCAPED_SLASHES);
                 $this->save();
                 
@@ -156,12 +153,10 @@ class BehavioralReportReportConsultation extends Model
             return null;
         }
         
-        // ถ้าเป็น URL เต็มแล้ว ให้ return ตรงๆ (ข้อมูลใหม่)
         if (filter_var($this->voice, FILTER_VALIDATE_URL)) {
             return $this->voice;
         }
         
-        // สำหรับข้อมูลเก่าที่เป็นแค่ filename (backward compatibility)
         return asset("uploads/behavioral_report/voice/{$this->id}/{$this->voice}");
     }
 

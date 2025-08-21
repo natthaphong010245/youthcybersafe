@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/BehavioralReportController.php - Emergency Fix
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -9,16 +8,7 @@ use App\Models\ReportConsultation\BehavioralReportReportConsultation;
 
 class BehavioralReportController extends Controller
 {
-    // ลบ dependency injection ชั่วคราว เพื่อหยุด error
-    public function __construct()
-    {
-        // Comment out dependency injection temporarily
-        // $this->fileService = $fileService;
-    }
-
-    /**
-     * Display the behavioral report form.
-     */
+  
     public function index()
     {
         return view('report&consultation.behavioral_report.behavioral_report');
@@ -34,7 +24,7 @@ class BehavioralReportController extends Controller
             'report_to' => 'required|in:teacher,researcher',
             'school' => 'nullable|required_if:report_to,teacher',
             'message' => 'required',
-            'photos.*' => 'nullable|image|max:10240', // 10MB max
+            'photos.*' => 'nullable|image|max:10240',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
         ]);
@@ -67,7 +57,7 @@ class BehavioralReportController extends Controller
                 }
             }
             
-            // Handle image uploads - ใช้ model method แทน service
+            // Handle image uploads
             if ($request->hasFile('photos')) {
                 Log::info('Processing images for report ID: ' . $report->id, [
                     'image_count' => count($request->file('photos'))

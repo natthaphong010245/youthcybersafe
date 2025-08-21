@@ -122,7 +122,7 @@ class DashboardController extends Controller
     {
         try {
             $report = BehavioralReportReportConsultation::findOrFail($id);
-            $report->status = true; // Mark as reviewed
+            $report->status = true;
             $report->save();
             
             return response()->json([
@@ -142,16 +142,14 @@ class DashboardController extends Controller
         try {
             $report = BehavioralReportReportConsultation::findOrFail($id);
             
-            // Decode images if they exist
             $images = [];
             if ($report->image && !empty($report->image)) {
                 $decodedImages = json_decode($report->image, true);
                 if (is_array($decodedImages) && count($decodedImages) > 0) {
-                    // Filter out empty values
                     $images = array_filter($decodedImages, function($img) {
                         return !empty($img) && $img !== null;
                     });
-                    $images = array_values($images); // Reset array indices
+                    $images = array_values($images); 
                 }
             }
             
@@ -159,7 +157,7 @@ class DashboardController extends Controller
                 'id' => $report->id,
                 'date' => $report->created_at->format('m/d/Y'),
                 'message' => $report->message,
-                'images' => $images, // Will be empty array if no images
+                'images' => $images,
                 'audio' => $report->voice,
                 'latitude' => $report->latitude,
                 'longitude' => $report->longitude,
@@ -178,18 +176,14 @@ class DashboardController extends Controller
         if (!$latitude || !$longitude) {
             return 'Thailand';
         }
-        
-        // You can implement reverse geocoding here if needed
-        // For now, return Thailand as default
+
         return 'Thailand';
     }
 
     private function getBehavioralSchoolsData()
     {
-        // Get researcher count
         $researcherCount = BehavioralReportReportConsultation::where('who', 'researcher')->count();
         
-        // Get school counts
         $schoolCounts = [
             'โรงเรียนวาวีวิทยาคม' => BehavioralReportReportConsultation::where('school', 'โรงเรียนวาวีวิทยาคม')->count(),
             'โรงเรียนสหศาสตร์ศึกษา' => BehavioralReportReportConsultation::where('school', 'โรงเรียนสหศาสตร์ศึกษา')->count(),
@@ -208,7 +202,7 @@ class DashboardController extends Controller
 
     private function getBehavioralOverviewData()
     {
-        return $this->getBehavioralSchoolsData(); // Same data for overview
+        return $this->getBehavioralSchoolsData();
     }
 
     public function safeArea()

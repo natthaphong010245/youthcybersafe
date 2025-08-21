@@ -146,7 +146,7 @@
             <div class="flex items-center justify-center">
                 <div class="relative">
                     <h1 class="text-2xl font-bold text-[#3E36AE] inline-block">ขอคำปรึกษาจากหน่วยงาน</h1>
-                    <p class="text-sm text-[#3E36AE] absolute -bottom-5 right-0">ประเทศไทย</p>
+                    <p class="text-sm text-[#3E36AE] absolute -bottom-5 right-0">จังหวัดเชียงราย</p>
                 </div>
             </div>
         </div>
