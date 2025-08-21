@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/dashboard.blade.php --}}
 <!DOCTYPE html>
 <html lang="th">
 <head>

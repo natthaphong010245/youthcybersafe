@@ -1,4 +1,3 @@
-{{-- resources/views/dashboard/safe-area.blade.php --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Safe Area - Youth Cybersafe')

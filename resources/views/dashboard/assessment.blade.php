@@ -1,4 +1,3 @@
-{{-- resources/views/dashboard/assessment.blade.php --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Assessment - Youth Cybersafe')

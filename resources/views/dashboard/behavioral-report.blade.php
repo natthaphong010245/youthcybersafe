@@ -1,4 +1,3 @@
-{{-- resources/views/dashboard/behavioral-report.blade.php --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Behavioral Report - Youth Cybersafe')
