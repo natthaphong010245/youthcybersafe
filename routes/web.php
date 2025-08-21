@@ -344,40 +344,6 @@ Route::prefix('api')->name('api.')->group(function () {
     });
 });
 
-// Debug Routes (Development Only)
-if (app()->environment('local')) {
-    Route::get('/check-view-structure', function() {
-        $viewPath = resource_path('views');
-        $expectedPath = $viewPath . '/assessment/cyberbullying/person_action/form';
-        
-        return response()->json([
-            'base_views_path' => $viewPath,
-            'expected_directory' => $expectedPath,
-            'directory_exists' => is_dir($expectedPath),
-            'directory_readable' => is_readable($expectedPath),
-            'expected_file' => $expectedPath . '/result.blade.php',
-            'file_exists' => file_exists($expectedPath . '/result.blade.php'),
-        ]);
-    });
-
-    Route::get('/check-view-files', function() {
-        $viewPath = resource_path('views');
-        $allFiles = [];
-        
-        $directory = new RecursiveDirectoryIterator($viewPath);
-        $iterator = new RecursiveIteratorIterator($directory);
-        
-        foreach ($iterator as $info) {
-            if ($info->isFile() && $info->getExtension() === 'php') {
-                $allFiles[] = str_replace($viewPath . '/', '', $info->getPathname());
-            }
-        }
-        
-        return response()->json([
-            'view_path' => $viewPath,
-            'all_blade_files' => $allFiles
-        ]);
-    });
 
     
 }
