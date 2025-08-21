@@ -35,7 +35,7 @@
                     $certifications = [
                         ['image' => 'วช2.png', 'alt' => 'Certification 1'],
                         ['image' => 'MFU.png', 'alt' => 'Certification 2'],
-                        ['image' => 'สาธาmfu.png', 'alt' => 'Certification 3'],
+                        ['image' => 'shs_mfu.png', 'alt' => 'Certification 3'],
                         ['image' => 'excellence.png', 'alt' => 'Certification 4'],
                         ['image' => 'ตรากระทรวงสาธารณสุขใหม่.png', 'alt' => 'Certification 5'],
                     ];
