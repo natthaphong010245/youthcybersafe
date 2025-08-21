@@ -343,7 +343,3 @@ Route::prefix('api')->name('api.')->group(function () {
         });
     });
 });
-
-
-    
-}
