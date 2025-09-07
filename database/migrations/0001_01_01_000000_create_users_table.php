@@ -9,13 +9,18 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('role')->default('user');
+            $table->boolean('role_user')->default(0);
+            $table->string('school')->nullable();
             $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('lastname');
+            $table->string('username')->unique();
             $table->string('password');
-            $table->string('role')->default('user'); // Make sure this exists
-            $table->rememberToken();
             $table->timestamps();
+            
+            // เพิ่ม index
+            $table->index(['role', 'role_user']);
+            $table->index('role_user');
         });
     }
 
